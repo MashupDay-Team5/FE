@@ -1,0 +1,136 @@
+/* Figma Typography를 사용하는 Tailwind 유틸리티 */
+@utility typography-title-bold {
+  font-family: var(--font-family-base);
+  font-size: var(--typography-title-bold-size);
+  font-weight: var(--typography-title-bold-weight);
+  line-height: var(--typography-title-bold-line-height);
+  letter-spacing: var(--typography-title-bold-letter-spacing);
+}
+
+@utility typography-heading-bold {
+  font-family: var(--font-family-base);
+  font-size: var(--typography-heading-bold-size);
+  font-weight: var(--typography-heading-bold-weight);
+  line-height: var(--typography-heading-bold-line-height);
+  letter-spacing: var(--typography-heading-bold-letter-spacing);
+}
+
+@utility typography-headline-bold {
+  font-family: var(--font-family-base);
+  font-size: var(--typography-headline-bold-size);
+  font-weight: var(--typography-headline-bold-weight);
+  line-height: var(--typography-headline-bold-line-height);
+  letter-spacing: var(--typography-headline-bold-letter-spacing);
+}
+
+@utility typography-headline-medium {
+  font-family: var(--font-family-base);
+  font-size: var(--typography-headline-medium-size);
+  font-weight: var(--typography-headline-medium-weight);
+  line-height: var(--typography-headline-medium-line-height);
+  letter-spacing: var(--typography-headline-medium-letter-spacing);
+}
+
+@utility typography-body-bold {
+  font-family: var(--font-family-base);
+  font-size: var(--typography-body-bold-size);
+  font-weight: var(--typography-body-bold-weight);
+  line-height: var(--typography-body-bold-line-height);
+  letter-spacing: var(--typography-body-bold-letter-spacing);
+}
+
+@utility typography-body-medium {
+  font-family: var(--font-family-base);
+  font-size: var(--typography-body-medium-size);
+  font-weight: var(--typography-body-medium-weight);
+  line-height: var(--typography-body-medium-line-height);
+  letter-spacing: var(--typography-body-medium-letter-spacing);
+}
+
+@utility typography-body-regular {
+  font-family: var(--font-family-base);
+  font-size: var(--typography-body-regular-size);
+  font-weight: var(--typography-body-regular-weight);
+  line-height: var(--typography-body-regular-line-height);
+  letter-spacing: var(--typography-body-regular-letter-spacing);
+}
+
+@utility typography-label-large-bold {
+  font-family: var(--font-family-base);
+  font-size: var(--typography-label-large-bold-size);
+  font-weight: var(--typography-label-large-bold-weight);
+  line-height: var(--typography-label-large-bold-line-height);
+  letter-spacing: var(--typography-label-large-bold-letter-spacing);
+}
+
+@utility typography-label-large-medium {
+  font-family: var(--font-family-base);
+  font-size: var(--typography-label-large-medium-size);
+  font-weight: var(--typography-label-large-medium-weight);
+  line-height: var(--typography-label-large-medium-line-height);
+  letter-spacing: var(--typography-label-large-medium-letter-spacing);
+}
+
+@utility typography-label-large-regular {
+  font-family: var(--font-family-base);
+  font-size: var(--typography-label-large-regular-size);
+  font-weight: var(--typography-label-large-regular-weight);
+  line-height: var(--typography-label-large-regular-line-height);
+  letter-spacing: var(--typography-label-large-regular-letter-spacing);
+}
+
+@utility typography-label-small-bold {
+  font-family: var(--font-family-base);
+  font-size: var(--typography-label-small-bold-size);
+  font-weight: var(--typography-label-small-bold-weight);
+  line-height: var(--typography-label-small-bold-line-height);
+  letter-spacing: var(--typography-label-small-bold-letter-spacing);
+}
+
+@utility typography-label-small-medium {
+  font-family: var(--font-family-base);
+  font-size: var(--typography-label-small-medium-size);
+  font-weight: var(--typography-label-small-medium-weight);
+  line-height: var(--typography-label-small-medium-line-height);
+  letter-spacing: var(--typography-label-small-medium-letter-spacing);
+}
+
+@utility typography-label-small-regular {
+  font-family: var(--font-family-base);
+  font-size: var(--typography-label-small-regular-size);
+  font-weight: var(--typography-label-small-regular-weight);
+  line-height: var(--typography-label-small-regular-line-height);
+  letter-spacing: var(--typography-label-small-regular-letter-spacing);
+}
+
+@utility typography-caption-medium {
+  font-family: var(--font-family-base);
+  font-size: var(--typography-caption-medium-size);
+  font-weight: var(--typography-caption-medium-weight);
+  line-height: var(--typography-caption-medium-line-height);
+  letter-spacing: var(--typography-caption-medium-letter-spacing);
+}
+
+@utility typography-caption-regular {
+  font-family: var(--font-family-base);
+  font-size: var(--typography-caption-regular-size);
+  font-weight: var(--typography-caption-regular-weight);
+  line-height: var(--typography-caption-regular-line-height);
+  letter-spacing: var(--typography-caption-regular-letter-spacing);
+}
+
+@utility typography-micro-medium {
+  font-family: var(--font-family-base);
+  font-size: var(--typography-micro-medium-size);
+  font-weight: var(--typography-micro-medium-weight);
+  line-height: var(--typography-micro-medium-line-height);
+  letter-spacing: var(--typography-micro-medium-letter-spacing);
+}
+
+@utility typography-micro-regular {
+  font-family: var(--font-family-base);
+  font-size: var(--typography-micro-regular-size);
+  font-weight: var(--typography-micro-regular-weight);
+  line-height: var(--typography-micro-regular-line-height);
+  letter-spacing: var(--typography-micro-regular-letter-spacing);
+}

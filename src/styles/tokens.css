@@ -1,0 +1,295 @@
+@theme static {
+  /* primitive color - 디자인 시스템 상 기준 팔레트 */
+  --color-violet-50: #f1edfc;
+  --color-violet-100: #e1d7fc;
+  --color-violet-200: #bca2ef;
+  --color-violet-300: #9871e6;
+  --color-violet-400: #7e4fdb;
+  --color-violet-500: #5307b0;
+  --color-violet-600: #4c06a0;
+  --color-violet-700: #3b057d;
+  --color-violet-800: #2e0461;
+  --color-violet-900: #23034a;
+
+  --color-gray-0: #ffffff;
+  --color-gray-50: #f0f0f0;
+  --color-gray-100: #e2e1e5;
+  --color-gray-200: #c8c7c9;
+  --color-gray-300: #acabb0;
+  --color-gray-400: #9f9ea1;
+  --color-gray-500: #87868a;
+  --color-gray-600: #7b7a7e;
+  --color-gray-700: #605f62;
+  --color-gray-800: #454447;
+  --color-gray-900: #2d2c2e;
+  --color-gray-950: #121212;
+
+  --color-red-50: #fff7f8;
+  --color-red-100: #ffdbe1;
+  --color-red-200: #fdb1b1;
+  --color-red-300: #f88383;
+  --color-red-400: #eb5353;
+  --color-red-500: #dc0000;
+  --color-red-600: #c80000;
+  --color-red-700: #9c0000;
+  --color-red-800: #790000;
+  --color-red-900: #5c0000;
+
+  --color-mint-50: #edfcfc;
+  --color-mint-100: #c7f6f6;
+  --color-mint-200: #b0f7f6;
+  --color-mint-300: #85ecec;
+  --color-mint-400: #6de9e9;
+  --color-mint-500: #49e3e3;
+  --color-mint-600: #42cfcf;
+  --color-mint-700: #06b6bd;
+  --color-mint-800: #208d8d;
+  --color-mint-900: #1f5f5f;
+
+  --color-blue-50: #eff6ff;
+  --color-blue-100: #b0d5ff;
+  --color-blue-200: #8ac1ff;
+  --color-blue-300: #54a5fe;
+  --color-blue-400: #3b95fc;
+  --color-blue-500: #0078fe;
+  --color-blue-600: #0051e6;
+  --color-blue-700: #0055b4;
+  --color-blue-800: #00428c;
+  --color-blue-900: #00326b;
+
+  --color-yellow-50: #fffdf1;
+  --color-yellow-100: #fff9c3;
+  --color-yellow-200: #ffe991;
+  --color-yellow-300: #fddd6b;
+  --color-yellow-400: #fdd546;
+  --color-yellow-500: #f8c732;
+  --color-yellow-600: #b49132;
+  --color-yellow-700: #8b7027;
+  --color-yellow-800: #6a561d;
+  --color-yellow-900: #46370d;
+
+  --color-orange-50: #fff1e8;
+  --color-orange-100: #fdd3b7;
+  --color-orange-200: #fdbe94;
+  --color-orange-300: #fca063;
+  --color-orange-400: #fb8d45;
+  --color-orange-500: #fa7116;
+  --color-orange-600: #f35f0b;
+  --color-orange-700: #db5509;
+  --color-orange-800: #9d460c;
+  --color-orange-900: #692f09;
+
+  /* Semantic Color - 텍스트 */
+  --color-text-primary: var(--color-gray-900);
+  --color-text-secondary: var(--color-gray-600);
+  --color-text-strong: var(--color-gray-950);
+  --color-text-tertiary: var(--color-gray-400);
+  --color-text-brand: var(--color-violet-500);
+  --color-text-inverse: var(--color-gray-0);
+  --color-text-disabled: var(--color-gray-300);
+
+  /* Semantic Color - 테두리 */
+  --color-border-neutral: var(--color-gray-100);
+  --color-border-neutral-strong: var(--color-gray-200);
+  --color-border-brand: var(--color-violet-300);
+  --color-border-weak: var(--color-gray-50);
+
+  /* Semantic Color - 정적 배경 */
+  --color-surface-default: var(--color-gray-0);
+  --color-surface-opacity: rgb(255 255 255 / 80%);
+  --color-surface-weak: var(--color-gray-50);
+  --color-surface-subtle: var(--color-gray-100);
+  --color-surface-brand: var(--color-violet-100);
+  --color-surface-brand-weak: var(--color-violet-50);
+  --color-surface-accent: var(--color-yellow-50);
+
+  /* Semantic Color - 상호작용 상태 */
+  --color-interaction-brand: var(--color-violet-500);
+  --color-interaction-brand-hover: var(--color-violet-600);
+  --color-interaction-brand-pressed: var(--color-violet-700);
+  --color-interaction-neutral: var(--color-gray-600);
+  --color-interaction-neutral-hover: var(--color-gray-700);
+  --color-interaction-neutral-pressed: var(--color-gray-800);
+  --color-interaction-neutral-inverse: var(--color-gray-0);
+  --color-interaction-neutral-inverse-hover: var(--color-violet-50);
+  --color-interaction-neutral-inverse-pressed: var(--color-violet-100);
+  --color-interaction-disabled: var(--color-gray-500);
+
+  /* Semantic Color - 아이콘 */
+  --color-icon-neutral: var(--color-gray-800);
+  --color-icon-neutral-weak: var(--color-gray-500);
+  --color-icon-brand: var(--color-violet-500);
+  --color-icon-brand-weak: var(--color-violet-300);
+  --color-icon-inverse: var(--color-gray-50);
+  --color-icon-disabled: var(--color-gray-300);
+
+  /* Semantic Color - 상태, 강조 색상 */
+  --color-accent-foreground-orange: var(--color-orange-500);
+  --color-accent-foreground-red: var(--color-red-500);
+  --color-accent-foreground-blue: var(--color-blue-400);
+  --color-accent-foreground-green: var(--color-mint-500);
+  --color-accent-foreground-yellow: var(--color-yellow-500);
+  --color-accent-background-red: var(--color-red-100);
+  --color-accent-background-red-inverse: var(--color-red-500);
+  --color-accent-background-blue: var(--color-blue-100);
+  --color-accent-background-blue-inverse: var(--color-blue-400);
+  --color-accent-background-green: var(--color-mint-500);
+  --color-accent-background-yellow: var(--color-yellow-50);
+  --color-accent-background-yellow-inverse: var(--color-yellow-400);
+  --color-accent-background-orange: var(--color-orange-50);
+  --color-accent-background-orange-inverse: var(--color-orange-500);
+
+  /* Primitive Typography - 글꼴과 굵기 */
+  --font-family-base: Pretendard, sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  /* Primitive Typography - 글자 크기 */
+  --font-size-300: 10px;
+  --font-size-350: 11px;
+  --font-size-400: 12px;
+  --font-size-450: 13px;
+  --font-size-500: 14px;
+  --font-size-600: 16px;
+  --font-size-650: 18px;
+  --font-size-700: 20px;
+  --font-size-750: 22px;
+  --font-size-800: 24px;
+  --font-size-900: 26px;
+  --font-size-1000: 28px;
+  --font-size-1200: 32px;
+  --font-size-1400: 40px;
+  --font-size-1700: 48px;
+
+  /* Primitive Typography - 행간 */
+  --line-height-300: 12px;
+  --line-height-350: 14px;
+  --line-height-400: 16px;
+  --line-height-450: 18px;
+  --line-height-500: 20px;
+  --line-height-600: 24px;
+  --line-height-700: 28px;
+  --line-height-750: 30px;
+  --line-height-800: 32px;
+  --line-height-900: 36px;
+  --line-height-1000: 40px;
+  --line-height-1200: 48px;
+  --line-height-1400: 56px;
+  --line-height-1700: 68px;
+
+  /* Primitive Typography - 자간 */
+  --letter-spacing-tight: -0.6px;
+  --letter-spacing-normal: -0.2px;
+  --letter-spacing-none: 0;
+
+  /* Typography - Title, Heading, Headline */
+  --typography-title-bold-size: var(--font-size-800);
+  --typography-title-bold-line-height: var(--line-height-900);
+  --typography-title-bold-weight: var(--font-weight-semibold);
+  --typography-title-bold-letter-spacing: var(--letter-spacing-normal);
+  --typography-heading-bold-size: var(--font-size-700);
+  --typography-heading-bold-line-height: var(--line-height-700);
+  --typography-heading-bold-weight: var(--font-weight-semibold);
+  --typography-heading-bold-letter-spacing: var(--letter-spacing-normal);
+  --typography-headline-bold-size: var(--font-size-650);
+  --typography-headline-bold-line-height: var(--line-height-700);
+  --typography-headline-bold-weight: var(--font-weight-semibold);
+  --typography-headline-bold-letter-spacing: var(--letter-spacing-normal);
+  --typography-headline-medium-size: var(--font-size-650);
+  --typography-headline-medium-line-height: var(--line-height-700);
+  --typography-headline-medium-weight: var(--font-weight-medium);
+  --typography-headline-medium-letter-spacing: var(--letter-spacing-normal);
+
+  /* Typography - Body */
+  --typography-body-bold-size: var(--font-size-600);
+  --typography-body-bold-line-height: var(--line-height-600);
+  --typography-body-bold-weight: var(--font-weight-semibold);
+  --typography-body-bold-letter-spacing: var(--letter-spacing-normal);
+  --typography-body-medium-size: var(--font-size-600);
+  --typography-body-medium-line-height: var(--line-height-600);
+  --typography-body-medium-weight: var(--font-weight-medium);
+  --typography-body-medium-letter-spacing: var(--letter-spacing-normal);
+  --typography-body-regular-size: var(--font-size-600);
+  --typography-body-regular-line-height: var(--line-height-600);
+  --typography-body-regular-weight: var(--font-weight-regular);
+  --typography-body-regular-letter-spacing: var(--letter-spacing-none);
+
+  /* Typography - Label L */
+  --typography-label-large-bold-size: var(--font-size-600);
+  --typography-label-large-bold-line-height: var(--line-height-500);
+  --typography-label-large-bold-weight: var(--font-weight-semibold);
+  --typography-label-large-bold-letter-spacing: var(--letter-spacing-normal);
+  --typography-label-large-medium-size: var(--font-size-600);
+  --typography-label-large-medium-line-height: var(--line-height-500);
+  --typography-label-large-medium-weight: var(--font-weight-medium);
+  --typography-label-large-medium-letter-spacing: var(--letter-spacing-normal);
+  --typography-label-large-regular-size: var(--font-size-600);
+  --typography-label-large-regular-line-height: var(--line-height-500);
+  --typography-label-large-regular-weight: var(--font-weight-regular);
+  --typography-label-large-regular-letter-spacing: var(--letter-spacing-normal);
+
+  /* Typography - Label S */
+  --typography-label-small-bold-size: var(--font-size-500);
+  --typography-label-small-bold-line-height: var(--line-height-500);
+  --typography-label-small-bold-weight: var(--font-weight-semibold);
+  --typography-label-small-bold-letter-spacing: var(--letter-spacing-none);
+  --typography-label-small-medium-size: var(--font-size-500);
+  --typography-label-small-medium-line-height: var(--line-height-500);
+  --typography-label-small-medium-weight: var(--font-weight-medium);
+  --typography-label-small-medium-letter-spacing: var(--letter-spacing-normal);
+  --typography-label-small-regular-size: var(--font-size-500);
+  --typography-label-small-regular-line-height: var(--line-height-450);
+  --typography-label-small-regular-weight: var(--font-weight-regular);
+  --typography-label-small-regular-letter-spacing: var(--letter-spacing-normal);
+
+  /* Typography - Caption */
+  --typography-caption-medium-size: var(--font-size-400);
+  --typography-caption-medium-line-height: var(--line-height-400);
+  --typography-caption-medium-weight: var(--font-weight-medium);
+  --typography-caption-medium-letter-spacing: var(--letter-spacing-none);
+  --typography-caption-regular-size: var(--font-size-400);
+  --typography-caption-regular-line-height: var(--line-height-400);
+  --typography-caption-regular-weight: var(--font-weight-regular);
+  --typography-caption-regular-letter-spacing: var(--letter-spacing-none);
+
+  /* Typography - Micro */
+  --typography-micro-medium-size: var(--font-size-300);
+  --typography-micro-medium-line-height: var(--line-height-300);
+  --typography-micro-medium-weight: var(--font-weight-medium);
+  --typography-micro-medium-letter-spacing: var(--letter-spacing-none);
+  --typography-micro-regular-size: var(--font-size-300);
+  --typography-micro-regular-line-height: var(--line-height-300);
+  --typography-micro-regular-weight: var(--font-weight-regular);
+  --typography-micro-regular-letter-spacing: var(--letter-spacing-none);
+
+
+  /* Primitive Measurement - 기준 단위 */
+  --measurement-unit-4: 4px;
+  --measurement-unit-8: 8px;
+  --measurement-unit-12: 12px;
+  --measurement-unit-16: 16px;
+  --measurement-unit-24: 24px;
+  --measurement-unit-32: 32px;
+  --measurement-unit-99: 99px;
+
+  /* Semantic Appearance - 컴포넌트 안쪽 여백 */
+  --spacing-padding-xxs: var(--measurement-unit-4);
+  --spacing-padding-xs: var(--measurement-unit-8);
+  --spacing-padding-s: var(--measurement-unit-12);
+  --spacing-padding-m: var(--measurement-unit-16);
+  --spacing-padding-l: var(--measurement-unit-24);
+
+  /* Semantic Appearance - 요소 사이 간격 */
+  --spacing-gap-xs: var(--measurement-unit-4);
+  --spacing-gap-s: var(--measurement-unit-8);
+  --spacing-gap-m: var(--measurement-unit-12);
+  --spacing-gap-l: var(--measurement-unit-16);
+
+  /* Semantic Appearance - 모서리 반경 */
+  --radius-s: var(--measurement-unit-4);
+  --radius-m: var(--measurement-unit-8);
+  --radius-l: var(--measurement-unit-16);
+  --radius-full: var(--measurement-unit-99);
+
+}
