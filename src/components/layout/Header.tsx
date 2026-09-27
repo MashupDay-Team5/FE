@@ -1,6 +1,7 @@
 import backIcon from '@/assets/icons/back.svg';
 import bookmarkIcon from '@/assets/icons/bookmark.svg';
 import dropIcon from '@/assets/icons/drop.svg';
+import homeIcon from '@/assets/icons/home.svg';
 import searchIcon from '@/assets/icons/search.svg';
 
 type MainHomeHeaderProps = {
@@ -19,11 +20,38 @@ type DetailSearchHeaderProps = {
   onSearchClick?: () => void;
 };
 
-// 이후 Detail 타입은 이 유니온에 추가한다.
-type HeaderProps = MainHomeHeaderProps | DetailSearchHeaderProps;
+type DetailHeaderProps = {
+  type: 'Detail';
+  title: string;
+  onBackClick?: () => void;
+  onHomeClick?: () => void;
+};
+
+type HeaderProps =
+  MainHomeHeaderProps | DetailSearchHeaderProps | DetailHeaderProps;
 
 const HEADER_BASE_CLASS =
   'mx-auto h-[52px] w-full max-w-[480px] items-center text-text-primary';
+
+type IconButtonProps = {
+  icon: string;
+  label: string;
+  onClick?: () => void;
+};
+
+// Figma IconButton/Default: 44×44 버튼 안에 24px 아이콘
+function IconButton({ icon, label, onClick }: IconButtonProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="flex size-11 items-center justify-center"
+    >
+      <img src={icon} alt="" width={24} height={24} />
+    </button>
+  );
+}
 
 type DropdownTitleProps = {
   name: string;
@@ -87,25 +115,31 @@ function DetailSearchHeader({
     <header
       className={`${HEADER_BASE_CLASS} grid grid-cols-[1fr_auto_1fr] bg-surface-default px-padding-xxs`}
     >
-      <button
-        type="button"
-        onClick={onBackClick}
-        aria-label="뒤로 가기"
-        className="flex size-11 items-center justify-center justify-self-start"
-      >
-        <img src={backIcon} alt="" width={24} height={24} />
-      </button>
+      <div className="justify-self-start">
+        <IconButton icon={backIcon} label="뒤로 가기" onClick={onBackClick} />
+      </div>
 
       <DropdownTitle name={categoryName} onClick={onTitleClick} />
 
-      <button
-        type="button"
-        onClick={onSearchClick}
-        aria-label="검색"
-        className="flex size-11 items-center justify-center justify-self-end"
-      >
-        <img src={searchIcon} alt="" width={24} height={24} />
-      </button>
+      <div className="justify-self-end">
+        <IconButton icon={searchIcon} label="검색" onClick={onSearchClick} />
+      </div>
+    </header>
+  );
+}
+
+function DetailHeader({ title, onBackClick, onHomeClick }: DetailHeaderProps) {
+  return (
+    // 오른쪽 영역은 비어 있지만 1fr 칸을 유지해 타이틀을 가운데에 둔다.
+    <header
+      className={`${HEADER_BASE_CLASS} grid grid-cols-[1fr_auto_1fr] bg-surface-default px-padding-xxs`}
+    >
+      <div className="flex justify-self-start">
+        <IconButton icon={backIcon} label="뒤로 가기" onClick={onBackClick} />
+        <IconButton icon={homeIcon} label="홈" onClick={onHomeClick} />
+      </div>
+
+      <h1 className="typography-body-bold">{title}</h1>
     </header>
   );
 }
@@ -113,6 +147,10 @@ function DetailSearchHeader({
 function Header(props: HeaderProps) {
   if (props.type === 'DetailSearch') {
     return <DetailSearchHeader {...props} />;
+  }
+
+  if (props.type === 'Detail') {
+    return <DetailHeader {...props} />;
   }
 
   return <MainHomeHeader {...props} />;
