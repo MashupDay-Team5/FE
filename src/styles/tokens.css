@@ -263,7 +263,6 @@
   --typography-micro-regular-weight: var(--font-weight-regular);
   --typography-micro-regular-letter-spacing: var(--letter-spacing-none);
 
-
   /* Primitive Measurement - 기준 단위 */
   --measurement-unit-4: 4px;
   --measurement-unit-8: 8px;
@@ -291,5 +290,4 @@
   --radius-m: var(--measurement-unit-8);
   --radius-l: var(--measurement-unit-16);
   --radius-full: var(--measurement-unit-99);
-
 }
