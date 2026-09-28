@@ -1,12 +1,7 @@
-import './App.css';
-import AppLayout from '@/components/layout/AppLayout';
+import AppRouter from '@/routes/AppRouter';
 
 function App() {
-  return (
-    <AppLayout>
-      <h1>Mashup Day Team5 - Modoodoc</h1>
-    </AppLayout>
-  );
+  return <AppRouter />;
 }
 
 export default App;
