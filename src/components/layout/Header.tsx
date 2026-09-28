@@ -55,11 +55,16 @@ function IconButton({ icon, label, onClick }: IconButtonProps) {
 
 type DropdownTitleProps = {
   name: string;
+  showMallLabel?: boolean;
   onClick?: () => void;
 };
 
-// 이름(볼드) + 할인몰(일반 굵기) + 드롭다운 아이콘
-function DropdownTitle({ name, onClick }: DropdownTitleProps) {
+// 이름과 드롭다운 아이콘을 표시하며, 홈에서만 할인몰 접미사를 추가한다.
+function DropdownTitle({
+  name,
+  showMallLabel = false,
+  onClick,
+}: DropdownTitleProps) {
   return (
     <button
       type="button"
@@ -68,7 +73,9 @@ function DropdownTitle({ name, onClick }: DropdownTitleProps) {
     >
       <span>
         <span className="typography-body-bold">{name}</span>
-        <span className="typography-body-regular">할인몰</span>
+        {showMallLabel && (
+          <span className="typography-body-regular">할인몰</span>
+        )}
       </span>
       <img src={dropIcon} alt="" width={16} height={16} />
     </button>
@@ -85,7 +92,7 @@ function MainHomeHeader({
     <header
       className={`${HEADER_BASE_CLASS} flex justify-between bg-surface-brand px-padding-m`}
     >
-      <DropdownTitle name={schoolName} onClick={onTitleClick} />
+      <DropdownTitle name={schoolName} showMallLabel onClick={onTitleClick} />
 
       <div className="flex items-center">
         <button
