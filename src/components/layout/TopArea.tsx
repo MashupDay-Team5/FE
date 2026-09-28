@@ -4,9 +4,7 @@ import type { PropsWithChildren } from 'react';
 function TopArea({ children }: PropsWithChildren) {
   return (
     <div className="-mx-[var(--spacing-padding-m)] sticky top-0 z-10">
-      <div
-        className="h-[env(safe-area-inset-top)] bg-[var(--color-surface-default)]"
-      />
+      <div className="h-[env(safe-area-inset-top)] bg-[var(--color-surface-default)]" />
       {children}
     </div>
   );

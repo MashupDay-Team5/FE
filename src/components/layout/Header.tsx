@@ -92,11 +92,7 @@ function MainHomeHeader({
     <header
       className={`${HEADER_BASE_CLASS} flex justify-between bg-surface-brand px-padding-m`}
     >
-      <DropdownTitle
-        name={schoolName}
-        showMallLabel
-        onClick={onTitleClick}
-      />
+      <DropdownTitle name={schoolName} showMallLabel onClick={onTitleClick} />
 
       <div className="flex items-center">
         <button
