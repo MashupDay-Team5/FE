@@ -71,14 +71,23 @@ function ListCard({
             </div>
           </div>
 
-          <button
-            type="button"
-            aria-label={`${hospitalName} 저장`}
-            onClick={onBookmarkClick}
-            className="absolute -top-padding-xs -right-padding-xs flex size-11 items-center justify-center"
-          >
-            <img src={bookmarkIcon} alt="" />
-          </button>
+          {onBookmarkClick ? (
+            <button
+              type="button"
+              aria-label={`${hospitalName} 저장`}
+              onClick={onBookmarkClick}
+              className="absolute -top-padding-xs -right-padding-xs flex size-11 items-center justify-center"
+            >
+              <img src={bookmarkIcon} alt="" />
+            </button>
+          ) : (
+            <span
+              aria-hidden="true"
+              className="absolute -top-padding-xs -right-padding-xs flex size-11 items-center justify-center"
+            >
+              <img src={bookmarkIcon} alt="" />
+            </span>
+          )}
         </div>
       </div>
 
