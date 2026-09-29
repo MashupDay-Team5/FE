@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
 import bookmarkIcon from '@/assets/icons/bookmark28.svg';
+import checkBadgeIcon from '@/assets/icons/checkBadgeIcon.svg';
 import discountIcon from '@/assets/icons/discount.svg';
 import ratingStarIcon from '@/assets/icons/ratingStar.svg';
+import Badge, { BadgeIcon } from '@/components/common/Badge';
 
 type ListCardProps = {
   hospitalName: string;
@@ -10,6 +12,8 @@ type ListCardProps = {
   address: string;
   priceCards: ReactNode;
   thumbnailUrl?: string;
+  visitCount?: number;
+  isReservable?: boolean;
   badges?: ReactNode;
   showDiscountIcon?: boolean;
   onBookmarkClick?: () => void;
@@ -22,14 +26,37 @@ function ListCard({
   address,
   priceCards,
   thumbnailUrl,
+  visitCount,
+  isReservable = false,
   badges,
   showDiscountIcon = true,
   onBookmarkClick,
 }: ListCardProps) {
+  const hasBadges = visitCount !== undefined || isReservable || badges;
+
   return (
     <article className="flex w-full flex-col gap-gap-l overflow-hidden border-b border-border-neutral bg-surface-default py-padding-l">
       <div className="flex flex-col gap-gap-s px-padding-m">
-        {badges && <div className="flex gap-gap-xs">{badges}</div>}
+        {hasBadges && (
+          <div className="flex gap-gap-xs">
+            {visitCount !== undefined && (
+              <Badge
+                size="S"
+                color="secondary"
+                shape="square"
+                icon={<BadgeIcon src={checkBadgeIcon} />}
+              >
+                한달 간 {visitCount.toLocaleString()}명 방문
+              </Badge>
+            )}
+            {isReservable && (
+              <Badge size="S" color="secondary" shape="square">
+                예약
+              </Badge>
+            )}
+            {badges}
+          </div>
+        )}
 
         <div className="relative flex items-start">
           <div className="flex min-w-0 items-center gap-gap-m pr-11">
