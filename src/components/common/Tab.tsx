@@ -1,6 +1,7 @@
 export type TabItem<T extends string = string> = {
   value: T;
   label: string;
+  resource?: number;
 };
 
 type TabProps<T extends string> = {
@@ -29,8 +30,20 @@ function Tab<T extends string>({
           isFillLayout ? 'w-full' : 'min-w-max gap-gap-l'
         }`}
       >
-        {items.map(({ value, label }) => {
+        {items.map(({ value, label, resource }) => {
           const isSelected = value === selectedValue;
+          const resourceLabel =
+            resource !== undefined && resource > 0
+              ? resource > 9
+                ? '9+'
+                : resource
+              : undefined;
+          const hasResource = resourceLabel !== undefined;
+          const labelClassName = hasResource
+            ? isSelected
+              ? 'typography-body-bold'
+              : 'typography-body-medium'
+            : 'typography-label-large-medium';
 
           return (
             <button
@@ -43,7 +56,18 @@ function Tab<T extends string>({
                 isFillLayout ? 'min-w-0 flex-1' : 'shrink-0'
               } ${isSelected ? 'text-text-brand' : 'text-text-disabled'}`}
             >
-              <span className="typography-label-large-medium">{label}</span>
+              <span
+                className={`flex items-center justify-center gap-gap-xs ${
+                  hasResource ? 'px-padding-m' : ''
+                }`}
+              >
+                <span className={labelClassName}>{label}</span>
+                {hasResource && (
+                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-surface-brand typography-label-small-medium text-text-brand">
+                    {resourceLabel}
+                  </span>
+                )}
+              </span>
               <span
                 aria-hidden="true"
                 className={`h-1 w-full ${
