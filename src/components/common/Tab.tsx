@@ -9,7 +9,6 @@ type TabProps<T extends string> = {
   selectedValue: T;
   onValueChange: (value: T) => void;
   layout?: 'hug' | 'fill';
-  ariaLabel?: string;
 };
 
 function Tab<T extends string>({
@@ -17,15 +16,12 @@ function Tab<T extends string>({
   selectedValue,
   onValueChange,
   layout = 'hug',
-  ariaLabel = '탭',
 }: TabProps<T>) {
   const isFillLayout = layout === 'fill';
 
   return (
     <div className="w-full overflow-x-auto">
       <div
-        role="tablist"
-        aria-label={ariaLabel}
         className={`flex border-b border-border-neutral ${
           isFillLayout ? 'w-full' : 'min-w-max gap-gap-l'
         }`}
@@ -49,8 +45,7 @@ function Tab<T extends string>({
             <button
               key={value}
               type="button"
-              role="tab"
-              aria-selected={isSelected}
+              aria-pressed={isSelected}
               onClick={() => onValueChange(value)}
               className={`flex h-[30px] flex-col justify-end gap-gap-xs whitespace-nowrap ${
                 isFillLayout ? 'min-w-0 flex-1' : 'shrink-0'
