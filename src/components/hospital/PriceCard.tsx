@@ -1,15 +1,29 @@
 import type { ReactNode } from 'react';
 
-type PriceCardProps = {
-  type: 'badge' | 'default' | 'free';
+type PriceCardBaseProps = {
   width?: 'fill' | 'fixed';
   procedureName: string;
   originalPrice: string;
-  discountedPrice?: string;
   originalPriceLabel?: string;
-  badge?: ReactNode;
   className?: string;
 };
+
+type PriceCardProps =
+  | (PriceCardBaseProps & {
+      type: 'badge';
+      discountedPrice: string;
+      badge: ReactNode;
+    })
+  | (PriceCardBaseProps & {
+      type: 'default';
+      discountedPrice: string;
+      badge?: never;
+    })
+  | (PriceCardBaseProps & {
+      type: 'free';
+      discountedPrice?: never;
+      badge?: never;
+    });
 
 function PriceCard({
   type,
@@ -21,8 +35,7 @@ function PriceCard({
   badge,
   className,
 }: PriceCardProps) {
-  const isFree = type === 'free';
-  const cardHeightClassName = isFree ? 'h-[84px]' : 'h-[120px]';
+  const cardHeightClassName = type === 'free' ? 'h-[84px]' : 'h-[120px]';
 
   return (
     <article
@@ -39,7 +52,7 @@ function PriceCard({
 
       <div
         className={`flex flex-1 p-padding-s ${
-          !isFree
+          type !== 'free'
             ? 'flex-col gap-gap-s'
             : 'items-center justify-between typography-label-small-regular text-text-tertiary'
         }`}
@@ -50,7 +63,7 @@ function PriceCard({
           </span>
           <span>{originalPrice}</span>
         </div>
-        {!isFree && (
+        {type !== 'free' && (
           <>
             <div className="border-t border-border-neutral" />
             <div className="flex items-center justify-between text-text-primary">
