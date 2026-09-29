@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import badgeDiscountIcon from '@/assets/icons/badgeDiscount.svg';
 
 type BadgeSize = 'L' | 'M' | 'S';
 type BadgeColor = 'keyword' | 'tertiary' | 'secondary' | 'sub';
@@ -9,7 +8,7 @@ type BadgeProps = {
   size: BadgeSize;
   color: BadgeColor;
   shape?: BadgeShape;
-  leadingIcon?: boolean;
+  icon?: ReactNode;
   children: ReactNode;
 };
 
@@ -40,15 +39,21 @@ function getColorClass(color: BadgeColor, shape: BadgeShape) {
   }
 }
 
-function Badge({
-  size,
-  color,
-  shape = 'pill',
-  leadingIcon = false,
-  children,
-}: BadgeProps) {
-  // keyword는 아이콘 없이 텍스트만 표시한다.
-  const showIcon = leadingIcon && color !== 'keyword';
+// SVG 모양만 mask로 쓰고 색은 텍스트 색(currentColor)을 따른다.
+export function BadgeIcon({ src }: { src: string }) {
+  return (
+    <span
+      aria-hidden
+      className="size-4 shrink-0 bg-current mask-contain mask-center mask-no-repeat"
+      style={{
+        maskImage: `url("${src}")`,
+        WebkitMaskImage: `url("${src}")`,
+      }}
+    />
+  );
+}
+
+function Badge({ size, color, shape = 'pill', icon, children }: BadgeProps) {
   // Figma 기준 S pill만 아이콘과 텍스트 사이 간격이 없다.
   const gapClass = size === 'S' && shape === 'pill' ? 'gap-0' : 'gap-gap-xs';
 
@@ -56,17 +61,7 @@ function Badge({
     <span
       className={`inline-flex shrink-0 items-center whitespace-nowrap ${gapClass} ${SIZE_CLASS[size]} ${SHAPE_CLASS[shape]} ${getColorClass(color, shape)}`}
     >
-      {showIcon && (
-        // SVG 모양만 mask로 쓰고 색은 텍스트 색(currentColor)을 따른다.
-        <span
-          aria-hidden
-          className="size-4 shrink-0 bg-current mask-contain mask-center mask-no-repeat"
-          style={{
-            maskImage: `url("${badgeDiscountIcon}")`,
-            WebkitMaskImage: `url("${badgeDiscountIcon}")`,
-          }}
-        />
-      )}
+      {icon}
       {children}
     </span>
   );
