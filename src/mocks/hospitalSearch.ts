@@ -9,6 +9,11 @@ export const hospitalSearchProcedures: HospitalSearchProcedure[] = [
   { id: 2, name: '스마일라식' },
   { id: 3, name: '렌즈삽입술' },
   { id: 4, name: '라식' },
+  { id: 5, name: '라섹' },
+  { id: 6, name: '투데이라섹' },
+  { id: 7, name: '스마일프로' },
+  { id: 8, name: '스마트라식' },
+  { id: 9, name: '퍼스널아이즈' },
 ];
 
 // 지역 및 하위 지역 목록 : API 연동 시 GET /api/regions 응답으로 교체

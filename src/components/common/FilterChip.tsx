@@ -21,7 +21,7 @@ function FilterChip({
       className={`inline-flex h-8 shrink-0 items-center justify-center rounded-full border px-[var(--spacing-padding-s)] ${
         selected
           ? 'border-border-brand bg-surface-brand-weak'
-          : 'border-border-neutral-strong bg-surface-weak'
+          : 'border-border-neutral bg-surface-weak'
       }`}
     >
       <span
