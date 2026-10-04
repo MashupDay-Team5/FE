@@ -29,7 +29,7 @@ function ListCard({
   visitCount,
   isReservable = false,
   badges,
-  showDiscountIcon = true,
+  showDiscountIcon = false,
   onBookmarkClick,
 }: ListCardProps) {
   const hasBadges = visitCount !== undefined || isReservable || badges;
