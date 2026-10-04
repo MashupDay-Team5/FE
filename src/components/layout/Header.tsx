@@ -1,8 +1,8 @@
 import backIcon from '@/assets/icons/back.svg';
 import bookmarkIcon from '@/assets/icons/bookmark.svg';
-import dropIcon from '@/assets/icons/drop.svg';
 import homeIcon from '@/assets/icons/home.svg';
 import searchIcon from '@/assets/icons/search.svg';
+import MenuTrigger from '@/components/common/MenuTrigger';
 
 type MainHomeHeaderProps = {
   type: 'MainHome';
@@ -66,19 +66,12 @@ function DropdownTitle({
   onClick,
 }: DropdownTitleProps) {
   return (
-    <button
-      type="button"
+    <MenuTrigger
+      label={name}
+      suffix={showMallLabel ? '할인몰' : undefined}
+      size="m"
       onClick={onClick}
-      className="flex h-11 items-center gap-gap-xs"
-    >
-      <span>
-        <span className="typography-body-bold">{name}</span>
-        {showMallLabel && (
-          <span className="typography-body-regular">할인몰</span>
-        )}
-      </span>
-      <img src={dropIcon} alt="" width={16} height={16} />
-    </button>
+    />
   );
 }
 
