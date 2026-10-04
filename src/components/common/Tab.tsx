@@ -39,7 +39,9 @@ function Tab<T extends string>({
             ? isSelected
               ? 'typography-body-bold'
               : 'typography-body-medium'
-            : 'typography-label-large-medium';
+            : isSelected
+              ? 'typography-label-large-bold'
+              : 'typography-label-large-medium';
 
           return (
             <button
