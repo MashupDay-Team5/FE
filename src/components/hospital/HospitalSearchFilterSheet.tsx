@@ -23,11 +23,13 @@ const filterCategoryTabs = [
 type FilterCategoryTabsProps = {
   selectedValue: HospitalSearchIntegratedFilterCategory;
   onValueChange: (value: HospitalSearchIntegratedFilterCategory) => void;
+  filterCounts: Partial<Record<HospitalSearchIntegratedFilterCategory, number>>;
 };
 
 function FilterCategoryTabs({
   selectedValue,
   onValueChange,
+  filterCounts,
 }: FilterCategoryTabsProps) {
   return (
     <div className="flex w-full items-center border-b border-border-neutral bg-surface-default pt-padding-xs">
@@ -46,7 +48,14 @@ function FilterCategoryTabs({
                 : 'text-text-disabled typography-body-medium'
             }`}
           >
-            <span>{label}</span>
+            <span className="flex items-center gap-gap-xs">
+              <span>{label}</span>
+              {filterCounts[value] ? (
+                <span className="flex size-5 items-center justify-center rounded-full bg-surface-brand typography-label-small-medium text-text-brand">
+                  {filterCounts[value]}
+                </span>
+              ) : null}
+            </span>
             <span
               aria-hidden="true"
               className={`h-1 w-full ${
@@ -395,6 +404,9 @@ function HospitalSearchFilterSheet({
       );
     }),
   ).length;
+  const filterCounts = {
+    region: selectedRegionSelections.length,
+  };
 
   if (!isRendered) {
     return null;
@@ -439,6 +451,7 @@ function HospitalSearchFilterSheet({
         <FilterCategoryTabs
           selectedValue={selectedCategory}
           onValueChange={setSelectedCategory}
+          filterCounts={filterCounts}
         />
         {selectedCategory === 'region' && (
           <FilterRegionPanel
