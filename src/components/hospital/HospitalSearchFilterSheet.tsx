@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import closeIcon from '@/assets/icons/close.svg';
 import closeSmallIcon from '@/assets/icons/close-small.svg';
 import CategoryPicker from '@/components/common/CategoryPicker';
@@ -198,11 +198,13 @@ function FilterSheetBottomCta({
 type HospitalSearchFilterSheetProps = {
   isOpen: boolean;
   onClose: () => void;
+  triggerRef: RefObject<HTMLButtonElement | null>;
 };
 
 function HospitalSearchFilterSheet({
   isOpen,
   onClose,
+  triggerRef,
 }: HospitalSearchFilterSheetProps) {
   const [selectedCategory, setSelectedCategory] =
     useState<HospitalSearchIntegratedFilterCategory>('region');
@@ -214,6 +216,15 @@ function HospitalSearchFilterSheet({
   >([]);
   const [isRendered, setIsRendered] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
+  const sheetRef = useRef<HTMLElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const hasBeenOpenedRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      hasBeenOpenedRef.current = true;
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     let animationFrameId: number | undefined;
@@ -254,18 +265,80 @@ function HospitalSearchFilterSheet({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();
+        return;
+      }
+
+      if (event.key !== 'Tab' || !sheetRef.current) {
+        return;
+      }
+
+      const focusableElements = Array.from(
+        sheetRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+
+      if (focusableElements.length === 0) {
+        return;
+      }
+
+      const firstFocusableElement = focusableElements[0];
+      const lastFocusableElement = focusableElements.at(-1);
+      const isFocusOutsideSheet = !sheetRef.current.contains(
+        document.activeElement,
+      );
+
+      if (
+        event.shiftKey &&
+        (isFocusOutsideSheet ||
+          document.activeElement === firstFocusableElement)
+      ) {
+        event.preventDefault();
+        lastFocusableElement?.focus();
+      } else if (
+        !event.shiftKey &&
+        (isFocusOutsideSheet || document.activeElement === lastFocusableElement)
+      ) {
+        event.preventDefault();
+        firstFocusableElement.focus();
       }
     };
 
     const previousOverflow = document.body.style.overflow;
+    const rootElement = document.getElementById('root');
+    const previousRootOverflow = rootElement?.style.overflow;
     document.body.style.overflow = 'hidden';
+    if (rootElement) {
+      rootElement.style.overflow = 'hidden';
+    }
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
       document.body.style.overflow = previousOverflow;
+      if (rootElement) {
+        rootElement.style.overflow = previousRootOverflow ?? '';
+      }
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isRendered, onClose]);
+
+  useEffect(() => {
+    if (isRendered && isOpen) {
+      const animationFrameId = requestAnimationFrame(() => {
+        closeButtonRef.current?.focus();
+      });
+
+      return () => cancelAnimationFrame(animationFrameId);
+    }
+
+    if (!isRendered && hasBeenOpenedRef.current) {
+      const previouslyFocusedElement = triggerRef.current;
+
+      if (previouslyFocusedElement?.isConnected) {
+        previouslyFocusedElement.focus();
+      }
+    }
+  }, [isOpen, isRendered, triggerRef]);
 
   const handleDistrictClick = (regionId: number, districtId: number) => {
     const selectedRegion = hospitalSearchRegions.find(
@@ -335,6 +408,7 @@ function HospitalSearchFilterSheet({
       onMouseDown={onClose}
     >
       <section
+        ref={sheetRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="hospital-search-filter-title"
@@ -353,6 +427,7 @@ function HospitalSearchFilterSheet({
             통합 필터
           </h2>
           <button
+            ref={closeButtonRef}
             type="button"
             aria-label="통합 필터 닫기"
             onClick={onClose}

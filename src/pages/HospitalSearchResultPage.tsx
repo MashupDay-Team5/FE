@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import FilterChip from '@/components/common/FilterChip';
 import MenuTrigger, {
   type MenuTriggerOption,
@@ -39,6 +39,7 @@ function HospitalSearchResultPage() {
   const [selectedSort, setSelectedSort] =
     useState<HospitalSort>('most-visited');
   const [isFilterSheetOpen, setFilterSheetOpen] = useState(false);
+  const filterTriggerRef = useRef<HTMLButtonElement>(null);
 
   const handleProcedureClick = (procedureId: number) => {
     setSelectedProcedureIds((currentIds) =>
@@ -81,6 +82,7 @@ function HospitalSearchResultPage() {
         </div>
         <div className="flex items-center justify-between bg-surface-default px-padding-m py-padding-s">
           <FilterChip
+            ref={filterTriggerRef}
             label="필터"
             selected={false}
             showIcon
@@ -99,6 +101,7 @@ function HospitalSearchResultPage() {
       <HospitalSearchFilterSheet
         isOpen={isFilterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
+        triggerRef={filterTriggerRef}
       />
     </>
   );
