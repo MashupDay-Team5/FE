@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import closeIcon from '@/assets/icons/close.svg';
 
+const SHEET_TRANSITION_DURATION = 250;
+
 type HospitalSearchFilterCategory = 'region' | 'price' | 'treatment';
 
 const filterCategoryTabs = [
@@ -60,9 +62,42 @@ function HospitalSearchFilterSheet({
 }: HospitalSearchFilterSheetProps) {
   const [selectedCategory, setSelectedCategory] =
     useState<HospitalSearchFilterCategory>('region');
+  const [isRendered, setIsRendered] = useState(isOpen);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) {
+    let animationFrameId: number | undefined;
+    let unmountTimeoutId: number | undefined;
+
+    if (isOpen) {
+      animationFrameId = requestAnimationFrame(() => {
+        setIsRendered(true);
+        animationFrameId = requestAnimationFrame(() => {
+          setIsVisible(true);
+        });
+      });
+    } else {
+      animationFrameId = requestAnimationFrame(() => {
+        setIsVisible(false);
+        unmountTimeoutId = window.setTimeout(() => {
+          setIsRendered(false);
+        }, SHEET_TRANSITION_DURATION);
+      });
+    }
+
+    return () => {
+      if (animationFrameId !== undefined) {
+        cancelAnimationFrame(animationFrameId);
+      }
+
+      if (unmountTimeoutId !== undefined) {
+        window.clearTimeout(unmountTimeoutId);
+      }
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isRendered) {
       return;
     }
 
@@ -80,22 +115,26 @@ function HospitalSearchFilterSheet({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isRendered, onClose]);
 
-  if (!isOpen) {
+  if (!isRendered) {
     return null;
   }
 
   return (
     <div
-      className="fixed inset-y-0 left-1/2 z-20 flex w-full max-w-[480px] -translate-x-1/2 flex-col items-center justify-end bg-black/70 pt-[140px]"
+      className={`fixed inset-y-0 left-1/2 z-20 flex w-full max-w-[480px] -translate-x-1/2 flex-col items-center justify-end bg-black/70 pt-[140px] transition-opacity duration-200 motion-reduce:transition-none ${
+        isVisible ? 'opacity-100 ease-out' : 'opacity-0 ease-in'
+      }`}
       onMouseDown={onClose}
     >
       <section
         role="dialog"
         aria-modal="true"
         aria-labelledby="hospital-search-filter-title"
-        className="flex h-[calc(100dvh-140px)] max-h-[672px] w-full max-w-[480px] shrink-0 flex-col overflow-hidden rounded-t-[var(--radius-l)] bg-surface-default"
+        className={`flex h-[calc(100dvh-140px)] max-h-[672px] w-full max-w-[480px] shrink-0 flex-col overflow-hidden rounded-t-[var(--radius-l)] bg-surface-default transition-transform duration-[250ms] motion-reduce:transition-none ${
+          isVisible ? 'translate-y-0 ease-out' : 'translate-y-full ease-in'
+        }`}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <header className="flex h-[60px] shrink-0 items-center justify-between bg-surface-default py-padding-xs pr-padding-s pl-padding-m">
