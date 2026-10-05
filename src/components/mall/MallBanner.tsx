@@ -20,7 +20,7 @@ function MallBanner({
       <button
         type="button"
         onClick={onSpecialSaleClick}
-        className="flex h-10 items-center justify-between rounded-[var(--radius-s)] bg-accent-background-orange px-padding-m"
+        className="flex h-[52px] w-full items-center justify-between rounded-[var(--radius-s)] bg-accent-background-orange px-padding-m py-padding-xxs"
       >
         <span className="typography-body-bold text-accent-foreground-orange">
           {specialSaleLabel}
