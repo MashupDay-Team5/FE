@@ -19,6 +19,7 @@ const SHEET_TRANSITION_DURATION = 400;
 const MAX_SELECTED_REGION_COUNT = 5;
 const PRICE_MINIMUM = 0;
 const PRICE_MAXIMUM = 1000;
+const PRICE_UNIT_IN_WON = 10000;
 const DEFAULT_PRICE_RANGE: RangeSliderValue = {
   min: PRICE_MINIMUM,
   max: PRICE_MAXIMUM,
@@ -481,19 +482,34 @@ function HospitalSearchFilterSheet({
   const selectedDistrictIds = selectedRegionSelections.map(
     ({ districtId }) => districtId,
   );
-  const hospitalCount = hospitalSearchItems.filter((hospital) =>
-    selectedRegionSelections.some(({ regionId, districtId }) => {
-      const region = hospitalSearchRegions.find(({ id }) => id === regionId);
-      const wholeDistrictId = region?.districts[0].id;
-
-      return (
-        hospital.regionId === regionId &&
-        (districtId === wholeDistrictId || hospital.districtId === districtId)
-      );
-    }),
-  ).length;
   const hasSelectedPriceRange =
     priceRange.min !== PRICE_MINIMUM || priceRange.max !== PRICE_MAXIMUM;
+  const hasSelectedFilter =
+    selectedRegionSelections.length > 0 || hasSelectedPriceRange;
+  const priceRangeInWon = {
+    min: priceRange.min * PRICE_UNIT_IN_WON,
+    max: priceRange.max * PRICE_UNIT_IN_WON,
+  };
+  const hospitalCount = hospitalSearchItems.filter((hospital) => {
+    const matchesRegion =
+      selectedRegionSelections.length === 0 ||
+      selectedRegionSelections.some(({ regionId, districtId }) => {
+        const region = hospitalSearchRegions.find(({ id }) => id === regionId);
+        const wholeDistrictId = region?.districts[0].id;
+
+        return (
+          hospital.regionId === regionId &&
+          (districtId === wholeDistrictId || hospital.districtId === districtId)
+        );
+      });
+    const matchesPrice = hospital.priceCards.some(
+      ({ priceAmount }) =>
+        priceAmount >= priceRangeInWon.min &&
+        priceAmount <= priceRangeInWon.max,
+    );
+
+    return matchesRegion && matchesPrice;
+  }).length;
   const filterCounts = {
     region: selectedRegionSelections.length,
     price: hasSelectedPriceRange ? 1 : undefined,
@@ -568,7 +584,7 @@ function HospitalSearchFilterSheet({
           />
         )}
         <FilterSheetBottomCta
-          hospitalCount={hospitalCount}
+          hospitalCount={hasSelectedFilter ? hospitalCount : 0}
           onReset={handleReset}
         />
       </section>

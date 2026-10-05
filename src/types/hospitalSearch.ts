@@ -51,6 +51,7 @@ export type HospitalSearchPriceCard =
       type: 'badge';
       procedureId: number;
       procedureName: string;
+      priceAmount: number;
       originalPrice: string;
       discountedPrice: string;
       badgeLabel: string;
@@ -59,6 +60,7 @@ export type HospitalSearchPriceCard =
       type: 'default';
       procedureId: number;
       procedureName: string;
+      priceAmount: number;
       originalPrice: string;
       discountedPrice: string;
     }
@@ -66,6 +68,7 @@ export type HospitalSearchPriceCard =
       type: 'free';
       procedureId: number;
       procedureName: string;
+      priceAmount: number;
       originalPrice: string;
       originalPriceLabel?: string;
     };
