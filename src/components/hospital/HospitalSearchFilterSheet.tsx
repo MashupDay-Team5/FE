@@ -497,7 +497,7 @@ function HospitalSearchFilterSheet({
 
   return (
     <div
-      className={`fixed inset-0 z-20 flex w-full flex-col items-center justify-end bg-black/70 pt-[140px] transition-opacity duration-200 motion-reduce:transition-none ${
+      className={`fixed inset-y-0 left-1/2 z-20 flex w-full max-w-[480px] -translate-x-1/2 flex-col items-center justify-end bg-black/70 pt-[140px] transition-opacity duration-200 motion-reduce:transition-none ${
         isVisible ? 'opacity-100 ease-out' : 'opacity-0 ease-in'
       }`}
       onMouseDown={onClose}
