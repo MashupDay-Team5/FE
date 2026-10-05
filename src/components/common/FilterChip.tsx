@@ -1,4 +1,4 @@
-import filterAlignIcon from '../../assets/icons/filterAlign.svg';
+import filterIcon from '../../assets/icons/filter.svg';
 
 type FilterChipProps = {
   label: string;
@@ -18,7 +18,7 @@ function FilterChip({
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`inline-flex h-8 shrink-0 items-center justify-center rounded-full border px-[var(--spacing-padding-s)] ${
+      className={`inline-flex h-8 shrink-0 items-center justify-center rounded-[var(--radius-full)] border px-[var(--spacing-padding-s)] ${
         selected
           ? 'border-border-brand bg-surface-brand-weak'
           : 'border-border-neutral bg-surface-weak'
@@ -29,7 +29,7 @@ function FilterChip({
           showIcon ? 'gap-gap-xs' : ''
         }`}
       >
-        {showIcon && <img src={filterAlignIcon} alt="" className="size-5" />}
+        {showIcon && <img src={filterIcon} alt="" className="size-5" />}
         <span
           className={
             selected
