@@ -561,10 +561,12 @@ function HospitalSearchFilterSheet({
             />
           )}
         </div>
-        <FilterSelectedRegionList
-          selections={selectedRegionSelections}
-          onRemove={handleDistrictClick}
-        />
+        {selectedCategory === 'region' && (
+          <FilterSelectedRegionList
+            selections={selectedRegionSelections}
+            onRemove={handleDistrictClick}
+          />
+        )}
         <FilterSheetBottomCta
           hospitalCount={hospitalCount}
           onReset={handleReset}
