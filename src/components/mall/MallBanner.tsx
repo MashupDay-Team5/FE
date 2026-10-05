@@ -12,7 +12,7 @@ function MallBanner({
 }: MallBannerProps) {
   return (
     <section className="flex flex-col gap-gap-m">
-      <div className="-mx-padding-m aspect-[375/232] bg-surface-weak">
+      <div className="-mx-padding-m h-[232px] bg-surface-weak">
         {imageUrl && (
           <img src={imageUrl} alt="" className="size-full object-cover" />
         )}
