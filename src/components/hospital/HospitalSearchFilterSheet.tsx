@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import closeIcon from '@/assets/icons/close.svg';
 import closeSmallIcon from '@/assets/icons/close-small.svg';
+import resetIcon from '@/assets/icons/resetIcon.svg';
 import CategoryPicker from '@/components/common/CategoryPicker';
 import RangeSlider, {
   type RangeSliderValue,
@@ -138,11 +139,13 @@ function FilterPricePanel({
   const formatPrice = (price: number) => price.toLocaleString();
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-surface-default px-padding-m pt-padding-l">
-      <h3 className="typography-label-large-medium text-text-secondary">
-        예산 범위
-      </h3>
-      <div className="mt-padding-l">
+    <div className="flex min-h-0 flex-1 flex-col bg-surface-default">
+      <div className="flex items-center px-padding-m py-padding-l">
+        <h3 className="typography-label-large-medium text-text-secondary">
+          예산 범위
+        </h3>
+      </div>
+      <div className="px-padding-l">
         <RangeSlider
           min={PRICE_MINIMUM}
           max={PRICE_MAXIMUM}
@@ -153,41 +156,46 @@ function FilterPricePanel({
           ariaLabel="예산 범위"
         />
       </div>
-      <dl className="mt-padding-s flex flex-col gap-y-padding-m">
-        <div className="flex items-center gap-gap-s">
-          <dt className="typography-label-large-medium text-text-secondary">
-            최소
-          </dt>
-          <dd className="flex items-baseline gap-gap-xs">
-            <strong className="typography-headline-bold text-text-primary">
-              {formatPrice(priceRange.min)}만원
-            </strong>
-            <span className="typography-label-large-medium text-text-secondary">
-              부터
-            </span>
-          </dd>
+      <div className="mt-[32px] flex flex-col px-padding-m">
+        <dl className="flex flex-col gap-y-padding-l">
+          <div className="flex h-9 items-center gap-gap-l">
+            <dt className="typography-label-large-regular text-text-secondary">
+              최소
+            </dt>
+            <dd className="flex items-center gap-gap-s">
+              <strong className="typography-title-bold text-text-primary">
+                {formatPrice(priceRange.min)}만원
+              </strong>
+              <span className="typography-body-medium text-text-secondary">
+                부터
+              </span>
+            </dd>
+          </div>
+          <div className="flex h-9 items-center gap-gap-l">
+            <dt className="typography-label-large-regular text-text-secondary">
+              최대
+            </dt>
+            <dd className="flex items-center gap-gap-s">
+              <strong className="typography-title-bold text-text-primary">
+                {formatPrice(priceRange.max)}만원
+              </strong>
+              <span className="typography-body-medium text-text-secondary">
+                까지
+              </span>
+            </dd>
+          </div>
+        </dl>
+        <div className="mt-padding-s flex h-11 items-center justify-end">
+          <button
+            type="button"
+            onClick={onPriceReset}
+            className="flex items-center gap-gap-xs typography-label-small-medium text-text-secondary"
+          >
+            가격 초기화
+            <img src={resetIcon} alt="" width={20} height={20} />
+          </button>
         </div>
-        <div className="flex items-center gap-gap-s">
-          <dt className="typography-label-large-medium text-text-secondary">
-            최대
-          </dt>
-          <dd className="flex items-baseline gap-gap-xs">
-            <strong className="typography-headline-bold text-text-primary">
-              {formatPrice(priceRange.max)}만원
-            </strong>
-            <span className="typography-label-large-medium text-text-secondary">
-              까지
-            </span>
-          </dd>
-        </div>
-      </dl>
-      <button
-        type="button"
-        onClick={onPriceReset}
-        className="mt-padding-l self-end typography-label-large-medium text-text-secondary"
-      >
-        가격 초기화
-      </button>
+      </div>
     </div>
   );
 }
