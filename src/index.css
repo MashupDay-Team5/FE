@@ -4,3 +4,19 @@
 @import 'pretendard/dist/web/static/Pretendard-SemiBold.css';
 @import './styles/tokens.css';
 @import './styles/typography.css';
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+}
+
+#root {
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior-y: none;
+}
