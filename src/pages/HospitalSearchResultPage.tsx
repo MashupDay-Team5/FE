@@ -10,10 +10,10 @@ import { hospitalSearchProcedures } from '@/mocks/hospitalSearch';
 import type { HospitalSearchTab } from '@/types/hospitalSearch';
 
 const hospitalSearchTabItems: TabItem<HospitalSearchTab>[] = [
-  { value: 'integrated', label: '통합' },
+  { value: 'integrated', label: '통합', disabled: true },
   { value: 'hospital', label: '병원' },
-  { value: 'consultation', label: '의료상담' },
-  { value: 'blog', label: '블로그' },
+  { value: 'consultation', label: '의료상담', disabled: true },
+  { value: 'blog', label: '블로그', disabled: true },
 ];
 
 type HospitalSort =

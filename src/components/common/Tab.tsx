@@ -2,6 +2,7 @@ export type TabItem<T extends string = string> = {
   value: T;
   label: string;
   resource?: number;
+  disabled?: boolean;
 };
 
 type TabProps<T extends string> = {
@@ -26,7 +27,7 @@ function Tab<T extends string>({
           isFillLayout ? 'w-full' : 'min-w-max gap-gap-l'
         }`}
       >
-        {items.map(({ value, label, resource }) => {
+        {items.map(({ value, label, resource, disabled = false }) => {
           const isSelected = value === selectedValue;
           const resourceLabel =
             resource !== undefined && resource > 0
@@ -48,10 +49,11 @@ function Tab<T extends string>({
               key={value}
               type="button"
               aria-pressed={isSelected}
+              disabled={disabled}
               onClick={() => onValueChange(value)}
               className={`flex h-[30px] flex-col justify-end gap-gap-xs whitespace-nowrap ${
                 isFillLayout ? 'min-w-0 flex-1' : 'shrink-0'
-              } ${isSelected ? 'text-text-brand' : 'text-text-disabled'}`}
+              } ${isSelected ? 'text-text-brand' : 'text-text-disabled'} disabled:cursor-not-allowed`}
             >
               <span
                 className={`flex items-center justify-center gap-gap-xs ${
