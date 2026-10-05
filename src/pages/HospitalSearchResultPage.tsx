@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import FilterChip from '@/components/common/FilterChip';
+import MenuTrigger, {
+  type MenuTriggerOption,
+} from '@/components/common/MenuTrigger';
 import Tab, { type TabItem } from '@/components/common/Tab';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
@@ -13,11 +16,27 @@ const hospitalSearchTabItems: TabItem<HospitalSearchTab>[] = [
   { value: 'blog', label: '블로그' },
 ];
 
+type HospitalSort =
+  'most-visited' | 'highest-rating' | 'most-reviews' | 'lowest-price';
+
+const defaultHospitalSortOptions: MenuTriggerOption<HospitalSort>[] = [
+  { value: 'most-visited', label: '방문 많은 순' },
+  { value: 'highest-rating', label: '평점순' },
+  { value: 'most-reviews', label: '리뷰 많은 순' },
+];
+
+const lowestPriceSortOption: MenuTriggerOption<HospitalSort> = {
+  value: 'lowest-price',
+  label: '낮은 가격 순',
+};
+
 function HospitalSearchResultPage() {
-  const [selectedProcedureIds, setSelectedProcedureIds] = useState<number[]>([
-    2, 3,
-  ]);
+  const [selectedProcedureIds, setSelectedProcedureIds] = useState<number[]>(
+    [],
+  );
   const [selectedTab, setSelectedTab] = useState<HospitalSearchTab>('hospital');
+  const [selectedSort, setSelectedSort] =
+    useState<HospitalSort>('most-visited');
 
   const handleProcedureClick = (procedureId: number) => {
     setSelectedProcedureIds((currentIds) =>
@@ -26,6 +45,14 @@ function HospitalSearchResultPage() {
         : [...currentIds, procedureId],
     );
   };
+
+  const sortOptions =
+    selectedProcedureIds.length > 0
+      ? [...defaultHospitalSortOptions, lowestPriceSortOption]
+      : defaultHospitalSortOptions;
+  const selectedSortOption =
+    sortOptions.find((option) => option.value === selectedSort) ??
+    sortOptions[0];
 
   return (
     <>
@@ -42,15 +69,32 @@ function HospitalSearchResultPage() {
           ))}
           <div aria-hidden="true" className="h-8 w-4 shrink-0" />
         </div>
+        <div className="bg-surface-default pt-padding-xs">
+          <Tab
+            items={hospitalSearchTabItems}
+            selectedValue={selectedTab}
+            onValueChange={setSelectedTab}
+            layout="fill"
+          />
+        </div>
+        <div className="flex items-center justify-between bg-surface-default px-padding-m py-padding-s">
+          {/* 현재는 고정 mock 값, 통합 필터 구현 후 선택된 조건을 요약한 문구로 대체해야 함 */}
+          <FilterChip
+            label="서울시 강남구, 가격, 휴일진료 외 3개"
+            selected
+            showIcon
+            onClick={() => undefined}
+          />
+          <MenuTrigger<HospitalSort>
+            label={selectedSortOption.label}
+            size="s"
+            options={sortOptions}
+            selectedValue={selectedSortOption.value}
+            align="end"
+            onValueChange={setSelectedSort}
+          />
+        </div>
       </TopArea>
-      <div className="-mx-[var(--spacing-padding-m)] pt-padding-xs">
-        <Tab
-          items={hospitalSearchTabItems}
-          selectedValue={selectedTab}
-          onValueChange={setSelectedTab}
-          layout="fill"
-        />
-      </div>
     </>
   );
 }
