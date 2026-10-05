@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import closeIcon from '@/assets/icons/close.svg';
 
 type HospitalSearchFilterSheetProps = {
   isOpen: boolean;
@@ -42,10 +43,27 @@ function HospitalSearchFilterSheet({
       <section
         role="dialog"
         aria-modal="true"
-        aria-label="통합 필터"
-        className="flex h-full max-h-[672px] w-full max-w-[480px] flex-col rounded-t-[var(--radius-l)] bg-surface-default"
+        aria-labelledby="hospital-search-filter-title"
+        className="flex h-[calc(100dvh-140px)] max-h-[672px] w-full max-w-[480px] shrink-0 flex-col overflow-hidden rounded-t-[var(--radius-l)] bg-surface-default"
         onMouseDown={(event) => event.stopPropagation()}
-      />
+      >
+        <header className="flex h-[60px] shrink-0 items-center justify-between bg-surface-default py-padding-xs pr-padding-s pl-padding-m">
+          <h2
+            id="hospital-search-filter-title"
+            className="typography-headline-bold text-text-primary"
+          >
+            통합 필터
+          </h2>
+          <button
+            type="button"
+            aria-label="통합 필터 닫기"
+            onClick={onClose}
+            className="flex size-11 shrink-0 items-center justify-center"
+          >
+            <img src={closeIcon} alt="" width={24} height={24} />
+          </button>
+        </header>
+      </section>
     </div>
   );
 }
