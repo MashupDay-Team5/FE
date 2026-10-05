@@ -51,6 +51,35 @@ function FilterCategoryTabs({
   );
 }
 
+type FilterSheetBottomCtaProps = {
+  hospitalCount: number;
+};
+
+function FilterSheetBottomCta({ hospitalCount }: FilterSheetBottomCtaProps) {
+  const isViewButtonEnabled = hospitalCount > 0;
+
+  return (
+    <div className="mt-auto shrink-0 bg-surface-default">
+      <div className="mx-auto flex w-full max-w-[375px] items-center gap-gap-s px-padding-m py-padding-xs min-[376px]:max-w-none">
+        <button
+          type="button"
+          className="flex h-[52px] w-[119px] shrink-0 flex-col items-center justify-center gap-gap-xs rounded-[var(--radius-s)] border border-border-brand bg-surface-default px-padding-m py-padding-s text-center typography-label-large-medium text-text-brand min-[376px]:w-auto min-[376px]:flex-[119_0_0]"
+        >
+          초기화
+        </button>
+        <button
+          type="button"
+          disabled={!isViewButtonEnabled}
+          className="flex h-[52px] w-[216px] min-w-[120px] flex-col items-center justify-center gap-gap-xs rounded-[var(--radius-s)] bg-interaction-brand px-padding-m py-padding-s text-center typography-label-large-medium text-text-inverse disabled:bg-interaction-disabled disabled:text-text-disabled min-[376px]:w-auto min-[376px]:flex-[216_0_0]"
+        >
+          {hospitalCount}개의 병원보기
+        </button>
+      </div>
+      <div className="h-[34px] self-stretch bg-surface-default p-[10px]" />
+    </div>
+  );
+}
+
 type HospitalSearchFilterSheetProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -123,7 +152,7 @@ function HospitalSearchFilterSheet({
 
   return (
     <div
-      className={`fixed inset-y-0 left-1/2 z-20 flex w-full max-w-[480px] -translate-x-1/2 flex-col items-center justify-end bg-black/70 pt-[140px] transition-opacity duration-200 motion-reduce:transition-none ${
+      className={`fixed inset-0 z-20 flex w-full flex-col items-center justify-end bg-black/70 pt-[140px] transition-opacity duration-200 motion-reduce:transition-none ${
         isVisible ? 'opacity-100 ease-out' : 'opacity-0 ease-in'
       }`}
       onMouseDown={onClose}
@@ -159,6 +188,7 @@ function HospitalSearchFilterSheet({
           selectedValue={selectedCategory}
           onValueChange={setSelectedCategory}
         />
+        <FilterSheetBottomCta hospitalCount={0} />
       </section>
     </div>
   );
