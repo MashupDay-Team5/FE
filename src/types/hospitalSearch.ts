@@ -1,22 +1,14 @@
 // 통합, 병원, 의료상담, 블로그 탭 값 타입
 export type HospitalSearchTab =
-  | 'integrated'
-  | 'hospital'
-  | 'consultation'
-  | 'blog';
+  'integrated' | 'hospital' | 'consultation' | 'blog';
 
 // 통합 필터 시트 카테고리 타입
 export type HospitalSearchIntegratedFilterCategory =
-  | 'region'
-  | 'price'
-  | 'treatment-condition';
+  'region' | 'price' | 'treatment-condition';
 
 // 통합 필터 시트 진료조건 세부 체크 항목 타입
 export type HospitalSearchTreatmentConditionId =
-  | 'specialist'
-  | 'public-price'
-  | 'night-clinic'
-  | 'holiday-clinic';
+  'specialist' | 'public-price' | 'night-clinic' | 'holiday-clinic';
 
 // 가격 슬라이더 최소, 최댓값 타입
 export type HospitalSearchPriceRange = {
@@ -29,6 +21,22 @@ export type HospitalSearchFilterState = {
   regionIds: number[];
   priceRange: HospitalSearchPriceRange;
   treatmentConditionIds: HospitalSearchTreatmentConditionId[];
+};
+
+export type HospitalSearchDistrict = {
+  id: number;
+  name: string;
+};
+
+export type HospitalSearchRegion = {
+  id: number;
+  name: string;
+  districts: HospitalSearchDistrict[];
+};
+
+export type HospitalSearchRegionSelection = {
+  regionId: number;
+  districtId: number;
 };
 
 // 진료 항목 칩 및 선택 시트에서 사용할 시술 데이터 구조
@@ -66,6 +74,8 @@ export type HospitalSearchPriceCard =
 export type HospitalSearchItem = {
   hospitalId: number;
   hospitalName: string;
+  regionId: number;
+  districtId: number;
   hasDiscount: boolean;
   rating: string;
   reviewCount: string;

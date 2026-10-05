@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import FilterChip from '@/components/common/FilterChip';
 import MenuTrigger, {
   type MenuTriggerOption,
 } from '@/components/common/MenuTrigger';
 import Tab, { type TabItem } from '@/components/common/Tab';
+import HospitalSearchFilterSheet from '@/components/hospital/HospitalSearchFilterSheet';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import { hospitalSearchProcedures } from '@/mocks/hospitalSearch';
@@ -37,6 +38,8 @@ function HospitalSearchResultPage() {
   const [selectedTab, setSelectedTab] = useState<HospitalSearchTab>('hospital');
   const [selectedSort, setSelectedSort] =
     useState<HospitalSort>('most-visited');
+  const [isFilterSheetOpen, setFilterSheetOpen] = useState(false);
+  const filterTriggerRef = useRef<HTMLButtonElement>(null);
 
   const handleProcedureClick = (procedureId: number) => {
     setSelectedProcedureIds((currentIds) =>
@@ -78,12 +81,12 @@ function HospitalSearchResultPage() {
           />
         </div>
         <div className="flex items-center justify-between bg-surface-default px-padding-m py-padding-s">
-          {/* 현재는 고정 mock 값, 통합 필터 구현 후 선택된 조건을 요약한 문구로 대체해야 함 */}
           <FilterChip
-            label="서울시 강남구, 가격, 휴일진료 외 3개"
-            selected
+            ref={filterTriggerRef}
+            label="필터"
+            selected={false}
             showIcon
-            onClick={() => undefined}
+            onClick={() => setFilterSheetOpen(true)}
           />
           <MenuTrigger<HospitalSort>
             label={selectedSortOption.label}
@@ -95,6 +98,11 @@ function HospitalSearchResultPage() {
           />
         </div>
       </TopArea>
+      <HospitalSearchFilterSheet
+        isOpen={isFilterSheetOpen}
+        onClose={() => setFilterSheetOpen(false)}
+        triggerRef={filterTriggerRef}
+      />
     </>
   );
 }
