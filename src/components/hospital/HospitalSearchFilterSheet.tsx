@@ -1,5 +1,53 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import closeIcon from '@/assets/icons/close.svg';
+
+type HospitalSearchFilterCategory = 'region' | 'price' | 'treatment';
+
+const filterCategoryTabs = [
+  { value: 'region', label: '지역' },
+  { value: 'price', label: '가격' },
+  { value: 'treatment', label: '진료조건' },
+] as const;
+
+type FilterCategoryTabsProps = {
+  selectedValue: HospitalSearchFilterCategory;
+  onValueChange: (value: HospitalSearchFilterCategory) => void;
+};
+
+function FilterCategoryTabs({
+  selectedValue,
+  onValueChange,
+}: FilterCategoryTabsProps) {
+  return (
+    <div className="flex w-full items-center border-b border-border-neutral bg-surface-default pt-padding-xs">
+      {filterCategoryTabs.map(({ value, label }) => {
+        const isSelected = value === selectedValue;
+
+        return (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={isSelected}
+            onClick={() => onValueChange(value)}
+            className={`flex h-[30px] min-w-0 flex-[1_0_0] flex-col items-center justify-end gap-gap-xs whitespace-nowrap text-center ${
+              isSelected
+                ? 'text-text-brand typography-body-bold'
+                : 'text-text-disabled typography-body-medium'
+            }`}
+          >
+            <span>{label}</span>
+            <span
+              aria-hidden="true"
+              className={`h-1 w-full ${
+                isSelected ? 'bg-border-brand' : 'bg-transparent'
+              }`}
+            />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 type HospitalSearchFilterSheetProps = {
   isOpen: boolean;
@@ -10,6 +58,9 @@ function HospitalSearchFilterSheet({
   isOpen,
   onClose,
 }: HospitalSearchFilterSheetProps) {
+  const [selectedCategory, setSelectedCategory] =
+    useState<HospitalSearchFilterCategory>('region');
+
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -63,6 +114,10 @@ function HospitalSearchFilterSheet({
             <img src={closeIcon} alt="" width={24} height={24} />
           </button>
         </header>
+        <FilterCategoryTabs
+          selectedValue={selectedCategory}
+          onValueChange={setSelectedCategory}
+        />
       </section>
     </div>
   );
