@@ -1,4 +1,5 @@
 import {
+  type FocusEvent as ReactFocusEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   useEffect,
   useRef,
@@ -109,6 +110,23 @@ function MenuTrigger<T extends string>({
     setMenuOpen(false);
   };
 
+  const handleFocusOut = (event: ReactFocusEvent<HTMLDivElement>) => {
+    if (!hasOptions || !isOpen) {
+      return;
+    }
+
+    const nextFocusedElement = event.relatedTarget;
+
+    if (
+      nextFocusedElement instanceof Node &&
+      menuTriggerRef.current?.contains(nextFocusedElement)
+    ) {
+      return;
+    }
+
+    setMenuOpen(false);
+  };
+
   const focusOption = (index: number) => {
     optionRefs.current[index]?.focus();
   };
@@ -161,7 +179,11 @@ function MenuTrigger<T extends string>({
   };
 
   return (
-    <div ref={menuTriggerRef} className="relative w-fit shrink-0">
+    <div
+      ref={menuTriggerRef}
+      className="relative w-fit shrink-0"
+      onBlur={handleFocusOut}
+    >
       <button
         ref={triggerButtonRef}
         type="button"
