@@ -2,6 +2,9 @@ import { useEffect, useRef, useState, type RefObject } from 'react';
 import closeIcon from '@/assets/icons/close.svg';
 import closeSmallIcon from '@/assets/icons/close-small.svg';
 import CategoryPicker from '@/components/common/CategoryPicker';
+import RangeSlider, {
+  type RangeSliderValue,
+} from '@/components/common/RangeSlider';
 import {
   hospitalSearchItems,
   hospitalSearchRegions,
@@ -13,6 +16,12 @@ import type {
 
 const SHEET_TRANSITION_DURATION = 400;
 const MAX_SELECTED_REGION_COUNT = 5;
+const PRICE_MINIMUM = 0;
+const PRICE_MAXIMUM = 1000;
+const DEFAULT_PRICE_RANGE: RangeSliderValue = {
+  min: PRICE_MINIMUM,
+  max: PRICE_MAXIMUM,
+};
 
 const filterCategoryTabs = [
   { value: 'region', label: '지역' },
@@ -112,6 +121,74 @@ function FilterRegionPanel({
         );
       })}
     </CategoryPicker>
+  );
+}
+
+type FilterPricePanelProps = {
+  priceRange: RangeSliderValue;
+  onPriceRangeChange: (priceRange: RangeSliderValue) => void;
+  onPriceReset: () => void;
+};
+
+function FilterPricePanel({
+  priceRange,
+  onPriceRangeChange,
+  onPriceReset,
+}: FilterPricePanelProps) {
+  const formatPrice = (price: number) => price.toLocaleString();
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col bg-surface-default px-padding-m pt-padding-l">
+      <h3 className="typography-label-large-medium text-text-secondary">
+        예산 범위
+      </h3>
+      <div className="mt-padding-l">
+        <RangeSlider
+          min={PRICE_MINIMUM}
+          max={PRICE_MAXIMUM}
+          step={10}
+          value={priceRange}
+          onChange={onPriceRangeChange}
+          formatValue={formatPrice}
+          ariaLabel="예산 범위"
+        />
+      </div>
+      <dl className="mt-padding-s flex flex-col gap-y-padding-m">
+        <div className="flex items-center gap-gap-s">
+          <dt className="typography-label-large-medium text-text-secondary">
+            최소
+          </dt>
+          <dd className="flex items-baseline gap-gap-xs">
+            <strong className="typography-headline-bold text-text-primary">
+              {formatPrice(priceRange.min)}만원
+            </strong>
+            <span className="typography-label-large-medium text-text-secondary">
+              부터
+            </span>
+          </dd>
+        </div>
+        <div className="flex items-center gap-gap-s">
+          <dt className="typography-label-large-medium text-text-secondary">
+            최대
+          </dt>
+          <dd className="flex items-baseline gap-gap-xs">
+            <strong className="typography-headline-bold text-text-primary">
+              {formatPrice(priceRange.max)}만원
+            </strong>
+            <span className="typography-label-large-medium text-text-secondary">
+              까지
+            </span>
+          </dd>
+        </div>
+      </dl>
+      <button
+        type="button"
+        onClick={onPriceReset}
+        className="mt-padding-l self-end typography-label-large-medium text-text-secondary"
+      >
+        가격 초기화
+      </button>
+    </div>
   );
 }
 
@@ -223,6 +300,8 @@ function HospitalSearchFilterSheet({
   const [selectedRegionSelections, setSelectedRegionSelections] = useState<
     HospitalSearchRegionSelection[]
   >([]);
+  const [priceRange, setPriceRange] =
+    useState<RangeSliderValue>(DEFAULT_PRICE_RANGE);
   const [isRendered, setIsRendered] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
   const sheetRef = useRef<HTMLElement>(null);
@@ -388,6 +467,7 @@ function HospitalSearchFilterSheet({
 
   const handleReset = () => {
     setSelectedRegionSelections([]);
+    setPriceRange(DEFAULT_PRICE_RANGE);
   };
 
   const selectedDistrictIds = selectedRegionSelections.map(
@@ -404,8 +484,11 @@ function HospitalSearchFilterSheet({
       );
     }),
   ).length;
+  const hasSelectedPriceRange =
+    priceRange.min !== PRICE_MINIMUM || priceRange.max !== PRICE_MAXIMUM;
   const filterCounts = {
     region: selectedRegionSelections.length,
+    price: hasSelectedPriceRange ? 1 : undefined,
   };
 
   if (!isRendered) {
@@ -453,14 +536,23 @@ function HospitalSearchFilterSheet({
           onValueChange={setSelectedCategory}
           filterCounts={filterCounts}
         />
-        {selectedCategory === 'region' && (
-          <FilterRegionPanel
-            selectedRegionId={selectedRegionId}
-            selectedDistrictIds={selectedDistrictIds}
-            onRegionChange={setSelectedRegionId}
-            onDistrictClick={handleDistrictClick}
-          />
-        )}
+        <div className="flex min-h-0 flex-1 flex-col">
+          {selectedCategory === 'region' && (
+            <FilterRegionPanel
+              selectedRegionId={selectedRegionId}
+              selectedDistrictIds={selectedDistrictIds}
+              onRegionChange={setSelectedRegionId}
+              onDistrictClick={handleDistrictClick}
+            />
+          )}
+          {selectedCategory === 'price' && (
+            <FilterPricePanel
+              priceRange={priceRange}
+              onPriceRangeChange={setPriceRange}
+              onPriceReset={() => setPriceRange(DEFAULT_PRICE_RANGE)}
+            />
+          )}
+        </div>
         <FilterSelectedRegionList
           selections={selectedRegionSelections}
           onRemove={handleDistrictClick}
