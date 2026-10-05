@@ -247,6 +247,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
   {
     hospitalId: 1,
     hospitalName: '병원명',
+    regionId: 1,
+    districtId: 116,
     hasDiscount: true,
     rating: '9.8',
     reviewCount: '1529',
@@ -274,6 +276,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
   {
     hospitalId: 2,
     hospitalName: '병원명',
+    regionId: 1,
+    districtId: 102,
     hasDiscount: false,
     rating: '9.5',
     reviewCount: '984',

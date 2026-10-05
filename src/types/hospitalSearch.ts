@@ -34,6 +34,11 @@ export type HospitalSearchRegion = {
   districts: HospitalSearchDistrict[];
 };
 
+export type HospitalSearchRegionSelection = {
+  regionId: number;
+  districtId: number;
+};
+
 // 진료 항목 칩 및 선택 시트에서 사용할 시술 데이터 구조
 export type HospitalSearchProcedure = {
   id: number;
@@ -69,6 +74,8 @@ export type HospitalSearchPriceCard =
 export type HospitalSearchItem = {
   hospitalId: number;
   hospitalName: string;
+  regionId: number;
+  districtId: number;
   hasDiscount: boolean;
   rating: string;
   reviewCount: string;

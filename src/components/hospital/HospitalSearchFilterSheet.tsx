@@ -1,10 +1,18 @@
 import { useEffect, useState } from 'react';
 import closeIcon from '@/assets/icons/close.svg';
+import closeSmallIcon from '@/assets/icons/close-small.svg';
 import CategoryPicker from '@/components/common/CategoryPicker';
-import { hospitalSearchRegions } from '@/mocks/hospitalSearch';
-import type { HospitalSearchIntegratedFilterCategory } from '@/types/hospitalSearch';
+import {
+  hospitalSearchItems,
+  hospitalSearchRegions,
+} from '@/mocks/hospitalSearch';
+import type {
+  HospitalSearchIntegratedFilterCategory,
+  HospitalSearchRegionSelection,
+} from '@/types/hospitalSearch';
 
 const SHEET_TRANSITION_DURATION = 400;
+const MAX_SELECTED_REGION_COUNT = 5;
 
 const filterCategoryTabs = [
   { value: 'region', label: '지역' },
@@ -54,12 +62,16 @@ function FilterCategoryTabs({
 
 type FilterRegionPanelProps = {
   selectedRegionId: number;
+  selectedDistrictIds: number[];
   onRegionChange: (regionId: number) => void;
+  onDistrictClick: (regionId: number, districtId: number) => void;
 };
 
 function FilterRegionPanel({
   selectedRegionId,
+  selectedDistrictIds,
   onRegionChange,
+  onDistrictClick,
 }: FilterRegionPanelProps) {
   const selectedRegion =
     hospitalSearchRegions.find(({ id }) => id === selectedRegionId) ??
@@ -71,24 +83,93 @@ function FilterRegionPanel({
       selectedCategoryId={selectedRegionId}
       onCategoryChange={onRegionChange}
     >
-      {selectedRegion.districts.map(({ id, name }) => (
-        <button
-          key={id}
-          type="button"
-          className="flex h-[51px] w-full shrink-0 items-center border-b border-border-neutral p-padding-m text-left typography-label-large-regular text-text-primary"
-        >
-          {name}
-        </button>
-      ))}
+      {selectedRegion.districts.map(({ id, name }) => {
+        const isSelected = selectedDistrictIds.includes(id);
+
+        return (
+          <button
+            key={id}
+            type="button"
+            aria-pressed={isSelected}
+            onClick={() => onDistrictClick(selectedRegionId, id)}
+            className={`flex h-[51px] w-full shrink-0 items-center border-b border-border-neutral p-padding-m text-left ${
+              isSelected
+                ? 'typography-label-large-medium text-text-brand'
+                : 'typography-label-large-regular text-text-primary'
+            }`}
+          >
+            {name}
+          </button>
+        );
+      })}
     </CategoryPicker>
+  );
+}
+
+type FilterSelectedRegionListProps = {
+  selections: HospitalSearchRegionSelection[];
+  onRemove: (regionId: number, districtId: number) => void;
+};
+
+function FilterSelectedRegionList({
+  selections,
+  onRemove,
+}: FilterSelectedRegionListProps) {
+  if (selections.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="flex shrink-0 flex-col items-start gap-gap-s bg-surface-default py-padding-s">
+      <div className="px-padding-m">
+        <p className="typography-caption-medium text-text-tertiary">
+          {selections.length}/{MAX_SELECTED_REGION_COUNT}
+        </p>
+      </div>
+      <div className="scrollbar-hidden flex items-center gap-gap-s overflow-x-auto px-padding-m">
+        {selections.map(({ regionId, districtId }) => {
+          const region = hospitalSearchRegions.find(
+            ({ id }) => id === regionId,
+          );
+          const district = region?.districts.find(
+            ({ id }) => id === districtId,
+          );
+
+          if (!region || !district) {
+            return null;
+          }
+
+          return (
+            <button
+              key={districtId}
+              type="button"
+              aria-label={`${region.name} ${district.name} 선택 해제`}
+              onClick={() => onRemove(regionId, districtId)}
+              className="flex h-8 shrink-0 items-center justify-center gap-gap-xs rounded-[var(--radius-s)] bg-surface-weak px-padding-s typography-label-small-medium text-text-primary"
+            >
+              <span>
+                {region.name} {district.name}
+              </span>
+              <span className="flex size-5 items-center justify-center">
+                <img src={closeSmallIcon} alt="" width={20} height={20} />
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
 type FilterSheetBottomCtaProps = {
   hospitalCount: number;
+  onReset: () => void;
 };
 
-function FilterSheetBottomCta({ hospitalCount }: FilterSheetBottomCtaProps) {
+function FilterSheetBottomCta({
+  hospitalCount,
+  onReset,
+}: FilterSheetBottomCtaProps) {
   const isViewButtonEnabled = hospitalCount > 0;
 
   return (
@@ -96,6 +177,7 @@ function FilterSheetBottomCta({ hospitalCount }: FilterSheetBottomCtaProps) {
       <div className="mx-auto flex w-full max-w-[375px] items-center gap-gap-s px-padding-m py-padding-xs min-[376px]:max-w-none">
         <button
           type="button"
+          onClick={onReset}
           className="flex h-[52px] w-[119px] shrink-0 flex-col items-center justify-center gap-gap-xs rounded-[var(--radius-s)] border border-border-brand bg-surface-default px-padding-m py-padding-s text-center typography-label-large-medium text-text-brand min-[376px]:w-auto min-[376px]:flex-[119_0_0]"
         >
           초기화
@@ -127,6 +209,9 @@ function HospitalSearchFilterSheet({
   const [selectedRegionId, setSelectedRegionId] = useState(
     hospitalSearchRegions[0].id,
   );
+  const [selectedRegionSelections, setSelectedRegionSelections] = useState<
+    HospitalSearchRegionSelection[]
+  >([]);
   const [isRendered, setIsRendered] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -182,6 +267,62 @@ function HospitalSearchFilterSheet({
     };
   }, [isRendered, onClose]);
 
+  const handleDistrictClick = (regionId: number, districtId: number) => {
+    const selectedRegion = hospitalSearchRegions.find(
+      ({ id }) => id === regionId,
+    );
+
+    if (!selectedRegion) {
+      return;
+    }
+
+    const wholeDistrictId = selectedRegion.districts[0].id;
+    const isWholeRegion = districtId === wholeDistrictId;
+
+    setSelectedRegionSelections((currentSelections) => {
+      const isAlreadySelected = currentSelections.some(
+        (selection) => selection.districtId === districtId,
+      );
+
+      if (isAlreadySelected) {
+        return currentSelections.filter(
+          (selection) => selection.districtId !== districtId,
+        );
+      }
+
+      const selectionsWithoutConflicts = currentSelections.filter(
+        (selection) =>
+          selection.regionId !== regionId ||
+          (isWholeRegion ? false : selection.districtId !== wholeDistrictId),
+      );
+
+      if (selectionsWithoutConflicts.length >= MAX_SELECTED_REGION_COUNT) {
+        return selectionsWithoutConflicts;
+      }
+
+      return [...selectionsWithoutConflicts, { regionId, districtId }];
+    });
+  };
+
+  const handleReset = () => {
+    setSelectedRegionSelections([]);
+  };
+
+  const selectedDistrictIds = selectedRegionSelections.map(
+    ({ districtId }) => districtId,
+  );
+  const hospitalCount = hospitalSearchItems.filter((hospital) =>
+    selectedRegionSelections.some(({ regionId, districtId }) => {
+      const region = hospitalSearchRegions.find(({ id }) => id === regionId);
+      const wholeDistrictId = region?.districts[0].id;
+
+      return (
+        hospital.regionId === regionId &&
+        (districtId === wholeDistrictId || hospital.districtId === districtId)
+      );
+    }),
+  ).length;
+
   if (!isRendered) {
     return null;
   }
@@ -227,10 +368,19 @@ function HospitalSearchFilterSheet({
         {selectedCategory === 'region' && (
           <FilterRegionPanel
             selectedRegionId={selectedRegionId}
+            selectedDistrictIds={selectedDistrictIds}
             onRegionChange={setSelectedRegionId}
+            onDistrictClick={handleDistrictClick}
           />
         )}
-        <FilterSheetBottomCta hospitalCount={0} />
+        <FilterSelectedRegionList
+          selections={selectedRegionSelections}
+          onRemove={handleDistrictClick}
+        />
+        <FilterSheetBottomCta
+          hospitalCount={hospitalCount}
+          onReset={handleReset}
+        />
       </section>
     </div>
   );
