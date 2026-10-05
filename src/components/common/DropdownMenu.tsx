@@ -1,8 +1,4 @@
-import {
-  forwardRef,
-  type KeyboardEventHandler,
-  type ReactNode,
-} from 'react';
+import { forwardRef, type KeyboardEventHandler, type ReactNode } from 'react';
 
 type DropdownMenuProps = {
   children: ReactNode;
