@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react';
 import closeIcon from '@/assets/icons/close.svg';
+import CategoryPicker from '@/components/common/CategoryPicker';
 import { hospitalSearchRegions } from '@/mocks/hospitalSearch';
+import type { HospitalSearchIntegratedFilterCategory } from '@/types/hospitalSearch';
 
 const SHEET_TRANSITION_DURATION = 400;
-
-type HospitalSearchFilterCategory = 'region' | 'price' | 'treatment';
 
 const filterCategoryTabs = [
   { value: 'region', label: '지역' },
   { value: 'price', label: '가격' },
-  { value: 'treatment', label: '진료조건' },
+  { value: 'treatment-condition', label: '진료조건' },
 ] as const;
 
 type FilterCategoryTabsProps = {
-  selectedValue: HospitalSearchFilterCategory;
-  onValueChange: (value: HospitalSearchFilterCategory) => void;
+  selectedValue: HospitalSearchIntegratedFilterCategory;
+  onValueChange: (value: HospitalSearchIntegratedFilterCategory) => void;
 };
 
 function FilterCategoryTabs({
@@ -66,40 +66,21 @@ function FilterRegionPanel({
     hospitalSearchRegions[0];
 
   return (
-    <div className="flex h-[449px] min-h-0 shrink overflow-hidden border-t border-border-neutral">
-      <div className="w-[131px] shrink-0 overflow-y-auto border-r border-border-neutral min-[376px]:w-auto min-[376px]:flex-[131_0_0]">
-        {hospitalSearchRegions.map(({ id, name }) => {
-          const isSelected = id === selectedRegionId;
-
-          return (
-            <button
-              key={id}
-              type="button"
-              aria-pressed={isSelected}
-              onClick={() => onRegionChange(id)}
-              className={`flex h-[50px] w-full shrink-0 items-center p-padding-m text-left typography-label-large-medium ${
-                isSelected
-                  ? 'bg-surface-default text-text-brand'
-                  : 'bg-surface-weak text-text-secondary'
-              }`}
-            >
-              {name}
-            </button>
-          );
-        })}
-      </div>
-      <div className="min-w-0 flex-1 overflow-y-auto bg-surface-default min-[376px]:flex-[244_0_0]">
-        {selectedRegion.districts.map(({ id, name }) => (
-          <button
-            key={id}
-            type="button"
-            className="flex h-[51px] w-full shrink-0 items-center border-b border-border-neutral p-padding-m text-left typography-label-large-regular text-text-primary"
-          >
-            {name}
-          </button>
-        ))}
-      </div>
-    </div>
+    <CategoryPicker
+      categories={hospitalSearchRegions}
+      selectedCategoryId={selectedRegionId}
+      onCategoryChange={onRegionChange}
+    >
+      {selectedRegion.districts.map(({ id, name }) => (
+        <button
+          key={id}
+          type="button"
+          className="flex h-[51px] w-full shrink-0 items-center border-b border-border-neutral p-padding-m text-left typography-label-large-regular text-text-primary"
+        >
+          {name}
+        </button>
+      ))}
+    </CategoryPicker>
   );
 }
 
@@ -142,7 +123,7 @@ function HospitalSearchFilterSheet({
   onClose,
 }: HospitalSearchFilterSheetProps) {
   const [selectedCategory, setSelectedCategory] =
-    useState<HospitalSearchFilterCategory>('region');
+    useState<HospitalSearchIntegratedFilterCategory>('region');
   const [selectedRegionId, setSelectedRegionId] = useState(
     hospitalSearchRegions[0].id,
   );

@@ -1,6 +1,7 @@
 import type {
   HospitalSearchItem,
   HospitalSearchProcedure,
+  HospitalSearchRegion,
 } from '@/types/hospitalSearch';
 
 // 진료 항목 목록 : API 연동 시 GET /api/categories 응답으로 교체
@@ -17,7 +18,7 @@ export const hospitalSearchProcedures: HospitalSearchProcedure[] = [
 ];
 
 // 지역 및 하위 지역 목록 : API 연동 시 GET /api/regions 응답으로 교체
-export const hospitalSearchRegions = [
+export const hospitalSearchRegions: HospitalSearchRegion[] = [
   {
     id: 1,
     name: '서울특별시',
