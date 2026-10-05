@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import closeIcon from '@/assets/icons/close.svg';
+import { hospitalSearchRegions } from '@/mocks/hospitalSearch';
 
 const SHEET_TRANSITION_DURATION = 400;
 
@@ -51,6 +52,57 @@ function FilterCategoryTabs({
   );
 }
 
+type FilterRegionPanelProps = {
+  selectedRegionId: number;
+  onRegionChange: (regionId: number) => void;
+};
+
+function FilterRegionPanel({
+  selectedRegionId,
+  onRegionChange,
+}: FilterRegionPanelProps) {
+  const selectedRegion =
+    hospitalSearchRegions.find(({ id }) => id === selectedRegionId) ??
+    hospitalSearchRegions[0];
+
+  return (
+    <div className="flex h-[449px] min-h-0 shrink overflow-hidden border-t border-border-neutral">
+      <div className="w-[131px] shrink-0 overflow-y-auto border-r border-border-neutral min-[376px]:w-auto min-[376px]:flex-[131_0_0]">
+        {hospitalSearchRegions.map(({ id, name }) => {
+          const isSelected = id === selectedRegionId;
+
+          return (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={isSelected}
+              onClick={() => onRegionChange(id)}
+              className={`flex h-[50px] w-full shrink-0 items-center p-padding-m text-left typography-label-large-medium ${
+                isSelected
+                  ? 'bg-surface-default text-text-brand'
+                  : 'bg-surface-weak text-text-secondary'
+              }`}
+            >
+              {name}
+            </button>
+          );
+        })}
+      </div>
+      <div className="min-w-0 flex-1 overflow-y-auto bg-surface-default min-[376px]:flex-[244_0_0]">
+        {selectedRegion.districts.map(({ id, name }) => (
+          <button
+            key={id}
+            type="button"
+            className="flex h-[51px] w-full shrink-0 items-center border-b border-border-neutral p-padding-m text-left typography-label-large-regular text-text-primary"
+          >
+            {name}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 type FilterSheetBottomCtaProps = {
   hospitalCount: number;
 };
@@ -91,6 +143,9 @@ function HospitalSearchFilterSheet({
 }: HospitalSearchFilterSheetProps) {
   const [selectedCategory, setSelectedCategory] =
     useState<HospitalSearchFilterCategory>('region');
+  const [selectedRegionId, setSelectedRegionId] = useState(
+    hospitalSearchRegions[0].id,
+  );
   const [isRendered, setIsRendered] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -188,6 +243,12 @@ function HospitalSearchFilterSheet({
           selectedValue={selectedCategory}
           onValueChange={setSelectedCategory}
         />
+        {selectedCategory === 'region' && (
+          <FilterRegionPanel
+            selectedRegionId={selectedRegionId}
+            onRegionChange={setSelectedRegionId}
+          />
+        )}
         <FilterSheetBottomCta hospitalCount={0} />
       </section>
     </div>
