@@ -15,10 +15,7 @@ import {
   hospitalSearchPriceUnitInWon,
   hospitalSearchTreatmentConditions,
 } from '@/constants/hospitalSearch';
-import {
-  hospitalSearchProcedures,
-  hospitalSearchRegions,
-} from '@/mocks/hospitalSearch';
+import { hospitalSearchRegions } from '@/mocks/hospitalSearch';
 import {
   defaultTreatmentScope,
   medicalCategories,
@@ -26,6 +23,7 @@ import {
 import type { TreatmentScope } from '@/types/universityMall';
 import type {
   HospitalSearchFilterState,
+  HospitalSearchProcedure,
   HospitalSearchRegionSelection,
   HospitalSearchTab,
   HospitalSearchTreatmentConditionId,
@@ -40,14 +38,17 @@ const MIN_PRICE_QUERY_KEY = 'minPrice';
 const MAX_PRICE_QUERY_KEY = 'maxPrice';
 const TREATMENT_CONDITION_QUERY_KEY = 'treatmentCondition';
 
-function getSelectedProcedureIds(searchParams: URLSearchParams) {
+function getSelectedProcedureIds(
+  searchParams: URLSearchParams,
+  procedures: HospitalSearchProcedure[],
+) {
   return Array.from(
     new Set(
       searchParams
         .getAll(PROCEDURE_QUERY_KEY)
         .map(Number)
         .filter((procedureId) =>
-          hospitalSearchProcedures.some(({ id }) => id === procedureId),
+          procedures.some(({ id }) => id === procedureId),
         ),
     ),
   );
@@ -263,9 +264,25 @@ function HospitalSearchResultPage() {
   );
   const [isCategorySheetOpen, setCategorySheetOpen] = useState(false);
   const categoryTriggerRef = useRef<HTMLElement>(null);
+  const medicalCategory =
+    medicalCategories.find(
+      ({ id }) => id === treatmentScope.medicalCategoryId,
+    ) ?? medicalCategories[0];
+  const treatmentCategory = medicalCategory.treatmentCategories.find(
+    ({ id }) => id === treatmentScope.treatmentCategoryId,
+  );
+  const treatments = useMemo(
+    () =>
+      treatmentCategory
+        ? treatmentCategory.treatments
+        : medicalCategory.treatmentCategories.flatMap(
+            ({ treatments: categoryTreatments }) => categoryTreatments,
+          ),
+    [medicalCategory, treatmentCategory],
+  );
   const selectedProcedureIds = useMemo(
-    () => getSelectedProcedureIds(searchParams),
-    [searchParams],
+    () => getSelectedProcedureIds(searchParams, treatments),
+    [searchParams, treatments],
   );
   const [selectedTab, setSelectedTab] = useState<HospitalSearchTab>('hospital');
   const [selectedSort, setSelectedSort] =
@@ -349,6 +366,24 @@ function HospitalSearchResultPage() {
     setCategorySheetOpen((isOpen) => !isOpen);
   };
 
+  const handleScopeSelect = (scope: TreatmentScope) => {
+    if (
+      scope.medicalCategoryId === treatmentScope.medicalCategoryId &&
+      scope.treatmentCategoryId === treatmentScope.treatmentCategoryId
+    ) {
+      return;
+    }
+
+    setTreatmentScope(scope);
+
+    if (searchParams.has(PROCEDURE_QUERY_KEY)) {
+      const nextSearchParams = new URLSearchParams(searchParams);
+
+      nextSearchParams.delete(PROCEDURE_QUERY_KEY);
+      setSearchParams(nextSearchParams);
+    }
+  };
+
   const sortOptions =
     selectedProcedureIds.length > 0
       ? [...defaultHospitalSortOptions, lowestPriceSortOption]
@@ -362,21 +397,23 @@ function HospitalSearchResultPage() {
       <TopArea>
         <Header
           type="DetailSearch"
-          categoryName="시력교정술"
+          categoryName={treatmentCategory?.name ?? medicalCategory.name}
           isTitleOpen={isCategorySheetOpen}
           onTitleClick={handleCategorySheetOpen}
         />
-        <div className="flex gap-gap-xs overflow-x-auto pl-padding-m py-padding-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {hospitalSearchProcedures.map((procedure) => (
-            <FilterChip
-              key={procedure.id}
-              label={procedure.name}
-              selected={selectedProcedureIds.includes(procedure.id)}
-              onClick={() => handleProcedureClick(procedure.id)}
-            />
-          ))}
-          <div aria-hidden="true" className="h-8 w-4 shrink-0" />
-        </div>
+        {treatments.length > 0 && (
+          <div className="flex gap-gap-xs overflow-x-auto pl-padding-m py-padding-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {treatments.map((procedure) => (
+              <FilterChip
+                key={procedure.id}
+                label={procedure.name}
+                selected={selectedProcedureIds.includes(procedure.id)}
+                onClick={() => handleProcedureClick(procedure.id)}
+              />
+            ))}
+            <div aria-hidden="true" className="h-8 w-4 shrink-0" />
+          </div>
+        )}
         <div className="bg-surface-default pt-padding-xs">
           <Tab
             items={hospitalSearchTabItems}
@@ -407,7 +444,7 @@ function HospitalSearchResultPage() {
         isOpen={isCategorySheetOpen}
         categories={medicalCategories}
         selectedScope={treatmentScope}
-        onSelect={setTreatmentScope}
+        onSelect={handleScopeSelect}
         onClose={() => setCategorySheetOpen(false)}
         triggerRef={categoryTriggerRef}
         topOffset="calc(env(safe-area-inset-top) + 52px)"
