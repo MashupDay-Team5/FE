@@ -351,6 +351,7 @@ type HospitalSearchFilterSheetProps = {
   isOpen: boolean;
   onClose: () => void;
   initialFilterState: HospitalSearchFilterState;
+  selectedProcedureIds: number[];
   onApply: (filterState: HospitalSearchFilterState) => void;
   triggerRef: RefObject<HTMLButtonElement | null>;
 };
@@ -359,6 +360,7 @@ function HospitalSearchFilterSheet({
   isOpen,
   onClose,
   initialFilterState,
+  selectedProcedureIds,
   onApply,
   triggerRef,
 }: HospitalSearchFilterSheetProps) {
@@ -579,8 +581,10 @@ function HospitalSearchFilterSheet({
           (districtId === wholeDistrictId || hospital.districtId === districtId)
         );
       });
-    const matchesPrice = hospital.priceCards.some(
-      ({ priceAmount }) =>
+    const matchesProcedureAndPrice = hospital.priceCards.some(
+      ({ procedureId, priceAmount }) =>
+        (selectedProcedureIds.length === 0 ||
+          selectedProcedureIds.includes(procedureId)) &&
         priceAmount >= priceRangeInWon.min &&
         priceAmount <= priceRangeInWon.max,
     );
@@ -588,7 +592,9 @@ function HospitalSearchFilterSheet({
       (conditionId) => hospital.treatmentConditionIds.includes(conditionId),
     );
 
-    return matchesRegion && matchesPrice && matchesTreatmentConditions;
+    return (
+      matchesRegion && matchesProcedureAndPrice && matchesTreatmentConditions
+    );
   }).length;
   const filterCounts = {
     region: selectedRegionSelections.length,

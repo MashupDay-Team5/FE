@@ -379,6 +379,7 @@ function HospitalSearchResultPage() {
         isOpen={isFilterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
         initialFilterState={appliedFilterState}
+        selectedProcedureIds={selectedProcedureIds}
         onApply={handleFilterApply}
         triggerRef={filterTriggerRef}
       />
