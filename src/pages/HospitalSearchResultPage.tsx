@@ -9,6 +9,7 @@ import HospitalSearchFilterSheet from '@/components/hospital/HospitalSearchFilte
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import {
+  MAX_SELECTED_REGION_COUNT,
   hospitalSearchPriceRange,
   hospitalSearchPriceUnitInWon,
   hospitalSearchTreatmentConditions,
@@ -75,6 +76,39 @@ function parseTreatmentConditionId(value: string) {
   return treatmentCondition?.id;
 }
 
+function normalizeRegionSelections(
+  selections: HospitalSearchRegionSelection[],
+) {
+  const normalizedSelections = selections.reduce<
+    HospitalSearchRegionSelection[]
+  >((currentSelections, selection) => {
+    const region = hospitalSearchRegions.find(
+      ({ id }) => id === selection.regionId,
+    );
+
+    if (
+      !region ||
+      currentSelections.some(
+        ({ districtId }) => districtId === selection.districtId,
+      )
+    ) {
+      return currentSelections;
+    }
+
+    const wholeDistrictId = region.districts[0].id;
+    const isWholeRegion = selection.districtId === wholeDistrictId;
+    const selectionsWithoutConflicts = currentSelections.filter(
+      (currentSelection) =>
+        currentSelection.regionId !== selection.regionId ||
+        (!isWholeRegion && currentSelection.districtId !== wholeDistrictId),
+    );
+
+    return [...selectionsWithoutConflicts, selection];
+  }, []);
+
+  return normalizedSelections.slice(0, MAX_SELECTED_REGION_COUNT);
+}
+
 function getFilterState(
   searchParams: URLSearchParams,
 ): HospitalSearchFilterState {
@@ -106,7 +140,7 @@ function getFilterState(
   );
 
   return {
-    regionSelections,
+    regionSelections: normalizeRegionSelections(regionSelections),
     priceRange: {
       min: Math.min(minimumPrice, maximumPrice),
       max: Math.max(minimumPrice, maximumPrice),

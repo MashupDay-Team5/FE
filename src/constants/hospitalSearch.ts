@@ -1,5 +1,7 @@
 import type { HospitalSearchTreatmentCondition } from '@/types/hospitalSearch';
 
+export const MAX_SELECTED_REGION_COUNT = 5;
+
 export const hospitalSearchPriceRange = {
   min: 0,
   max: 1500,

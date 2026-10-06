@@ -8,6 +8,7 @@ import RangeSlider, {
   type RangeSliderValue,
 } from '@/components/common/RangeSlider';
 import {
+  MAX_SELECTED_REGION_COUNT,
   hospitalSearchPriceRange,
   hospitalSearchPriceUnitInWon,
   hospitalSearchTreatmentConditions,
@@ -24,7 +25,6 @@ import type {
 } from '@/types/hospitalSearch';
 
 const SHEET_TRANSITION_DURATION = 400;
-const MAX_SELECTED_REGION_COUNT = 5;
 const PRICE_MINIMUM = hospitalSearchPriceRange.min;
 const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
 const PRICE_UNIT_IN_WON = hospitalSearchPriceUnitInWon;
