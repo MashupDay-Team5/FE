@@ -28,10 +28,24 @@ import type {
 const PRICE_MINIMUM = hospitalSearchPriceRange.min;
 const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
 const PRICE_UNIT_IN_WON = hospitalSearchPriceUnitInWon;
+const PROCEDURE_QUERY_KEY = 'procedure';
 const REGION_QUERY_KEY = 'region';
 const MIN_PRICE_QUERY_KEY = 'minPrice';
 const MAX_PRICE_QUERY_KEY = 'maxPrice';
 const TREATMENT_CONDITION_QUERY_KEY = 'treatmentCondition';
+
+function getSelectedProcedureIds(searchParams: URLSearchParams) {
+  return Array.from(
+    new Set(
+      searchParams
+        .getAll(PROCEDURE_QUERY_KEY)
+        .map(Number)
+        .filter((procedureId) =>
+          hospitalSearchProcedures.some(({ id }) => id === procedureId),
+        ),
+    ),
+  );
+}
 
 function parsePriceRangeValue(value: string | null, fallback: number) {
   if (!value) {
@@ -238,8 +252,9 @@ const lowestPriceSortOption: MenuTriggerOption<HospitalSort> = {
 
 function HospitalSearchResultPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedProcedureIds, setSelectedProcedureIds] = useState<number[]>(
-    [],
+  const selectedProcedureIds = useMemo(
+    () => getSelectedProcedureIds(searchParams),
+    [searchParams],
   );
   const [selectedTab, setSelectedTab] = useState<HospitalSearchTab>('hospital');
   const [selectedSort, setSelectedSort] =
@@ -261,11 +276,17 @@ function HospitalSearchResultPage() {
     : '필터';
 
   const handleProcedureClick = (procedureId: number) => {
-    setSelectedProcedureIds((currentIds) =>
-      currentIds.includes(procedureId)
-        ? currentIds.filter((id) => id !== procedureId)
-        : [...currentIds, procedureId],
-    );
+    const nextProcedureIds = selectedProcedureIds.includes(procedureId)
+      ? selectedProcedureIds.filter((id) => id !== procedureId)
+      : [...selectedProcedureIds, procedureId];
+    const nextSearchParams = new URLSearchParams(searchParams);
+
+    nextSearchParams.delete(PROCEDURE_QUERY_KEY);
+    nextProcedureIds.forEach((id) => {
+      nextSearchParams.append(PROCEDURE_QUERY_KEY, String(id));
+    });
+
+    setSearchParams(nextSearchParams);
   };
 
   const handleFilterApply = (filterState: HospitalSearchFilterState) => {
