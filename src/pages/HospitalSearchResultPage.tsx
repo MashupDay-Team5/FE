@@ -299,22 +299,6 @@ function HospitalSearchResultPage() {
     setFilterSheetOpen(false);
   };
 
-  const handleAppliedFilterReset = () => {
-    const nextSearchParams = new URLSearchParams(searchParams);
-
-    clearFilterSearchParams(nextSearchParams);
-
-    setSearchParams(nextSearchParams);
-  };
-
-  const handleAppliedPriceReset = () => {
-    const nextSearchParams = new URLSearchParams(searchParams);
-
-    clearPriceSearchParams(nextSearchParams);
-
-    setSearchParams(nextSearchParams);
-  };
-
   const handleFilterSheetOpen = () => {
     setFilterSheetSession((currentSession) => currentSession + 1);
     setFilterSheetOpen(true);
@@ -373,8 +357,6 @@ function HospitalSearchResultPage() {
         key={filterSheetSession}
         isOpen={isFilterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
-        onAppliedFilterReset={handleAppliedFilterReset}
-        onAppliedPriceReset={handleAppliedPriceReset}
         initialFilterState={appliedFilterState}
         onApply={handleFilterApply}
         triggerRef={filterTriggerRef}

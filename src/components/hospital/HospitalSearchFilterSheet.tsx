@@ -350,8 +350,6 @@ function FilterSheetBottomCta({
 type HospitalSearchFilterSheetProps = {
   isOpen: boolean;
   onClose: () => void;
-  onAppliedFilterReset: () => void;
-  onAppliedPriceReset: () => void;
   initialFilterState: HospitalSearchFilterState;
   onApply: (filterState: HospitalSearchFilterState) => void;
   triggerRef: RefObject<HTMLButtonElement | null>;
@@ -360,8 +358,6 @@ type HospitalSearchFilterSheetProps = {
 function HospitalSearchFilterSheet({
   isOpen,
   onClose,
-  onAppliedFilterReset,
-  onAppliedPriceReset,
   initialFilterState,
   onApply,
   triggerRef,
@@ -542,28 +538,10 @@ function HospitalSearchFilterSheet({
     setSelectedRegionSelections([]);
     setPriceRange(DEFAULT_PRICE_RANGE);
     setSelectedTreatmentConditionIds([]);
-
-    const hasAppliedFilter =
-      initialFilterState.regionSelections.length > 0 ||
-      initialFilterState.priceRange.min !== PRICE_MINIMUM ||
-      initialFilterState.priceRange.max !== PRICE_MAXIMUM ||
-      initialFilterState.treatmentConditionIds.length > 0;
-
-    if (hasAppliedFilter) {
-      onAppliedFilterReset();
-    }
   };
 
   const handlePriceReset = () => {
     setPriceRange(DEFAULT_PRICE_RANGE);
-
-    const hasAppliedPriceFilter =
-      initialFilterState.priceRange.min !== PRICE_MINIMUM ||
-      initialFilterState.priceRange.max !== PRICE_MAXIMUM;
-
-    if (hasAppliedPriceFilter) {
-      onAppliedPriceReset();
-    }
   };
 
   const handleTreatmentConditionClick = (
@@ -618,7 +596,13 @@ function HospitalSearchFilterSheet({
     'treatment-condition': selectedTreatmentConditionIds.length,
   };
   const handleApply = () => {
-    if (!hasSelectedFilter) {
+    const hasAppliedFilter =
+      initialFilterState.regionSelections.length > 0 ||
+      initialFilterState.priceRange.min !== PRICE_MINIMUM ||
+      initialFilterState.priceRange.max !== PRICE_MAXIMUM ||
+      initialFilterState.treatmentConditionIds.length > 0;
+
+    if (!hasSelectedFilter && !hasAppliedFilter) {
       onClose();
       return;
     }
