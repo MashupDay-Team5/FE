@@ -12,6 +12,7 @@ import {
 } from '@/mocks/hospitalSearch';
 import type {
   HospitalSearchIntegratedFilterCategory,
+  HospitalSearchFilterState,
   HospitalSearchRegionSelection,
 } from '@/types/hospitalSearch';
 
@@ -259,11 +260,13 @@ function FilterSelectedRegionList({
 type FilterSheetBottomCtaProps = {
   hospitalCount: number;
   onReset: () => void;
+  onView: () => void;
 };
 
 function FilterSheetBottomCta({
   hospitalCount,
   onReset,
+  onView,
 }: FilterSheetBottomCtaProps) {
   const isViewButtonEnabled = hospitalCount > 0;
 
@@ -280,6 +283,7 @@ function FilterSheetBottomCta({
         <button
           type="button"
           disabled={!isViewButtonEnabled}
+          onClick={onView}
           className="flex h-[52px] w-[216px] min-w-[120px] flex-col items-center justify-center gap-gap-xs rounded-[var(--radius-s)] bg-interaction-brand px-padding-m py-padding-s text-center typography-label-large-medium text-text-inverse disabled:bg-interaction-disabled disabled:text-text-disabled min-[376px]:w-auto min-[376px]:flex-[216_0_0]"
         >
           {hospitalCount}개의 병원보기
@@ -293,12 +297,16 @@ function FilterSheetBottomCta({
 type HospitalSearchFilterSheetProps = {
   isOpen: boolean;
   onClose: () => void;
+  initialFilterState: HospitalSearchFilterState;
+  onApply: (filterState: HospitalSearchFilterState) => void;
   triggerRef: RefObject<HTMLButtonElement | null>;
 };
 
 function HospitalSearchFilterSheet({
   isOpen,
   onClose,
+  initialFilterState,
+  onApply,
   triggerRef,
 }: HospitalSearchFilterSheetProps) {
   const [selectedCategory, setSelectedCategory] =
@@ -308,20 +316,15 @@ function HospitalSearchFilterSheet({
   );
   const [selectedRegionSelections, setSelectedRegionSelections] = useState<
     HospitalSearchRegionSelection[]
-  >([]);
-  const [priceRange, setPriceRange] =
-    useState<RangeSliderValue>(DEFAULT_PRICE_RANGE);
+  >(initialFilterState.regionSelections);
+  const [priceRange, setPriceRange] = useState<RangeSliderValue>(
+    initialFilterState.priceRange,
+  );
   const [isRendered, setIsRendered] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
   const sheetRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const hasBeenOpenedRef = useRef(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      hasBeenOpenedRef.current = true;
-    }
-  }, [isOpen]);
+  const hasBeenOpenedRef = useRef(isOpen);
 
   useEffect(() => {
     let animationFrameId: number | undefined;
@@ -514,6 +517,17 @@ function HospitalSearchFilterSheet({
     region: selectedRegionSelections.length,
     price: hasSelectedPriceRange ? 1 : undefined,
   };
+  const handleApply = () => {
+    if (!hasSelectedFilter || hospitalCount === 0) {
+      return;
+    }
+
+    onApply({
+      regionSelections: selectedRegionSelections,
+      priceRange,
+      treatmentConditionIds: initialFilterState.treatmentConditionIds,
+    });
+  };
 
   if (!isRendered) {
     return null;
@@ -586,6 +600,7 @@ function HospitalSearchFilterSheet({
         <FilterSheetBottomCta
           hospitalCount={hasSelectedFilter ? hospitalCount : 0}
           onReset={handleReset}
+          onView={handleApply}
         />
       </section>
     </div>

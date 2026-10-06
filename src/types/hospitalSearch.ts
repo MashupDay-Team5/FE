@@ -18,7 +18,7 @@ export type HospitalSearchPriceRange = {
 
 // 선택된 지역, 가격 범위, 진료조건을 묶는 필터 상태 구조
 export type HospitalSearchFilterState = {
-  regionIds: number[];
+  regionSelections: HospitalSearchRegionSelection[];
   priceRange: HospitalSearchPriceRange;
   treatmentConditionIds: HospitalSearchTreatmentConditionId[];
 };

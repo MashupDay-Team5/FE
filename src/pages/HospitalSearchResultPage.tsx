@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import FilterChip from '@/components/common/FilterChip';
 import MenuTrigger, {
   type MenuTriggerOption,
@@ -7,8 +8,86 @@ import Tab, { type TabItem } from '@/components/common/Tab';
 import HospitalSearchFilterSheet from '@/components/hospital/HospitalSearchFilterSheet';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
-import { hospitalSearchProcedures } from '@/mocks/hospitalSearch';
-import type { HospitalSearchTab } from '@/types/hospitalSearch';
+import {
+  hospitalSearchProcedures,
+  hospitalSearchRegions,
+} from '@/mocks/hospitalSearch';
+import type {
+  HospitalSearchFilterState,
+  HospitalSearchRegionSelection,
+  HospitalSearchTab,
+} from '@/types/hospitalSearch';
+
+const PRICE_MINIMUM = 0;
+const PRICE_MAXIMUM = 1000;
+const PRICE_UNIT_IN_WON = 10000;
+const REGION_QUERY_KEY = 'region';
+const MIN_PRICE_QUERY_KEY = 'minPrice';
+const MAX_PRICE_QUERY_KEY = 'maxPrice';
+
+function parsePriceRangeValue(value: string | null, fallback: number) {
+  if (!value) {
+    return fallback;
+  }
+
+  const priceInWon = Number(value);
+
+  if (!Number.isFinite(priceInWon)) {
+    return fallback;
+  }
+
+  return Math.min(
+    PRICE_MAXIMUM,
+    Math.max(PRICE_MINIMUM, priceInWon / PRICE_UNIT_IN_WON),
+  );
+}
+
+function parseRegionSelection(value: string) {
+  const [regionIdText, districtIdText] = value.split(':');
+  const regionId = Number(regionIdText);
+  const districtId = Number(districtIdText);
+
+  if (!Number.isInteger(regionId) || !Number.isInteger(districtId)) {
+    return undefined;
+  }
+
+  const region = hospitalSearchRegions.find(({ id }) => id === regionId);
+
+  if (!region?.districts.some(({ id }) => id === districtId)) {
+    return undefined;
+  }
+
+  return { regionId, districtId };
+}
+
+function getFilterState(
+  searchParams: URLSearchParams,
+): HospitalSearchFilterState {
+  const regionSelections = searchParams
+    .getAll(REGION_QUERY_KEY)
+    .map(parseRegionSelection)
+    .filter(
+      (selection): selection is HospitalSearchRegionSelection =>
+        selection !== undefined,
+    );
+  const minimumPrice = parsePriceRangeValue(
+    searchParams.get(MIN_PRICE_QUERY_KEY),
+    PRICE_MINIMUM,
+  );
+  const maximumPrice = parsePriceRangeValue(
+    searchParams.get(MAX_PRICE_QUERY_KEY),
+    PRICE_MAXIMUM,
+  );
+
+  return {
+    regionSelections,
+    priceRange: {
+      min: Math.min(minimumPrice, maximumPrice),
+      max: Math.max(minimumPrice, maximumPrice),
+    },
+    treatmentConditionIds: [],
+  };
+}
 
 const hospitalSearchTabItems: TabItem<HospitalSearchTab>[] = [
   { value: 'integrated', label: '통합', disabled: true },
@@ -32,6 +111,7 @@ const lowestPriceSortOption: MenuTriggerOption<HospitalSort> = {
 };
 
 function HospitalSearchResultPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedProcedureIds, setSelectedProcedureIds] = useState<number[]>(
     [],
   );
@@ -39,7 +119,16 @@ function HospitalSearchResultPage() {
   const [selectedSort, setSelectedSort] =
     useState<HospitalSort>('most-visited');
   const [isFilterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [filterSheetSession, setFilterSheetSession] = useState(0);
   const filterTriggerRef = useRef<HTMLButtonElement>(null);
+  const appliedFilterState = useMemo(
+    () => getFilterState(searchParams),
+    [searchParams],
+  );
+  const hasAppliedFilter =
+    appliedFilterState.regionSelections.length > 0 ||
+    appliedFilterState.priceRange.min !== PRICE_MINIMUM ||
+    appliedFilterState.priceRange.max !== PRICE_MAXIMUM;
 
   const handleProcedureClick = (procedureId: number) => {
     setSelectedProcedureIds((currentIds) =>
@@ -47,6 +136,40 @@ function HospitalSearchResultPage() {
         ? currentIds.filter((id) => id !== procedureId)
         : [...currentIds, procedureId],
     );
+  };
+
+  const handleFilterApply = (filterState: HospitalSearchFilterState) => {
+    const nextSearchParams = new URLSearchParams(searchParams);
+
+    nextSearchParams.delete(REGION_QUERY_KEY);
+    nextSearchParams.delete(MIN_PRICE_QUERY_KEY);
+    nextSearchParams.delete(MAX_PRICE_QUERY_KEY);
+
+    filterState.regionSelections.forEach(({ regionId, districtId }) => {
+      nextSearchParams.append(REGION_QUERY_KEY, `${regionId}:${districtId}`);
+    });
+
+    if (filterState.priceRange.min !== PRICE_MINIMUM) {
+      nextSearchParams.set(
+        MIN_PRICE_QUERY_KEY,
+        String(filterState.priceRange.min * PRICE_UNIT_IN_WON),
+      );
+    }
+
+    if (filterState.priceRange.max !== PRICE_MAXIMUM) {
+      nextSearchParams.set(
+        MAX_PRICE_QUERY_KEY,
+        String(filterState.priceRange.max * PRICE_UNIT_IN_WON),
+      );
+    }
+
+    setSearchParams(nextSearchParams);
+    setFilterSheetOpen(false);
+  };
+
+  const handleFilterSheetOpen = () => {
+    setFilterSheetSession((currentSession) => currentSession + 1);
+    setFilterSheetOpen(true);
   };
 
   const sortOptions =
@@ -84,9 +207,9 @@ function HospitalSearchResultPage() {
           <FilterChip
             ref={filterTriggerRef}
             label="필터"
-            selected={false}
+            selected={hasAppliedFilter}
             showIcon
-            onClick={() => setFilterSheetOpen(true)}
+            onClick={handleFilterSheetOpen}
           />
           <MenuTrigger<HospitalSort>
             label={selectedSortOption.label}
@@ -99,8 +222,11 @@ function HospitalSearchResultPage() {
         </div>
       </TopArea>
       <HospitalSearchFilterSheet
+        key={filterSheetSession}
         isOpen={isFilterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
+        initialFilterState={appliedFilterState}
+        onApply={handleFilterApply}
         triggerRef={filterTriggerRef}
       />
     </>
