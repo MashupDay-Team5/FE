@@ -606,8 +606,11 @@ function HospitalSearchFilterSheet({
         priceAmount >= priceRangeInWon.min &&
         priceAmount <= priceRangeInWon.max,
     );
+    const matchesTreatmentConditions = selectedTreatmentConditionIds.every(
+      (conditionId) => hospital.treatmentConditionIds.includes(conditionId),
+    );
 
-    return matchesRegion && matchesPrice;
+    return matchesRegion && matchesPrice && matchesTreatmentConditions;
   }).length;
   const filterCounts = {
     region: selectedRegionSelections.length,

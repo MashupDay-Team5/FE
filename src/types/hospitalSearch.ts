@@ -85,6 +85,7 @@ export type HospitalSearchItem = {
   hospitalName: string;
   regionId: number;
   districtId: number;
+  treatmentConditionIds: HospitalSearchTreatmentConditionId[];
   hasDiscount: boolean;
   rating: string;
   reviewCount: string;
