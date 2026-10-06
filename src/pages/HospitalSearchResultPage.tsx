@@ -266,6 +266,11 @@ function HospitalSearchResultPage() {
     () => getFilterState(searchParams),
     [searchParams],
   );
+
+  if (selectedProcedureIds.length === 0 && selectedSort === 'lowest-price') {
+    setSelectedSort('most-visited');
+  }
+
   const hasAppliedFilter =
     appliedFilterState.regionSelections.length > 0 ||
     appliedFilterState.priceRange.min !== PRICE_MINIMUM ||
