@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import closeIcon from '@/assets/icons/close.svg';
 import closeSmallIcon from '@/assets/icons/close-small.svg';
+import checkboxCheckedIcon from '@/assets/icons/checkboxChecked.svg';
 import resetIcon from '@/assets/icons/resetIcon.svg';
 import CategoryPicker from '@/components/common/CategoryPicker';
 import RangeSlider, {
@@ -14,6 +15,7 @@ import type {
   HospitalSearchIntegratedFilterCategory,
   HospitalSearchFilterState,
   HospitalSearchRegionSelection,
+  HospitalSearchTreatmentConditionId,
 } from '@/types/hospitalSearch';
 
 const SHEET_TRANSITION_DURATION = 400;
@@ -31,6 +33,29 @@ const filterCategoryTabs = [
   { value: 'price', label: '가격' },
   { value: 'treatment-condition', label: '진료조건' },
 ] as const;
+
+const treatmentConditions: {
+  id: HospitalSearchTreatmentConditionId;
+  label: string;
+  description?: string;
+}[] = [
+  { id: 'specialist', label: '전문의' },
+  {
+    id: 'public-price',
+    label: '가격공개 병원',
+    description: '의료기관이 직접 특정 치료항목의 비급여 가격 공개',
+  },
+  {
+    id: 'night-clinic',
+    label: '야간진료',
+    description: '일주일 중 하루라도 오후 6:30 이후 진료',
+  },
+  {
+    id: 'holiday-clinic',
+    label: '휴일진료',
+    description: '일요일, 공휴일 중 하루라도 진료',
+  },
+];
 
 type FilterCategoryTabsProps = {
   selectedValue: HospitalSearchIntegratedFilterCategory;
@@ -202,6 +227,53 @@ function FilterPricePanel({
   );
 }
 
+type FilterTreatmentConditionPanelProps = {
+  selectedConditionIds: HospitalSearchTreatmentConditionId[];
+  onConditionClick: (conditionId: HospitalSearchTreatmentConditionId) => void;
+};
+
+function FilterTreatmentConditionPanel({
+  selectedConditionIds,
+  onConditionClick,
+}: FilterTreatmentConditionPanelProps) {
+  return (
+    <div className="flex flex-col items-start gap-gap-xs bg-surface-default py-padding-m">
+      {treatmentConditions.map(({ id, label, description }) => {
+        const isSelected = selectedConditionIds.includes(id);
+
+        return (
+          <button
+            key={id}
+            type="button"
+            aria-pressed={isSelected}
+            onClick={() => onConditionClick(id)}
+            className="flex h-[72px] self-stretch items-center justify-between bg-interaction-neutral-inverse px-padding-m py-padding-xs text-left"
+          >
+            <span className="flex self-stretch flex-col justify-center gap-gap-xs">
+              <span className="self-stretch typography-body-medium text-text-primary">
+                {label}
+              </span>
+              {description ? (
+                <span className="self-stretch typography-label-small-regular text-text-tertiary">
+                  {description}
+                </span>
+              ) : null}
+            </span>
+            {isSelected ? (
+              <img src={checkboxCheckedIcon} alt="" width={24} height={24} />
+            ) : (
+              <span
+                aria-hidden="true"
+                className="size-6 rounded-[4px] border border-border-neutral"
+              />
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 type FilterSelectedRegionListProps = {
   selections: HospitalSearchRegionSelection[];
   onRemove: (regionId: number, districtId: number) => void;
@@ -323,6 +395,10 @@ function HospitalSearchFilterSheet({
   const [priceRange, setPriceRange] = useState<RangeSliderValue>(
     initialFilterState.priceRange,
   );
+  const [selectedTreatmentConditionIds, setSelectedTreatmentConditionIds] =
+    useState<HospitalSearchTreatmentConditionId[]>(
+      initialFilterState.treatmentConditionIds,
+    );
   const [isRendered, setIsRendered] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
   const sheetRef = useRef<HTMLElement>(null);
@@ -483,11 +559,13 @@ function HospitalSearchFilterSheet({
   const handleReset = () => {
     setSelectedRegionSelections([]);
     setPriceRange(DEFAULT_PRICE_RANGE);
+    setSelectedTreatmentConditionIds([]);
 
     const hasAppliedFilter =
       initialFilterState.regionSelections.length > 0 ||
       initialFilterState.priceRange.min !== PRICE_MINIMUM ||
-      initialFilterState.priceRange.max !== PRICE_MAXIMUM;
+      initialFilterState.priceRange.max !== PRICE_MAXIMUM ||
+      initialFilterState.treatmentConditionIds.length > 0;
 
     if (hasAppliedFilter) {
       onAppliedFilterReset();
@@ -506,13 +584,25 @@ function HospitalSearchFilterSheet({
     }
   };
 
+  const handleTreatmentConditionClick = (
+    conditionId: HospitalSearchTreatmentConditionId,
+  ) => {
+    setSelectedTreatmentConditionIds((currentConditionIds) =>
+      currentConditionIds.includes(conditionId)
+        ? currentConditionIds.filter((id) => id !== conditionId)
+        : [...currentConditionIds, conditionId],
+    );
+  };
+
   const selectedDistrictIds = selectedRegionSelections.map(
     ({ districtId }) => districtId,
   );
   const hasSelectedPriceRange =
     priceRange.min !== PRICE_MINIMUM || priceRange.max !== PRICE_MAXIMUM;
   const hasSelectedFilter =
-    selectedRegionSelections.length > 0 || hasSelectedPriceRange;
+    selectedRegionSelections.length > 0 ||
+    hasSelectedPriceRange ||
+    selectedTreatmentConditionIds.length > 0;
   const priceRangeInWon = {
     min: priceRange.min * PRICE_UNIT_IN_WON,
     max: priceRange.max * PRICE_UNIT_IN_WON,
@@ -540,6 +630,7 @@ function HospitalSearchFilterSheet({
   const filterCounts = {
     region: selectedRegionSelections.length,
     price: hasSelectedPriceRange ? 1 : undefined,
+    'treatment-condition': selectedTreatmentConditionIds.length,
   };
   const handleApply = () => {
     if (!hasSelectedFilter || hospitalCount === 0) {
@@ -549,7 +640,7 @@ function HospitalSearchFilterSheet({
     onApply({
       regionSelections: selectedRegionSelections,
       priceRange,
-      treatmentConditionIds: initialFilterState.treatmentConditionIds,
+      treatmentConditionIds: selectedTreatmentConditionIds,
     });
   };
 
@@ -612,6 +703,12 @@ function HospitalSearchFilterSheet({
               priceRange={priceRange}
               onPriceRangeChange={setPriceRange}
               onPriceReset={handlePriceReset}
+            />
+          )}
+          {selectedCategory === 'treatment-condition' && (
+            <FilterTreatmentConditionPanel
+              selectedConditionIds={selectedTreatmentConditionIds}
+              onConditionClick={handleTreatmentConditionClick}
             />
           )}
         </div>
