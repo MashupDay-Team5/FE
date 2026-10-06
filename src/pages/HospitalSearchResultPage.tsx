@@ -90,6 +90,16 @@ function getFilterState(
   };
 }
 
+function clearFilterSearchParams(searchParams: URLSearchParams) {
+  searchParams.delete(REGION_QUERY_KEY);
+  clearPriceSearchParams(searchParams);
+}
+
+function clearPriceSearchParams(searchParams: URLSearchParams) {
+  searchParams.delete(MIN_PRICE_QUERY_KEY);
+  searchParams.delete(MAX_PRICE_QUERY_KEY);
+}
+
 function getRegionSummaryLabel(selection: HospitalSearchRegionSelection) {
   const region = hospitalSearchRegions.find(
     ({ id }) => id === selection.regionId,
@@ -204,9 +214,7 @@ function HospitalSearchResultPage() {
   const handleFilterApply = (filterState: HospitalSearchFilterState) => {
     const nextSearchParams = new URLSearchParams(searchParams);
 
-    nextSearchParams.delete(REGION_QUERY_KEY);
-    nextSearchParams.delete(MIN_PRICE_QUERY_KEY);
-    nextSearchParams.delete(MAX_PRICE_QUERY_KEY);
+    clearFilterSearchParams(nextSearchParams);
 
     filterState.regionSelections.forEach(({ regionId, districtId }) => {
       nextSearchParams.append(REGION_QUERY_KEY, `${regionId}:${districtId}`);
@@ -228,6 +236,22 @@ function HospitalSearchResultPage() {
 
     setSearchParams(nextSearchParams);
     setFilterSheetOpen(false);
+  };
+
+  const handleAppliedFilterReset = () => {
+    const nextSearchParams = new URLSearchParams(searchParams);
+
+    clearFilterSearchParams(nextSearchParams);
+
+    setSearchParams(nextSearchParams);
+  };
+
+  const handleAppliedPriceReset = () => {
+    const nextSearchParams = new URLSearchParams(searchParams);
+
+    clearPriceSearchParams(nextSearchParams);
+
+    setSearchParams(nextSearchParams);
   };
 
   const handleFilterSheetOpen = () => {
@@ -288,6 +312,8 @@ function HospitalSearchResultPage() {
         key={filterSheetSession}
         isOpen={isFilterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
+        onAppliedFilterReset={handleAppliedFilterReset}
+        onAppliedPriceReset={handleAppliedPriceReset}
         initialFilterState={appliedFilterState}
         onApply={handleFilterApply}
         triggerRef={filterTriggerRef}

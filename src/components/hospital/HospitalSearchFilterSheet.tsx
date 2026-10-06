@@ -297,6 +297,8 @@ function FilterSheetBottomCta({
 type HospitalSearchFilterSheetProps = {
   isOpen: boolean;
   onClose: () => void;
+  onAppliedFilterReset: () => void;
+  onAppliedPriceReset: () => void;
   initialFilterState: HospitalSearchFilterState;
   onApply: (filterState: HospitalSearchFilterState) => void;
   triggerRef: RefObject<HTMLButtonElement | null>;
@@ -305,6 +307,8 @@ type HospitalSearchFilterSheetProps = {
 function HospitalSearchFilterSheet({
   isOpen,
   onClose,
+  onAppliedFilterReset,
+  onAppliedPriceReset,
   initialFilterState,
   onApply,
   triggerRef,
@@ -480,6 +484,27 @@ function HospitalSearchFilterSheet({
   const handleReset = () => {
     setSelectedRegionSelections([]);
     setPriceRange(DEFAULT_PRICE_RANGE);
+
+    const hasAppliedFilter =
+      initialFilterState.regionSelections.length > 0 ||
+      initialFilterState.priceRange.min !== PRICE_MINIMUM ||
+      initialFilterState.priceRange.max !== PRICE_MAXIMUM;
+
+    if (hasAppliedFilter) {
+      onAppliedFilterReset();
+    }
+  };
+
+  const handlePriceReset = () => {
+    setPriceRange(DEFAULT_PRICE_RANGE);
+
+    const hasAppliedPriceFilter =
+      initialFilterState.priceRange.min !== PRICE_MINIMUM ||
+      initialFilterState.priceRange.max !== PRICE_MAXIMUM;
+
+    if (hasAppliedPriceFilter) {
+      onAppliedPriceReset();
+    }
   };
 
   const selectedDistrictIds = selectedRegionSelections.map(
@@ -587,7 +612,7 @@ function HospitalSearchFilterSheet({
             <FilterPricePanel
               priceRange={priceRange}
               onPriceRangeChange={setPriceRange}
-              onPriceReset={() => setPriceRange(DEFAULT_PRICE_RANGE)}
+              onPriceReset={handlePriceReset}
             />
           )}
         </div>
