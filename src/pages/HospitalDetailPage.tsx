@@ -1,5 +1,7 @@
+import { useParams } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
+import { findHospitalDetail } from '@/mocks/hospitalDetail';
 
 type SectionPlaceholderProps = {
   label: string;
@@ -21,10 +23,26 @@ function SectionPlaceholder({
 }
 
 function HospitalDetailPage() {
+  const { hospitalId } = useParams();
+  const hospital = findHospitalDetail(Number(hospitalId));
+
+  if (!hospital) {
+    return (
+      <>
+        <TopArea>
+          <Header type="Detail" title="" />
+        </TopArea>
+        <p className="py-padding-l text-center typography-body-medium text-text-secondary">
+          병원 정보를 찾을 수 없어요.
+        </p>
+      </>
+    );
+  }
+
   return (
     <>
       <TopArea>
-        <Header type="Detail" title="병원명" />
+        <Header type="Detail" title={hospital.hospitalName} />
       </TopArea>
 
       {/* 하단 고정 CTA에 마지막 콘텐츠가 가려지지 않도록 CTA 높이만큼 여백을 둔다. */}
