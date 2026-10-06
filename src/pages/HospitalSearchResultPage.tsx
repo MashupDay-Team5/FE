@@ -24,6 +24,7 @@ const PRICE_UNIT_IN_WON = 10000;
 const REGION_QUERY_KEY = 'region';
 const MIN_PRICE_QUERY_KEY = 'minPrice';
 const MAX_PRICE_QUERY_KEY = 'maxPrice';
+const MAX_FILTER_SUMMARY_LENGTH = 20;
 
 function parsePriceRangeValue(value: string | null, fallback: number) {
   if (!value) {
@@ -89,6 +90,65 @@ function getFilterState(
   };
 }
 
+function getRegionSummaryLabel(selection: HospitalSearchRegionSelection) {
+  const region = hospitalSearchRegions.find(
+    ({ id }) => id === selection.regionId,
+  );
+  const district = region?.districts.find(
+    ({ id }) => id === selection.districtId,
+  );
+
+  if (!region || !district) {
+    return undefined;
+  }
+
+  const abbreviatedRegionName = region.name
+    .replace('특별', '')
+    .replace('광역', '');
+
+  return district.name === '전체'
+    ? abbreviatedRegionName
+    : `${abbreviatedRegionName} ${district.name}`;
+}
+
+function getFilterSummaryLabel(filterState: HospitalSearchFilterState) {
+  const summaryLabels: string[] = [];
+  let hiddenFilterCount = 0;
+  const regionLabel = filterState.regionSelections
+    .map(getRegionSummaryLabel)
+    .find((label) => label !== undefined);
+
+  if (regionLabel) {
+    summaryLabels.push(regionLabel);
+    hiddenFilterCount += filterState.regionSelections.length - 1;
+  }
+
+  const hasPriceFilter =
+    filterState.priceRange.min !== PRICE_MINIMUM ||
+    filterState.priceRange.max !== PRICE_MAXIMUM;
+
+  if (hasPriceFilter) {
+    summaryLabels.push('가격');
+  }
+
+  while (summaryLabels.length > 1) {
+    const suffix = hiddenFilterCount > 0 ? ` 외 ${hiddenFilterCount}개` : '';
+
+    if (
+      `${summaryLabels.join(', ')}${suffix}`.length <= MAX_FILTER_SUMMARY_LENGTH
+    ) {
+      break;
+    }
+
+    summaryLabels.pop();
+    hiddenFilterCount += 1;
+  }
+
+  const suffix = hiddenFilterCount > 0 ? ` 외 ${hiddenFilterCount}개` : '';
+
+  return `${summaryLabels.join(', ')}${suffix}`;
+}
+
 const hospitalSearchTabItems: TabItem<HospitalSearchTab>[] = [
   { value: 'integrated', label: '통합', disabled: true },
   { value: 'hospital', label: '병원' },
@@ -129,6 +189,9 @@ function HospitalSearchResultPage() {
     appliedFilterState.regionSelections.length > 0 ||
     appliedFilterState.priceRange.min !== PRICE_MINIMUM ||
     appliedFilterState.priceRange.max !== PRICE_MAXIMUM;
+  const filterChipLabel = hasAppliedFilter
+    ? getFilterSummaryLabel(appliedFilterState)
+    : '필터';
 
   const handleProcedureClick = (procedureId: number) => {
     setSelectedProcedureIds((currentIds) =>
@@ -206,7 +269,7 @@ function HospitalSearchResultPage() {
         <div className="flex items-center justify-between bg-surface-default px-padding-m py-padding-s">
           <FilterChip
             ref={filterTriggerRef}
-            label="필터"
+            label={filterChipLabel}
             selected={hasAppliedFilter}
             showIcon
             onClick={handleFilterSheetOpen}
