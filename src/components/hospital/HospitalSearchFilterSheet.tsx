@@ -211,12 +211,11 @@ function FilterSelectedRegionList({
   selections,
   onRemove,
 }: FilterSelectedRegionListProps) {
-  if (selections.length === 0) {
-    return null;
-  }
-
   return (
-    <div className="flex shrink-0 flex-col items-start gap-gap-s bg-surface-default py-padding-s">
+    <div
+      aria-hidden={selections.length === 0}
+      className="flex shrink-0 flex-col items-start gap-gap-s bg-surface-default py-padding-s"
+    >
       <div className="px-padding-m">
         <p className="typography-caption-medium text-text-tertiary">
           {selections.length}/{MAX_SELECTED_REGION_COUNT}
@@ -617,10 +616,24 @@ function HospitalSearchFilterSheet({
           )}
         </div>
         {selectedCategory === 'region' && (
-          <FilterSelectedRegionList
-            selections={selectedRegionSelections}
-            onRemove={handleDistrictClick}
-          />
+          <div
+            className={`shrink-0 overflow-hidden transition-[max-height] duration-200 ease-[cubic-bezier(0,0,0.4,1)] motion-reduce:transition-none ${
+              selectedRegionSelections.length > 0 ? 'max-h-[82px]' : 'max-h-0'
+            }`}
+          >
+            <div
+              className={`transition-[transform,opacity] duration-200 ease-[cubic-bezier(0,0,0.4,1)] motion-reduce:transition-none ${
+                selectedRegionSelections.length > 0
+                  ? 'translate-y-0 opacity-100'
+                  : 'translate-y-full opacity-0'
+              }`}
+            >
+              <FilterSelectedRegionList
+                selections={selectedRegionSelections}
+                onRemove={handleDistrictClick}
+              />
+            </div>
+          </div>
         )}
         <FilterSheetBottomCta
           hospitalCount={hasSelectedFilter ? hospitalCount : 0}
