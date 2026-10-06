@@ -1,5 +1,12 @@
 import type { HospitalSearchTreatmentCondition } from '@/types/hospitalSearch';
 
+export const hospitalSearchPriceRange = {
+  min: 0,
+  max: 500,
+};
+
+export const hospitalSearchPriceUnitInWon = 10000;
+
 export const hospitalSearchTreatmentConditions: HospitalSearchTreatmentCondition[] =
   [
     { id: 'specialist', label: '전문의' },

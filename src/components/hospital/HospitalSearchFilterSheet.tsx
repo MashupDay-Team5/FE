@@ -7,7 +7,11 @@ import CategoryPicker from '@/components/common/CategoryPicker';
 import RangeSlider, {
   type RangeSliderValue,
 } from '@/components/common/RangeSlider';
-import { hospitalSearchTreatmentConditions } from '@/constants/hospitalSearch';
+import {
+  hospitalSearchPriceRange,
+  hospitalSearchPriceUnitInWon,
+  hospitalSearchTreatmentConditions,
+} from '@/constants/hospitalSearch';
 import {
   hospitalSearchItems,
   hospitalSearchRegions,
@@ -21,9 +25,9 @@ import type {
 
 const SHEET_TRANSITION_DURATION = 400;
 const MAX_SELECTED_REGION_COUNT = 5;
-const PRICE_MINIMUM = 0;
-const PRICE_MAXIMUM = 1000;
-const PRICE_UNIT_IN_WON = 10000;
+const PRICE_MINIMUM = hospitalSearchPriceRange.min;
+const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
+const PRICE_UNIT_IN_WON = hospitalSearchPriceUnitInWon;
 const DEFAULT_PRICE_RANGE: RangeSliderValue = {
   min: PRICE_MINIMUM,
   max: PRICE_MAXIMUM,

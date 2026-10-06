@@ -8,7 +8,11 @@ import Tab, { type TabItem } from '@/components/common/Tab';
 import HospitalSearchFilterSheet from '@/components/hospital/HospitalSearchFilterSheet';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
-import { hospitalSearchTreatmentConditions } from '@/constants/hospitalSearch';
+import {
+  hospitalSearchPriceRange,
+  hospitalSearchPriceUnitInWon,
+  hospitalSearchTreatmentConditions,
+} from '@/constants/hospitalSearch';
 import {
   hospitalSearchProcedures,
   hospitalSearchRegions,
@@ -20,9 +24,9 @@ import type {
   HospitalSearchTreatmentConditionId,
 } from '@/types/hospitalSearch';
 
-const PRICE_MINIMUM = 0;
-const PRICE_MAXIMUM = 1000;
-const PRICE_UNIT_IN_WON = 10000;
+const PRICE_MINIMUM = hospitalSearchPriceRange.min;
+const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
+const PRICE_UNIT_IN_WON = hospitalSearchPriceUnitInWon;
 const REGION_QUERY_KEY = 'region';
 const MIN_PRICE_QUERY_KEY = 'minPrice';
 const MAX_PRICE_QUERY_KEY = 'maxPrice';
