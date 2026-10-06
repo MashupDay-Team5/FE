@@ -7,6 +7,7 @@ import CategoryPicker from '@/components/common/CategoryPicker';
 import RangeSlider, {
   type RangeSliderValue,
 } from '@/components/common/RangeSlider';
+import { hospitalSearchTreatmentConditions } from '@/constants/hospitalSearch';
 import {
   hospitalSearchItems,
   hospitalSearchRegions,
@@ -33,29 +34,6 @@ const filterCategoryTabs = [
   { value: 'price', label: '가격' },
   { value: 'treatment-condition', label: '진료조건' },
 ] as const;
-
-const treatmentConditions: {
-  id: HospitalSearchTreatmentConditionId;
-  label: string;
-  description?: string;
-}[] = [
-  { id: 'specialist', label: '전문의' },
-  {
-    id: 'public-price',
-    label: '가격공개 병원',
-    description: '의료기관이 직접 특정 치료항목의 비급여 가격 공개',
-  },
-  {
-    id: 'night-clinic',
-    label: '야간진료',
-    description: '일주일 중 하루라도 오후 6:30 이후 진료',
-  },
-  {
-    id: 'holiday-clinic',
-    label: '휴일진료',
-    description: '일요일, 공휴일 중 하루라도 진료',
-  },
-];
 
 type FilterCategoryTabsProps = {
   selectedValue: HospitalSearchIntegratedFilterCategory;
@@ -238,7 +216,7 @@ function FilterTreatmentConditionPanel({
 }: FilterTreatmentConditionPanelProps) {
   return (
     <div className="flex flex-col items-start gap-gap-xs bg-surface-default py-padding-m">
-      {treatmentConditions.map(({ id, label, description }) => {
+      {hospitalSearchTreatmentConditions.map(({ id, label, description }) => {
         const isSelected = selectedConditionIds.includes(id);
 
         return (

@@ -8,6 +8,7 @@ import Tab, { type TabItem } from '@/components/common/Tab';
 import HospitalSearchFilterSheet from '@/components/hospital/HospitalSearchFilterSheet';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
+import { hospitalSearchTreatmentConditions } from '@/constants/hospitalSearch';
 import {
   hospitalSearchProcedures,
   hospitalSearchRegions,
@@ -16,6 +17,7 @@ import type {
   HospitalSearchFilterState,
   HospitalSearchRegionSelection,
   HospitalSearchTab,
+  HospitalSearchTreatmentConditionId,
 } from '@/types/hospitalSearch';
 
 const PRICE_MINIMUM = 0;
@@ -24,7 +26,7 @@ const PRICE_UNIT_IN_WON = 10000;
 const REGION_QUERY_KEY = 'region';
 const MIN_PRICE_QUERY_KEY = 'minPrice';
 const MAX_PRICE_QUERY_KEY = 'maxPrice';
-const MAX_FILTER_SUMMARY_LENGTH = 20;
+const TREATMENT_CONDITION_QUERY_KEY = 'treatmentCondition';
 
 function parsePriceRangeValue(value: string | null, fallback: number) {
   if (!value) {
@@ -61,6 +63,14 @@ function parseRegionSelection(value: string) {
   return { regionId, districtId };
 }
 
+function parseTreatmentConditionId(value: string) {
+  const treatmentCondition = hospitalSearchTreatmentConditions.find(
+    ({ id }) => id === value,
+  );
+
+  return treatmentCondition?.id;
+}
+
 function getFilterState(
   searchParams: URLSearchParams,
 ): HospitalSearchFilterState {
@@ -79,6 +89,17 @@ function getFilterState(
     searchParams.get(MAX_PRICE_QUERY_KEY),
     PRICE_MAXIMUM,
   );
+  const treatmentConditionIds = Array.from(
+    new Set(
+      searchParams
+        .getAll(TREATMENT_CONDITION_QUERY_KEY)
+        .map(parseTreatmentConditionId)
+        .filter(
+          (conditionId): conditionId is HospitalSearchTreatmentConditionId =>
+            conditionId !== undefined,
+        ),
+    ),
+  );
 
   return {
     regionSelections,
@@ -86,13 +107,14 @@ function getFilterState(
       min: Math.min(minimumPrice, maximumPrice),
       max: Math.max(minimumPrice, maximumPrice),
     },
-    treatmentConditionIds: [],
+    treatmentConditionIds,
   };
 }
 
 function clearFilterSearchParams(searchParams: URLSearchParams) {
   searchParams.delete(REGION_QUERY_KEY);
   clearPriceSearchParams(searchParams);
+  searchParams.delete(TREATMENT_CONDITION_QUERY_KEY);
 }
 
 function clearPriceSearchParams(searchParams: URLSearchParams) {
@@ -141,17 +163,13 @@ function getFilterSummaryLabel(filterState: HospitalSearchFilterState) {
     summaryLabels.push('가격');
   }
 
-  while (summaryLabels.length > 1) {
-    const suffix = hiddenFilterCount > 0 ? ` 외 ${hiddenFilterCount}개` : '';
+  const treatmentCondition = hospitalSearchTreatmentConditions.find(({ id }) =>
+    filterState.treatmentConditionIds.includes(id),
+  );
 
-    if (
-      `${summaryLabels.join(', ')}${suffix}`.length <= MAX_FILTER_SUMMARY_LENGTH
-    ) {
-      break;
-    }
-
-    summaryLabels.pop();
-    hiddenFilterCount += 1;
+  if (treatmentCondition) {
+    summaryLabels.push(treatmentCondition.label);
+    hiddenFilterCount += filterState.treatmentConditionIds.length - 1;
   }
 
   const suffix = hiddenFilterCount > 0 ? ` 외 ${hiddenFilterCount}개` : '';
@@ -198,7 +216,8 @@ function HospitalSearchResultPage() {
   const hasAppliedFilter =
     appliedFilterState.regionSelections.length > 0 ||
     appliedFilterState.priceRange.min !== PRICE_MINIMUM ||
-    appliedFilterState.priceRange.max !== PRICE_MAXIMUM;
+    appliedFilterState.priceRange.max !== PRICE_MAXIMUM ||
+    appliedFilterState.treatmentConditionIds.length > 0;
   const filterChipLabel = hasAppliedFilter
     ? getFilterSummaryLabel(appliedFilterState)
     : '필터';
@@ -233,6 +252,10 @@ function HospitalSearchResultPage() {
         String(filterState.priceRange.max * PRICE_UNIT_IN_WON),
       );
     }
+
+    filterState.treatmentConditionIds.forEach((conditionId) => {
+      nextSearchParams.append(TREATMENT_CONDITION_QUERY_KEY, conditionId);
+    });
 
     setSearchParams(nextSearchParams);
     setFilterSheetOpen(false);

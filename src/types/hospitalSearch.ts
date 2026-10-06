@@ -10,6 +10,12 @@ export type HospitalSearchIntegratedFilterCategory =
 export type HospitalSearchTreatmentConditionId =
   'specialist' | 'public-price' | 'night-clinic' | 'holiday-clinic';
 
+export type HospitalSearchTreatmentCondition = {
+  id: HospitalSearchTreatmentConditionId;
+  label: string;
+  description?: string;
+};
+
 // 가격 슬라이더 최소, 최댓값 타입
 export type HospitalSearchPriceRange = {
   min: number;
