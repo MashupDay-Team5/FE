@@ -62,6 +62,17 @@ function MallHospitalList({
   hasMore,
   onMoreClick,
 }: MallHospitalListProps) {
+  // 결과 없음 디자인이 확정되기 전까지 사용하는 임시 빈 상태
+  if (hospitals.length === 0) {
+    return (
+      <section className="flex flex-col items-center py-[80px]">
+        <p className="typography-body-medium text-text-tertiary">
+          조건에 맞는 병원이 없어요
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section className="-mx-padding-m flex flex-col">
       {hospitals.map((hospital) => {

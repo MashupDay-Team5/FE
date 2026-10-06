@@ -83,14 +83,21 @@ function UniversityMallPage() {
     sortOptions.find((option) => option.value === selectedSort) ??
     sortOptions[0];
 
-  const filteredHospitals =
+  // API 연동 전 확인용 필터: 선택한 시술(없으면 현재 진료 범위의 시술)에 해당하는 가격 카드만 남기고,
+  // 남은 카드가 없는 병원은 목록에서 뺀다. 연동 후에는 서버 응답으로 대체한다.
+  const visibleProcedureIds = new Set(
     selectedProcedureId === null
-      ? universityMallHospitals
-      : universityMallHospitals.filter(({ priceCards }) =>
-          priceCards.some(
-            ({ procedureId }) => procedureId === selectedProcedureId,
-          ),
-        );
+      ? treatments.map(({ id }) => id)
+      : [selectedProcedureId],
+  );
+  const filteredHospitals = universityMallHospitals
+    .map((hospital) => ({
+      ...hospital,
+      priceCards: hospital.priceCards.filter(({ procedureId }) =>
+        visibleProcedureIds.has(procedureId),
+      ),
+    }))
+    .filter(({ priceCards }) => priceCards.length > 0);
   const visibleHospitals = filteredHospitals.slice(0, visibleHospitalCount);
 
   return (
