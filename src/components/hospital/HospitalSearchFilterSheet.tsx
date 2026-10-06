@@ -611,7 +611,12 @@ function HospitalSearchFilterSheet({
     'treatment-condition': selectedTreatmentConditionIds.length,
   };
   const handleApply = () => {
-    if (!hasSelectedFilter || hospitalCount === 0) {
+    if (!hasSelectedFilter) {
+      onClose();
+      return;
+    }
+
+    if (hospitalCount === 0) {
       return;
     }
 
@@ -711,7 +716,7 @@ function HospitalSearchFilterSheet({
           </div>
         )}
         <FilterSheetBottomCta
-          hospitalCount={hasSelectedFilter ? hospitalCount : 0}
+          hospitalCount={hospitalCount}
           onReset={handleReset}
           onView={handleApply}
         />
