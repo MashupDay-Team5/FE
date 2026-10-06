@@ -20,7 +20,7 @@ function CategoryPicker<T extends string | number>({
 }: CategoryPickerProps<T>) {
   return (
     <div className="flex h-[449px] min-h-0 shrink overflow-hidden border-y border-border-neutral">
-      <div className="scrollbar-hidden w-[131px] shrink-0 overflow-y-auto border-r border-border-neutral min-[376px]:w-auto min-[376px]:flex-[131_0_0]">
+      <div className="scrollbar-hidden w-[135px] shrink-0 overflow-y-auto border-r border-border-neutral">
         {categories.map(({ id, name }) => {
           const isSelected = id === selectedCategoryId;
 
@@ -41,7 +41,7 @@ function CategoryPicker<T extends string | number>({
           );
         })}
       </div>
-      <div className="scrollbar-hidden min-w-0 flex-1 overflow-y-auto bg-surface-default min-[376px]:flex-[244_0_0]">
+      <div className="scrollbar-hidden min-w-0 flex-1 overflow-y-auto bg-surface-default">
         {children}
       </div>
     </div>

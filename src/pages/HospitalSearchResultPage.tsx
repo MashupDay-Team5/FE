@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import FilterChip from '@/components/common/FilterChip';
 import MenuTrigger, {
   type MenuTriggerOption,
@@ -7,8 +8,212 @@ import Tab, { type TabItem } from '@/components/common/Tab';
 import HospitalSearchFilterSheet from '@/components/hospital/HospitalSearchFilterSheet';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
-import { hospitalSearchProcedures } from '@/mocks/hospitalSearch';
-import type { HospitalSearchTab } from '@/types/hospitalSearch';
+import {
+  MAX_SELECTED_REGION_COUNT,
+  hospitalSearchPriceRange,
+  hospitalSearchPriceUnitInWon,
+  hospitalSearchTreatmentConditions,
+} from '@/constants/hospitalSearch';
+import {
+  hospitalSearchProcedures,
+  hospitalSearchRegions,
+} from '@/mocks/hospitalSearch';
+import type {
+  HospitalSearchFilterState,
+  HospitalSearchRegionSelection,
+  HospitalSearchTab,
+  HospitalSearchTreatmentConditionId,
+} from '@/types/hospitalSearch';
+
+const PRICE_MINIMUM = hospitalSearchPriceRange.min;
+const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
+const PRICE_UNIT_IN_WON = hospitalSearchPriceUnitInWon;
+const REGION_QUERY_KEY = 'region';
+const MIN_PRICE_QUERY_KEY = 'minPrice';
+const MAX_PRICE_QUERY_KEY = 'maxPrice';
+const TREATMENT_CONDITION_QUERY_KEY = 'treatmentCondition';
+
+function parsePriceRangeValue(value: string | null, fallback: number) {
+  if (!value) {
+    return fallback;
+  }
+
+  const priceInWon = Number(value);
+
+  if (!Number.isFinite(priceInWon)) {
+    return fallback;
+  }
+
+  return Math.min(
+    PRICE_MAXIMUM,
+    Math.max(PRICE_MINIMUM, priceInWon / PRICE_UNIT_IN_WON),
+  );
+}
+
+function parseRegionSelection(value: string) {
+  const [regionIdText, districtIdText] = value.split(':');
+  const regionId = Number(regionIdText);
+  const districtId = Number(districtIdText);
+
+  if (!Number.isInteger(regionId) || !Number.isInteger(districtId)) {
+    return undefined;
+  }
+
+  const region = hospitalSearchRegions.find(({ id }) => id === regionId);
+
+  if (!region?.districts.some(({ id }) => id === districtId)) {
+    return undefined;
+  }
+
+  return { regionId, districtId };
+}
+
+function parseTreatmentConditionId(value: string) {
+  const treatmentCondition = hospitalSearchTreatmentConditions.find(
+    ({ id }) => id === value,
+  );
+
+  return treatmentCondition?.id;
+}
+
+function normalizeRegionSelections(
+  selections: HospitalSearchRegionSelection[],
+) {
+  const normalizedSelections = selections.reduce<
+    HospitalSearchRegionSelection[]
+  >((currentSelections, selection) => {
+    const region = hospitalSearchRegions.find(
+      ({ id }) => id === selection.regionId,
+    );
+
+    if (
+      !region ||
+      currentSelections.some(
+        ({ districtId }) => districtId === selection.districtId,
+      )
+    ) {
+      return currentSelections;
+    }
+
+    const wholeDistrictId = region.districts[0].id;
+    const isWholeRegion = selection.districtId === wholeDistrictId;
+    const selectionsWithoutConflicts = currentSelections.filter(
+      (currentSelection) =>
+        currentSelection.regionId !== selection.regionId ||
+        (!isWholeRegion && currentSelection.districtId !== wholeDistrictId),
+    );
+
+    return [...selectionsWithoutConflicts, selection];
+  }, []);
+
+  return normalizedSelections.slice(0, MAX_SELECTED_REGION_COUNT);
+}
+
+function getFilterState(
+  searchParams: URLSearchParams,
+): HospitalSearchFilterState {
+  const regionSelections = searchParams
+    .getAll(REGION_QUERY_KEY)
+    .map(parseRegionSelection)
+    .filter(
+      (selection): selection is HospitalSearchRegionSelection =>
+        selection !== undefined,
+    );
+  const minimumPrice = parsePriceRangeValue(
+    searchParams.get(MIN_PRICE_QUERY_KEY),
+    PRICE_MINIMUM,
+  );
+  const maximumPrice = parsePriceRangeValue(
+    searchParams.get(MAX_PRICE_QUERY_KEY),
+    PRICE_MAXIMUM,
+  );
+  const treatmentConditionIds = Array.from(
+    new Set(
+      searchParams
+        .getAll(TREATMENT_CONDITION_QUERY_KEY)
+        .map(parseTreatmentConditionId)
+        .filter(
+          (conditionId): conditionId is HospitalSearchTreatmentConditionId =>
+            conditionId !== undefined,
+        ),
+    ),
+  );
+
+  return {
+    regionSelections: normalizeRegionSelections(regionSelections),
+    priceRange: {
+      min: Math.min(minimumPrice, maximumPrice),
+      max: Math.max(minimumPrice, maximumPrice),
+    },
+    treatmentConditionIds,
+  };
+}
+
+function clearFilterSearchParams(searchParams: URLSearchParams) {
+  searchParams.delete(REGION_QUERY_KEY);
+  clearPriceSearchParams(searchParams);
+  searchParams.delete(TREATMENT_CONDITION_QUERY_KEY);
+}
+
+function clearPriceSearchParams(searchParams: URLSearchParams) {
+  searchParams.delete(MIN_PRICE_QUERY_KEY);
+  searchParams.delete(MAX_PRICE_QUERY_KEY);
+}
+
+function getRegionSummaryLabel(selection: HospitalSearchRegionSelection) {
+  const region = hospitalSearchRegions.find(
+    ({ id }) => id === selection.regionId,
+  );
+  const district = region?.districts.find(
+    ({ id }) => id === selection.districtId,
+  );
+
+  if (!region || !district) {
+    return undefined;
+  }
+
+  const abbreviatedRegionName = region.name
+    .replace('특별', '')
+    .replace('광역', '');
+
+  return district.name === '전체'
+    ? abbreviatedRegionName
+    : `${abbreviatedRegionName} ${district.name}`;
+}
+
+function getFilterSummaryLabel(filterState: HospitalSearchFilterState) {
+  const summaryLabels: string[] = [];
+  let hiddenFilterCount = 0;
+  const regionLabel = filterState.regionSelections
+    .map(getRegionSummaryLabel)
+    .find((label) => label !== undefined);
+
+  if (regionLabel) {
+    summaryLabels.push(regionLabel);
+    hiddenFilterCount += filterState.regionSelections.length - 1;
+  }
+
+  const hasPriceFilter =
+    filterState.priceRange.min !== PRICE_MINIMUM ||
+    filterState.priceRange.max !== PRICE_MAXIMUM;
+
+  if (hasPriceFilter) {
+    summaryLabels.push('가격');
+  }
+
+  const treatmentCondition = hospitalSearchTreatmentConditions.find(({ id }) =>
+    filterState.treatmentConditionIds.includes(id),
+  );
+
+  if (treatmentCondition) {
+    summaryLabels.push(treatmentCondition.label);
+    hiddenFilterCount += filterState.treatmentConditionIds.length - 1;
+  }
+
+  const suffix = hiddenFilterCount > 0 ? ` 외 ${hiddenFilterCount}개` : '';
+
+  return `${summaryLabels.join(', ')}${suffix}`;
+}
 
 const hospitalSearchTabItems: TabItem<HospitalSearchTab>[] = [
   { value: 'integrated', label: '통합', disabled: true },
@@ -32,6 +237,7 @@ const lowestPriceSortOption: MenuTriggerOption<HospitalSort> = {
 };
 
 function HospitalSearchResultPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedProcedureIds, setSelectedProcedureIds] = useState<number[]>(
     [],
   );
@@ -39,7 +245,20 @@ function HospitalSearchResultPage() {
   const [selectedSort, setSelectedSort] =
     useState<HospitalSort>('most-visited');
   const [isFilterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [filterSheetSession, setFilterSheetSession] = useState(0);
   const filterTriggerRef = useRef<HTMLButtonElement>(null);
+  const appliedFilterState = useMemo(
+    () => getFilterState(searchParams),
+    [searchParams],
+  );
+  const hasAppliedFilter =
+    appliedFilterState.regionSelections.length > 0 ||
+    appliedFilterState.priceRange.min !== PRICE_MINIMUM ||
+    appliedFilterState.priceRange.max !== PRICE_MAXIMUM ||
+    appliedFilterState.treatmentConditionIds.length > 0;
+  const filterChipLabel = hasAppliedFilter
+    ? getFilterSummaryLabel(appliedFilterState)
+    : '필터';
 
   const handleProcedureClick = (procedureId: number) => {
     setSelectedProcedureIds((currentIds) =>
@@ -47,6 +266,42 @@ function HospitalSearchResultPage() {
         ? currentIds.filter((id) => id !== procedureId)
         : [...currentIds, procedureId],
     );
+  };
+
+  const handleFilterApply = (filterState: HospitalSearchFilterState) => {
+    const nextSearchParams = new URLSearchParams(searchParams);
+
+    clearFilterSearchParams(nextSearchParams);
+
+    filterState.regionSelections.forEach(({ regionId, districtId }) => {
+      nextSearchParams.append(REGION_QUERY_KEY, `${regionId}:${districtId}`);
+    });
+
+    if (filterState.priceRange.min !== PRICE_MINIMUM) {
+      nextSearchParams.set(
+        MIN_PRICE_QUERY_KEY,
+        String(filterState.priceRange.min * PRICE_UNIT_IN_WON),
+      );
+    }
+
+    if (filterState.priceRange.max !== PRICE_MAXIMUM) {
+      nextSearchParams.set(
+        MAX_PRICE_QUERY_KEY,
+        String(filterState.priceRange.max * PRICE_UNIT_IN_WON),
+      );
+    }
+
+    filterState.treatmentConditionIds.forEach((conditionId) => {
+      nextSearchParams.append(TREATMENT_CONDITION_QUERY_KEY, conditionId);
+    });
+
+    setSearchParams(nextSearchParams);
+    setFilterSheetOpen(false);
+  };
+
+  const handleFilterSheetOpen = () => {
+    setFilterSheetSession((currentSession) => currentSession + 1);
+    setFilterSheetOpen(true);
   };
 
   const sortOptions =
@@ -83,10 +338,10 @@ function HospitalSearchResultPage() {
         <div className="flex items-center justify-between bg-surface-default px-padding-m py-padding-s">
           <FilterChip
             ref={filterTriggerRef}
-            label="필터"
-            selected={false}
+            label={filterChipLabel}
+            selected={hasAppliedFilter}
             showIcon
-            onClick={() => setFilterSheetOpen(true)}
+            onClick={handleFilterSheetOpen}
           />
           <MenuTrigger<HospitalSort>
             label={selectedSortOption.label}
@@ -99,8 +354,11 @@ function HospitalSearchResultPage() {
         </div>
       </TopArea>
       <HospitalSearchFilterSheet
+        key={filterSheetSession}
         isOpen={isFilterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
+        initialFilterState={appliedFilterState}
+        onApply={handleFilterApply}
         triggerRef={filterTriggerRef}
       />
     </>

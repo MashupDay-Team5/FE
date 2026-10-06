@@ -10,6 +10,12 @@ export type HospitalSearchIntegratedFilterCategory =
 export type HospitalSearchTreatmentConditionId =
   'specialist' | 'public-price' | 'night-clinic' | 'holiday-clinic';
 
+export type HospitalSearchTreatmentCondition = {
+  id: HospitalSearchTreatmentConditionId;
+  label: string;
+  description?: string;
+};
+
 // 가격 슬라이더 최소, 최댓값 타입
 export type HospitalSearchPriceRange = {
   min: number;
@@ -18,7 +24,7 @@ export type HospitalSearchPriceRange = {
 
 // 선택된 지역, 가격 범위, 진료조건을 묶는 필터 상태 구조
 export type HospitalSearchFilterState = {
-  regionIds: number[];
+  regionSelections: HospitalSearchRegionSelection[];
   priceRange: HospitalSearchPriceRange;
   treatmentConditionIds: HospitalSearchTreatmentConditionId[];
 };
@@ -51,6 +57,7 @@ export type HospitalSearchPriceCard =
       type: 'badge';
       procedureId: number;
       procedureName: string;
+      priceAmount: number;
       originalPrice: string;
       discountedPrice: string;
       badgeLabel: string;
@@ -59,6 +66,7 @@ export type HospitalSearchPriceCard =
       type: 'default';
       procedureId: number;
       procedureName: string;
+      priceAmount: number;
       originalPrice: string;
       discountedPrice: string;
     }
@@ -66,6 +74,7 @@ export type HospitalSearchPriceCard =
       type: 'free';
       procedureId: number;
       procedureName: string;
+      priceAmount: number;
       originalPrice: string;
       originalPriceLabel?: string;
     };
@@ -76,6 +85,7 @@ export type HospitalSearchItem = {
   hospitalName: string;
   regionId: number;
   districtId: number;
+  treatmentConditionIds: HospitalSearchTreatmentConditionId[];
   hasDiscount: boolean;
   rating: string;
   reviewCount: string;

@@ -1,18 +1,37 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import closeIcon from '@/assets/icons/close.svg';
 import closeSmallIcon from '@/assets/icons/close-small.svg';
+import checkboxCheckedIcon from '@/assets/icons/checkboxChecked.svg';
+import resetIcon from '@/assets/icons/resetIcon.svg';
 import CategoryPicker from '@/components/common/CategoryPicker';
+import RangeSlider, {
+  type RangeSliderValue,
+} from '@/components/common/RangeSlider';
+import {
+  MAX_SELECTED_REGION_COUNT,
+  hospitalSearchPriceRange,
+  hospitalSearchPriceUnitInWon,
+  hospitalSearchTreatmentConditions,
+} from '@/constants/hospitalSearch';
 import {
   hospitalSearchItems,
   hospitalSearchRegions,
 } from '@/mocks/hospitalSearch';
 import type {
   HospitalSearchIntegratedFilterCategory,
+  HospitalSearchFilterState,
   HospitalSearchRegionSelection,
+  HospitalSearchTreatmentConditionId,
 } from '@/types/hospitalSearch';
 
 const SHEET_TRANSITION_DURATION = 400;
-const MAX_SELECTED_REGION_COUNT = 5;
+const PRICE_MINIMUM = hospitalSearchPriceRange.min;
+const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
+const PRICE_UNIT_IN_WON = hospitalSearchPriceUnitInWon;
+const DEFAULT_PRICE_RANGE: RangeSliderValue = {
+  min: PRICE_MINIMUM,
+  max: PRICE_MAXIMUM,
+};
 
 const filterCategoryTabs = [
   { value: 'region', label: '지역' },
@@ -23,11 +42,13 @@ const filterCategoryTabs = [
 type FilterCategoryTabsProps = {
   selectedValue: HospitalSearchIntegratedFilterCategory;
   onValueChange: (value: HospitalSearchIntegratedFilterCategory) => void;
+  filterCounts: Partial<Record<HospitalSearchIntegratedFilterCategory, number>>;
 };
 
 function FilterCategoryTabs({
   selectedValue,
   onValueChange,
+  filterCounts,
 }: FilterCategoryTabsProps) {
   return (
     <div className="flex w-full items-center border-b border-border-neutral bg-surface-default pt-padding-xs">
@@ -46,7 +67,14 @@ function FilterCategoryTabs({
                 : 'text-text-disabled typography-body-medium'
             }`}
           >
-            <span>{label}</span>
+            <span className="flex items-center gap-gap-xs">
+              <span>{label}</span>
+              {filterCounts[value] ? (
+                <span className="flex size-5 items-center justify-center rounded-full bg-surface-brand typography-label-small-medium text-text-brand">
+                  {filterCounts[value]}
+                </span>
+              ) : null}
+            </span>
             <span
               aria-hidden="true"
               className={`h-1 w-full ${
@@ -106,6 +134,128 @@ function FilterRegionPanel({
   );
 }
 
+type FilterPricePanelProps = {
+  priceRange: RangeSliderValue;
+  onPriceRangeChange: (priceRange: RangeSliderValue) => void;
+  onPriceReset: () => void;
+};
+
+function FilterPricePanel({
+  priceRange,
+  onPriceRangeChange,
+  onPriceReset,
+}: FilterPricePanelProps) {
+  const formatPrice = (price: number) => price.toLocaleString();
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col bg-surface-default">
+      <div className="flex items-center px-padding-m py-padding-l">
+        <h3 className="typography-label-large-medium text-text-secondary">
+          예산 범위
+        </h3>
+      </div>
+      <div className="px-padding-l">
+        <RangeSlider
+          min={PRICE_MINIMUM}
+          max={PRICE_MAXIMUM}
+          step={10}
+          value={priceRange}
+          onChange={onPriceRangeChange}
+          formatValue={formatPrice}
+          ariaLabel="예산 범위"
+        />
+      </div>
+      <div className="mt-[32px] flex flex-col px-padding-m">
+        <dl className="flex flex-col gap-y-padding-l">
+          <div className="flex h-9 items-center gap-gap-l">
+            <dt className="typography-label-large-regular text-text-secondary">
+              최소
+            </dt>
+            <dd className="flex items-center gap-gap-s">
+              <strong className="typography-title-bold text-text-primary">
+                {formatPrice(priceRange.min)}만원
+              </strong>
+              <span className="typography-body-medium text-text-secondary">
+                부터
+              </span>
+            </dd>
+          </div>
+          <div className="flex h-9 items-center gap-gap-l">
+            <dt className="typography-label-large-regular text-text-secondary">
+              최대
+            </dt>
+            <dd className="flex items-center gap-gap-s">
+              <strong className="typography-title-bold text-text-primary">
+                {formatPrice(priceRange.max)}만원
+              </strong>
+              <span className="typography-body-medium text-text-secondary">
+                까지
+              </span>
+            </dd>
+          </div>
+        </dl>
+        <div className="mt-padding-s flex h-11 items-center justify-end">
+          <button
+            type="button"
+            onClick={onPriceReset}
+            className="flex items-center gap-gap-xs typography-label-small-medium text-text-secondary"
+          >
+            가격 초기화
+            <img src={resetIcon} alt="" width={20} height={20} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type FilterTreatmentConditionPanelProps = {
+  selectedConditionIds: HospitalSearchTreatmentConditionId[];
+  onConditionClick: (conditionId: HospitalSearchTreatmentConditionId) => void;
+};
+
+function FilterTreatmentConditionPanel({
+  selectedConditionIds,
+  onConditionClick,
+}: FilterTreatmentConditionPanelProps) {
+  return (
+    <div className="flex flex-col items-start gap-gap-xs bg-surface-default py-padding-m">
+      {hospitalSearchTreatmentConditions.map(({ id, label, description }) => {
+        const isSelected = selectedConditionIds.includes(id);
+
+        return (
+          <button
+            key={id}
+            type="button"
+            aria-pressed={isSelected}
+            onClick={() => onConditionClick(id)}
+            className="flex h-[72px] self-stretch items-center justify-between bg-interaction-neutral-inverse px-padding-m py-padding-xs text-left"
+          >
+            <span className="flex self-stretch flex-col justify-center gap-gap-xs">
+              <span className="self-stretch typography-body-medium text-text-primary">
+                {label}
+              </span>
+              {description ? (
+                <span className="self-stretch typography-label-small-regular text-text-tertiary">
+                  {description}
+                </span>
+              ) : null}
+            </span>
+            {isSelected ? (
+              <img src={checkboxCheckedIcon} alt="" width={24} height={24} />
+            ) : (
+              <span
+                aria-hidden="true"
+                className="size-6 rounded-[4px] border border-border-neutral"
+              />
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 type FilterSelectedRegionListProps = {
   selections: HospitalSearchRegionSelection[];
   onRemove: (regionId: number, districtId: number) => void;
@@ -115,12 +265,11 @@ function FilterSelectedRegionList({
   selections,
   onRemove,
 }: FilterSelectedRegionListProps) {
-  if (selections.length === 0) {
-    return null;
-  }
-
   return (
-    <div className="flex shrink-0 flex-col items-start gap-gap-s bg-surface-default py-padding-s">
+    <div
+      aria-hidden={selections.length === 0}
+      className="flex shrink-0 flex-col items-start gap-gap-s bg-surface-default py-padding-s"
+    >
       <div className="px-padding-m">
         <p className="typography-caption-medium text-text-tertiary">
           {selections.length}/{MAX_SELECTED_REGION_COUNT}
@@ -164,11 +313,13 @@ function FilterSelectedRegionList({
 type FilterSheetBottomCtaProps = {
   hospitalCount: number;
   onReset: () => void;
+  onView: () => void;
 };
 
 function FilterSheetBottomCta({
   hospitalCount,
   onReset,
+  onView,
 }: FilterSheetBottomCtaProps) {
   const isViewButtonEnabled = hospitalCount > 0;
 
@@ -185,6 +336,7 @@ function FilterSheetBottomCta({
         <button
           type="button"
           disabled={!isViewButtonEnabled}
+          onClick={onView}
           className="flex h-[52px] w-[216px] min-w-[120px] flex-col items-center justify-center gap-gap-xs rounded-[var(--radius-s)] bg-interaction-brand px-padding-m py-padding-s text-center typography-label-large-medium text-text-inverse disabled:bg-interaction-disabled disabled:text-text-disabled min-[376px]:w-auto min-[376px]:flex-[216_0_0]"
         >
           {hospitalCount}개의 병원보기
@@ -198,12 +350,16 @@ function FilterSheetBottomCta({
 type HospitalSearchFilterSheetProps = {
   isOpen: boolean;
   onClose: () => void;
+  initialFilterState: HospitalSearchFilterState;
+  onApply: (filterState: HospitalSearchFilterState) => void;
   triggerRef: RefObject<HTMLButtonElement | null>;
 };
 
 function HospitalSearchFilterSheet({
   isOpen,
   onClose,
+  initialFilterState,
+  onApply,
   triggerRef,
 }: HospitalSearchFilterSheetProps) {
   const [selectedCategory, setSelectedCategory] =
@@ -213,18 +369,19 @@ function HospitalSearchFilterSheet({
   );
   const [selectedRegionSelections, setSelectedRegionSelections] = useState<
     HospitalSearchRegionSelection[]
-  >([]);
+  >(initialFilterState.regionSelections);
+  const [priceRange, setPriceRange] = useState<RangeSliderValue>(
+    initialFilterState.priceRange,
+  );
+  const [selectedTreatmentConditionIds, setSelectedTreatmentConditionIds] =
+    useState<HospitalSearchTreatmentConditionId[]>(
+      initialFilterState.treatmentConditionIds,
+    );
   const [isRendered, setIsRendered] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
   const sheetRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const hasBeenOpenedRef = useRef(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      hasBeenOpenedRef.current = true;
-    }
-  }, [isOpen]);
+  const hasBeenOpenedRef = useRef(isOpen);
 
   useEffect(() => {
     let animationFrameId: number | undefined;
@@ -379,22 +536,87 @@ function HospitalSearchFilterSheet({
 
   const handleReset = () => {
     setSelectedRegionSelections([]);
+    setPriceRange(DEFAULT_PRICE_RANGE);
+    setSelectedTreatmentConditionIds([]);
+  };
+
+  const handlePriceReset = () => {
+    setPriceRange(DEFAULT_PRICE_RANGE);
+  };
+
+  const handleTreatmentConditionClick = (
+    conditionId: HospitalSearchTreatmentConditionId,
+  ) => {
+    setSelectedTreatmentConditionIds((currentConditionIds) =>
+      currentConditionIds.includes(conditionId)
+        ? currentConditionIds.filter((id) => id !== conditionId)
+        : [...currentConditionIds, conditionId],
+    );
   };
 
   const selectedDistrictIds = selectedRegionSelections.map(
     ({ districtId }) => districtId,
   );
-  const hospitalCount = hospitalSearchItems.filter((hospital) =>
-    selectedRegionSelections.some(({ regionId, districtId }) => {
-      const region = hospitalSearchRegions.find(({ id }) => id === regionId);
-      const wholeDistrictId = region?.districts[0].id;
+  const hasSelectedPriceRange =
+    priceRange.min !== PRICE_MINIMUM || priceRange.max !== PRICE_MAXIMUM;
+  const hasSelectedFilter =
+    selectedRegionSelections.length > 0 ||
+    hasSelectedPriceRange ||
+    selectedTreatmentConditionIds.length > 0;
+  const priceRangeInWon = {
+    min: priceRange.min * PRICE_UNIT_IN_WON,
+    max: priceRange.max * PRICE_UNIT_IN_WON,
+  };
+  const hospitalCount = hospitalSearchItems.filter((hospital) => {
+    const matchesRegion =
+      selectedRegionSelections.length === 0 ||
+      selectedRegionSelections.some(({ regionId, districtId }) => {
+        const region = hospitalSearchRegions.find(({ id }) => id === regionId);
+        const wholeDistrictId = region?.districts[0].id;
 
-      return (
-        hospital.regionId === regionId &&
-        (districtId === wholeDistrictId || hospital.districtId === districtId)
-      );
-    }),
-  ).length;
+        return (
+          hospital.regionId === regionId &&
+          (districtId === wholeDistrictId || hospital.districtId === districtId)
+        );
+      });
+    const matchesPrice = hospital.priceCards.some(
+      ({ priceAmount }) =>
+        priceAmount >= priceRangeInWon.min &&
+        priceAmount <= priceRangeInWon.max,
+    );
+    const matchesTreatmentConditions = selectedTreatmentConditionIds.every(
+      (conditionId) => hospital.treatmentConditionIds.includes(conditionId),
+    );
+
+    return matchesRegion && matchesPrice && matchesTreatmentConditions;
+  }).length;
+  const filterCounts = {
+    region: selectedRegionSelections.length,
+    price: hasSelectedPriceRange ? 1 : undefined,
+    'treatment-condition': selectedTreatmentConditionIds.length,
+  };
+  const handleApply = () => {
+    const hasAppliedFilter =
+      initialFilterState.regionSelections.length > 0 ||
+      initialFilterState.priceRange.min !== PRICE_MINIMUM ||
+      initialFilterState.priceRange.max !== PRICE_MAXIMUM ||
+      initialFilterState.treatmentConditionIds.length > 0;
+
+    if (!hasSelectedFilter && !hasAppliedFilter) {
+      onClose();
+      return;
+    }
+
+    if (hospitalCount === 0) {
+      return;
+    }
+
+    onApply({
+      regionSelections: selectedRegionSelections,
+      priceRange,
+      treatmentConditionIds: selectedTreatmentConditionIds,
+    });
+  };
 
   if (!isRendered) {
     return null;
@@ -402,7 +624,7 @@ function HospitalSearchFilterSheet({
 
   return (
     <div
-      className={`fixed inset-0 z-20 flex w-full flex-col items-center justify-end bg-black/70 pt-[140px] transition-opacity duration-200 motion-reduce:transition-none ${
+      className={`fixed inset-y-0 left-1/2 z-20 flex w-full max-w-[480px] -translate-x-1/2 flex-col items-center justify-end bg-black/70 pt-[140px] transition-opacity duration-200 motion-reduce:transition-none ${
         isVisible ? 'opacity-100 ease-out' : 'opacity-0 ease-in'
       }`}
       onMouseDown={onClose}
@@ -439,22 +661,55 @@ function HospitalSearchFilterSheet({
         <FilterCategoryTabs
           selectedValue={selectedCategory}
           onValueChange={setSelectedCategory}
+          filterCounts={filterCounts}
         />
+        <div className="flex min-h-0 flex-1 flex-col">
+          {selectedCategory === 'region' && (
+            <FilterRegionPanel
+              selectedRegionId={selectedRegionId}
+              selectedDistrictIds={selectedDistrictIds}
+              onRegionChange={setSelectedRegionId}
+              onDistrictClick={handleDistrictClick}
+            />
+          )}
+          {selectedCategory === 'price' && (
+            <FilterPricePanel
+              priceRange={priceRange}
+              onPriceRangeChange={setPriceRange}
+              onPriceReset={handlePriceReset}
+            />
+          )}
+          {selectedCategory === 'treatment-condition' && (
+            <FilterTreatmentConditionPanel
+              selectedConditionIds={selectedTreatmentConditionIds}
+              onConditionClick={handleTreatmentConditionClick}
+            />
+          )}
+        </div>
         {selectedCategory === 'region' && (
-          <FilterRegionPanel
-            selectedRegionId={selectedRegionId}
-            selectedDistrictIds={selectedDistrictIds}
-            onRegionChange={setSelectedRegionId}
-            onDistrictClick={handleDistrictClick}
-          />
+          <div
+            className={`shrink-0 overflow-hidden transition-[max-height] duration-200 ease-[cubic-bezier(0,0,0.4,1)] motion-reduce:transition-none ${
+              selectedRegionSelections.length > 0 ? 'max-h-[82px]' : 'max-h-0'
+            }`}
+          >
+            <div
+              className={`transition-[transform,opacity] duration-200 ease-[cubic-bezier(0,0,0.4,1)] motion-reduce:transition-none ${
+                selectedRegionSelections.length > 0
+                  ? 'translate-y-0 opacity-100'
+                  : 'translate-y-full opacity-0'
+              }`}
+            >
+              <FilterSelectedRegionList
+                selections={selectedRegionSelections}
+                onRemove={handleDistrictClick}
+              />
+            </div>
+          </div>
         )}
-        <FilterSelectedRegionList
-          selections={selectedRegionSelections}
-          onRemove={handleDistrictClick}
-        />
         <FilterSheetBottomCta
           hospitalCount={hospitalCount}
           onReset={handleReset}
+          onView={handleApply}
         />
       </section>
     </div>
