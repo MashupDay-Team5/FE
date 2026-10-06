@@ -49,6 +49,7 @@ function MenuTrigger<T extends string>({
   const hasOptions =
     size === 's' && options !== undefined && options.length > 0;
   const isOpen = open ?? isUncontrolledOpen;
+  const isSheetTrigger = size === 'm' && open !== undefined;
 
   useEffect(() => {
     if (!hasOptions || !isOpen) {
@@ -187,8 +188,10 @@ function MenuTrigger<T extends string>({
       <button
         ref={triggerButtonRef}
         type="button"
-        aria-expanded={hasOptions ? isOpen : undefined}
-        aria-haspopup={hasOptions ? 'menu' : undefined}
+        aria-expanded={hasOptions || isSheetTrigger ? isOpen : undefined}
+        aria-haspopup={
+          hasOptions ? 'menu' : isSheetTrigger ? 'dialog' : undefined
+        }
         onClick={handleTriggerClick}
         onKeyDown={handleTriggerKeyDown}
         className={`flex items-center ${size === 'm' ? 'h-11 gap-gap-xs' : 'h-9'}`}

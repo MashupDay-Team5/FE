@@ -5,6 +5,7 @@ import MenuTrigger, {
   type MenuTriggerOption,
 } from '@/components/common/MenuTrigger';
 import Tab, { type TabItem } from '@/components/common/Tab';
+import TreatmentCategorySheet from '@/components/common/TreatmentCategorySheet';
 import HospitalSearchFilterSheet from '@/components/hospital/HospitalSearchFilterSheet';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
@@ -18,6 +19,11 @@ import {
   hospitalSearchProcedures,
   hospitalSearchRegions,
 } from '@/mocks/hospitalSearch';
+import {
+  defaultTreatmentScope,
+  medicalCategories,
+} from '@/mocks/universityMall';
+import type { TreatmentScope } from '@/types/universityMall';
 import type {
   HospitalSearchFilterState,
   HospitalSearchRegionSelection,
@@ -252,6 +258,11 @@ const lowestPriceSortOption: MenuTriggerOption<HospitalSort> = {
 
 function HospitalSearchResultPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [treatmentScope, setTreatmentScope] = useState<TreatmentScope>(
+    defaultTreatmentScope,
+  );
+  const [isCategorySheetOpen, setCategorySheetOpen] = useState(false);
+  const categoryTriggerRef = useRef<HTMLElement>(null);
   const selectedProcedureIds = useMemo(
     () => getSelectedProcedureIds(searchParams),
     [searchParams],
@@ -330,6 +341,14 @@ function HospitalSearchResultPage() {
     setFilterSheetOpen(true);
   };
 
+  const handleCategorySheetOpen = () => {
+    categoryTriggerRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    setCategorySheetOpen((isOpen) => !isOpen);
+  };
+
   const sortOptions =
     selectedProcedureIds.length > 0
       ? [...defaultHospitalSortOptions, lowestPriceSortOption]
@@ -341,7 +360,12 @@ function HospitalSearchResultPage() {
   return (
     <>
       <TopArea>
-        <Header type="DetailSearch" categoryName="시력교정술" />
+        <Header
+          type="DetailSearch"
+          categoryName="시력교정술"
+          isTitleOpen={isCategorySheetOpen}
+          onTitleClick={handleCategorySheetOpen}
+        />
         <div className="flex gap-gap-xs overflow-x-auto pl-padding-m py-padding-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {hospitalSearchProcedures.map((procedure) => (
             <FilterChip
@@ -379,6 +403,15 @@ function HospitalSearchResultPage() {
           />
         </div>
       </TopArea>
+      <TreatmentCategorySheet
+        isOpen={isCategorySheetOpen}
+        categories={medicalCategories}
+        selectedScope={treatmentScope}
+        onSelect={setTreatmentScope}
+        onClose={() => setCategorySheetOpen(false)}
+        triggerRef={categoryTriggerRef}
+        topOffset="calc(env(safe-area-inset-top) + 52px)"
+      />
       <HospitalSearchFilterSheet
         key={filterSheetSession}
         isOpen={isFilterSheetOpen}
