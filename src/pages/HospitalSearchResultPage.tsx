@@ -32,11 +32,50 @@ import type {
 const PRICE_MINIMUM = hospitalSearchPriceRange.min;
 const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
 const PRICE_UNIT_IN_WON = hospitalSearchPriceUnitInWon;
+const MEDICAL_CATEGORY_QUERY_KEY = 'medicalCategory';
+const TREATMENT_CATEGORY_QUERY_KEY = 'treatmentCategory';
 const PROCEDURE_QUERY_KEY = 'procedure';
 const REGION_QUERY_KEY = 'region';
 const MIN_PRICE_QUERY_KEY = 'minPrice';
 const MAX_PRICE_QUERY_KEY = 'maxPrice';
 const TREATMENT_CONDITION_QUERY_KEY = 'treatmentCondition';
+
+function getTreatmentScope(searchParams: URLSearchParams): TreatmentScope {
+  const medicalCategoryValue = searchParams.get(MEDICAL_CATEGORY_QUERY_KEY);
+  const treatmentCategoryValue = searchParams.get(TREATMENT_CATEGORY_QUERY_KEY);
+
+  if (medicalCategoryValue === null && treatmentCategoryValue === null) {
+    return defaultTreatmentScope;
+  }
+
+  const medicalCategoryId =
+    medicalCategoryValue === null
+      ? defaultTreatmentScope.medicalCategoryId
+      : Number(medicalCategoryValue);
+  const medicalCategory = medicalCategories.find(
+    ({ id }) => id === medicalCategoryId,
+  );
+
+  if (!medicalCategory) {
+    return defaultTreatmentScope;
+  }
+
+  if (treatmentCategoryValue === null || treatmentCategoryValue === 'all') {
+    return { medicalCategoryId, treatmentCategoryId: null };
+  }
+
+  const treatmentCategory = medicalCategory.treatmentCategories.find(
+    ({ id }) => id === Number(treatmentCategoryValue),
+  );
+
+  if (!treatmentCategory) {
+    return medicalCategoryId === defaultTreatmentScope.medicalCategoryId
+      ? defaultTreatmentScope
+      : { medicalCategoryId, treatmentCategoryId: null };
+  }
+
+  return { medicalCategoryId, treatmentCategoryId: treatmentCategory.id };
+}
 
 function getSelectedProcedureIds(
   searchParams: URLSearchParams,
@@ -259,8 +298,9 @@ const lowestPriceSortOption: MenuTriggerOption<HospitalSort> = {
 
 function HospitalSearchResultPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [treatmentScope, setTreatmentScope] = useState<TreatmentScope>(
-    defaultTreatmentScope,
+  const treatmentScope = useMemo(
+    () => getTreatmentScope(searchParams),
+    [searchParams],
   );
   const [isCategorySheetOpen, setCategorySheetOpen] = useState(false);
   const categoryTriggerRef = useRef<HTMLElement>(null);
@@ -374,14 +414,20 @@ function HospitalSearchResultPage() {
       return;
     }
 
-    setTreatmentScope(scope);
+    const nextSearchParams = new URLSearchParams(searchParams);
 
-    if (searchParams.has(PROCEDURE_QUERY_KEY)) {
-      const nextSearchParams = new URLSearchParams(searchParams);
-
-      nextSearchParams.delete(PROCEDURE_QUERY_KEY);
-      setSearchParams(nextSearchParams);
-    }
+    nextSearchParams.set(
+      MEDICAL_CATEGORY_QUERY_KEY,
+      String(scope.medicalCategoryId),
+    );
+    nextSearchParams.set(
+      TREATMENT_CATEGORY_QUERY_KEY,
+      scope.treatmentCategoryId === null
+        ? 'all'
+        : String(scope.treatmentCategoryId),
+    );
+    nextSearchParams.delete(PROCEDURE_QUERY_KEY);
+    setSearchParams(nextSearchParams);
   };
 
   const sortOptions =
