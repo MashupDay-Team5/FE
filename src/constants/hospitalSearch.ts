@@ -2,7 +2,7 @@ import type { HospitalSearchTreatmentCondition } from '@/types/hospitalSearch';
 
 export const hospitalSearchPriceRange = {
   min: 0,
-  max: 500,
+  max: 1500,
 };
 
 export const hospitalSearchPriceUnitInWon = 10000;
