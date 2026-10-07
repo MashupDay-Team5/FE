@@ -1,4 +1,6 @@
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import HospitalDetailTitle from '@/components/hospital/HospitalDetailTitle';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import { findHospitalDetail } from '@/mocks/hospitalDetail';
@@ -7,6 +9,9 @@ type SectionPlaceholderProps = {
   label: string;
   className?: string;
 };
+
+// Detail Header 높이. 대표 이미지가 이만큼 Header 뒤로 지나가면 Header 배경을 보여준다.
+const HEADER_HEIGHT = 52;
 
 // 골격 단계에서 각 영역의 위치만 잡아두는 임시 박스. 영역을 구현하면서 하나씩 교체한다.
 function SectionPlaceholder({
@@ -25,6 +30,22 @@ function SectionPlaceholder({
 function HospitalDetailPage() {
   const { hospitalId } = useParams();
   const hospital = findHospitalDetail(Number(hospitalId));
+  const heroImageRef = useRef<HTMLDivElement>(null);
+  const [isHeroVisible, setHeroVisible] = useState(true);
+
+  // 대표 이미지가 Header 뒤로 완전히 지나가면 Header 배경과 타이틀을 보여준다.
+  useEffect(() => {
+    const heroImage = heroImageRef.current;
+    if (!heroImage) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setHeroVisible(entry.isIntersecting),
+      { rootMargin: `-${HEADER_HEIGHT}px 0px 0px 0px` },
+    );
+    observer.observe(heroImage);
+
+    return () => observer.disconnect();
+  }, [hospital]);
 
   if (!hospital) {
     return (
@@ -41,17 +62,37 @@ function HospitalDetailPage() {
 
   return (
     <>
-      <TopArea>
-        <Header type="Detail" title={hospital.hospitalName} />
+      <TopArea transparent={isHeroVisible}>
+        <Header
+          type="Detail"
+          title={hospital.hospitalName}
+          transparent={isHeroVisible}
+        />
       </TopArea>
 
       {/* 하단 고정 CTA에 마지막 콘텐츠가 가려지지 않도록 CTA 높이만큼 여백을 둔다. */}
       <div className="-mx-padding-m pb-[calc(80px+env(safe-area-inset-bottom))]">
-        <SectionPlaceholder label="병원 대표 이미지" className="h-[200px]" />
+        {/* 대표 이미지는 Header 아래까지 끌어올려 Header가 이미지 위에 겹치게 한다. */}
+        <div
+          ref={heroImageRef}
+          className="-mt-[calc(52px+env(safe-area-inset-top))] aspect-[375/216] w-full bg-surface-weak"
+        >
+          {hospital.imageUrl && (
+            <img
+              src={hospital.imageUrl}
+              alt=""
+              className="size-full object-cover"
+            />
+          )}
+        </div>
 
-        <section className="border-b border-border-neutral px-padding-m py-padding-l">
-          <SectionPlaceholder label="타이틀 영역" className="h-12" />
-        </section>
+        <HospitalDetailTitle
+          hospitalName={hospital.hospitalName}
+          hasDiscount={hospital.hasDiscount}
+          rating={hospital.rating}
+          reviewCount={hospital.reviewCount}
+          address={hospital.address}
+        />
 
         <section className="flex flex-col gap-gap-m px-padding-m py-padding-l">
           <SectionPlaceholder label="진료 항목" className="h-11" />
