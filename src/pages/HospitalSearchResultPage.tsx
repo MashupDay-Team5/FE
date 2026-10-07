@@ -29,6 +29,10 @@ import type {
   HospitalSearchTab,
   HospitalSearchTreatmentConditionId,
 } from '@/types/hospitalSearch';
+import {
+  matchesHospitalSearchFilters,
+  matchesHospitalSearchPriceCard,
+} from '@/utils/hospitalSearch';
 
 const PRICE_MINIMUM = hospitalSearchPriceRange.min;
 const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
@@ -356,6 +360,13 @@ function HospitalSearchResultPage() {
     () => getSelectedProcedureIds(searchParams, treatments),
     [searchParams, treatments],
   );
+  const activeProcedureIds = useMemo(
+    () =>
+      selectedProcedureIds.length > 0
+        ? selectedProcedureIds
+        : treatments.map(({ id }) => id),
+    [selectedProcedureIds, treatments],
+  );
   const [selectedTab, setSelectedTab] = useState<HospitalSearchTab>('hospital');
   const [selectedSort, setSelectedSort] =
     useState<HospitalSort>('most-visited');
@@ -365,6 +376,29 @@ function HospitalSearchResultPage() {
   const appliedFilterState = useMemo(
     () => getFilterState(searchParams),
     [searchParams],
+  );
+  const filteredHospitals = useMemo(
+    () =>
+      hospitalSearchItems
+        .filter((hospital) =>
+          matchesHospitalSearchFilters(
+            hospital,
+            appliedFilterState,
+            activeProcedureIds,
+            hospitalSearchRegions,
+          ),
+        )
+        .map((hospital) => ({
+          ...hospital,
+          priceCards: hospital.priceCards.filter((priceCard) =>
+            matchesHospitalSearchPriceCard(
+              priceCard,
+              appliedFilterState.priceRange,
+              activeProcedureIds,
+            ),
+          ),
+        })),
+    [appliedFilterState, activeProcedureIds],
   );
 
   if (selectedProcedureIds.length === 0 && selectedSort === 'lowest-price') {
@@ -518,7 +552,7 @@ function HospitalSearchResultPage() {
           />
         </div>
       </TopArea>
-      <HospitalSearchResultList hospitals={hospitalSearchItems} />
+      <HospitalSearchResultList hospitals={filteredHospitals} />
       <TreatmentCategorySheet
         isOpen={isCategorySheetOpen}
         categories={medicalCategories}
@@ -533,11 +567,7 @@ function HospitalSearchResultPage() {
         isOpen={isFilterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
         initialFilterState={appliedFilterState}
-        procedureIds={
-          selectedProcedureIds.length > 0
-            ? selectedProcedureIds
-            : treatments.map(({ id }) => id)
-        }
+        procedureIds={activeProcedureIds}
         onApply={handleFilterApply}
         triggerRef={filterTriggerRef}
       />

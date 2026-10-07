@@ -2,8 +2,22 @@ import { hospitalSearchPriceUnitInWon } from '@/constants/hospitalSearch';
 import type {
   HospitalSearchFilterState,
   HospitalSearchItem,
+  HospitalSearchPriceCard,
+  HospitalSearchPriceRange,
   HospitalSearchRegion,
 } from '@/types/hospitalSearch';
+
+export function matchesHospitalSearchPriceCard(
+  priceCard: HospitalSearchPriceCard,
+  priceRange: HospitalSearchPriceRange,
+  procedureIds: number[],
+) {
+  return (
+    procedureIds.includes(priceCard.procedureId) &&
+    priceCard.priceAmount >= priceRange.min * hospitalSearchPriceUnitInWon &&
+    priceCard.priceAmount <= priceRange.max * hospitalSearchPriceUnitInWon
+  );
+}
 
 export function matchesHospitalSearchFilters(
   hospital: HospitalSearchItem,
@@ -22,15 +36,12 @@ export function matchesHospitalSearchFilters(
         (districtId === wholeDistrictId || hospital.districtId === districtId)
       );
     });
-  const priceRangeInWon = {
-    min: filterState.priceRange.min * hospitalSearchPriceUnitInWon,
-    max: filterState.priceRange.max * hospitalSearchPriceUnitInWon,
-  };
-  const matchesProcedureAndPrice = hospital.priceCards.some(
-    ({ procedureId, priceAmount }) =>
-      procedureIds.includes(procedureId) &&
-      priceAmount >= priceRangeInWon.min &&
-      priceAmount <= priceRangeInWon.max,
+  const matchesProcedureAndPrice = hospital.priceCards.some((priceCard) =>
+    matchesHospitalSearchPriceCard(
+      priceCard,
+      filterState.priceRange,
+      procedureIds,
+    ),
   );
   const matchesTreatmentConditions = filterState.treatmentConditionIds.every(
     (conditionId) => hospital.treatmentConditionIds.includes(conditionId),
