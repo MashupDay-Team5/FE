@@ -15,6 +15,7 @@ type MainHomeHeaderProps = {
 type DetailSearchHeaderProps = {
   type: 'DetailSearch';
   categoryName: string;
+  isTitleOpen?: boolean;
   onBackClick?: () => void;
   onTitleClick?: () => void;
   onSearchClick?: () => void;
@@ -56,6 +57,7 @@ function IconButton({ icon, label, onClick }: IconButtonProps) {
 type DropdownTitleProps = {
   name: string;
   showMallLabel?: boolean;
+  open?: boolean;
   onClick?: () => void;
 };
 
@@ -63,6 +65,7 @@ type DropdownTitleProps = {
 function DropdownTitle({
   name,
   showMallLabel = false,
+  open,
   onClick,
 }: DropdownTitleProps) {
   return (
@@ -70,6 +73,7 @@ function DropdownTitle({
       label={name}
       suffix={showMallLabel ? '할인몰' : undefined}
       size="m"
+      open={open}
       onClick={onClick}
     />
   );
@@ -106,6 +110,7 @@ function MainHomeHeader({
 
 function DetailSearchHeader({
   categoryName,
+  isTitleOpen,
   onBackClick,
   onTitleClick,
   onSearchClick,
@@ -119,7 +124,11 @@ function DetailSearchHeader({
         <IconButton icon={backIcon} label="뒤로 가기" onClick={onBackClick} />
       </div>
 
-      <DropdownTitle name={categoryName} onClick={onTitleClick} />
+      <DropdownTitle
+        name={categoryName}
+        open={isTitleOpen}
+        onClick={onTitleClick}
+      />
 
       <div className="justify-self-end">
         <IconButton icon={searchIcon} label="검색" onClick={onSearchClick} />

@@ -5,6 +5,7 @@ import MenuTrigger, {
   type MenuTriggerOption,
 } from '@/components/common/MenuTrigger';
 import Tab, { type TabItem } from '@/components/common/Tab';
+import TreatmentCategorySheet from '@/components/common/TreatmentCategorySheet';
 import HospitalSearchFilterSheet from '@/components/hospital/HospitalSearchFilterSheet';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
@@ -14,10 +15,10 @@ import {
   hospitalSearchPriceUnitInWon,
   hospitalSearchTreatmentConditions,
 } from '@/constants/hospitalSearch';
-import {
-  hospitalSearchProcedures,
-  hospitalSearchRegions,
-} from '@/mocks/hospitalSearch';
+import { hospitalSearchRegions } from '@/mocks/hospitalSearch';
+import { defaultTreatmentScope } from '@/constants/treatment';
+import { medicalCategories } from '@/mocks/treatment';
+import type { Treatment, TreatmentScope } from '@/types/treatment';
 import type {
   HospitalSearchFilterState,
   HospitalSearchRegionSelection,
@@ -28,10 +29,66 @@ import type {
 const PRICE_MINIMUM = hospitalSearchPriceRange.min;
 const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
 const PRICE_UNIT_IN_WON = hospitalSearchPriceUnitInWon;
+const MEDICAL_CATEGORY_QUERY_KEY = 'medicalCategory';
+const TREATMENT_CATEGORY_QUERY_KEY = 'treatmentCategory';
+const PROCEDURE_QUERY_KEY = 'procedure';
 const REGION_QUERY_KEY = 'region';
 const MIN_PRICE_QUERY_KEY = 'minPrice';
 const MAX_PRICE_QUERY_KEY = 'maxPrice';
 const TREATMENT_CONDITION_QUERY_KEY = 'treatmentCondition';
+
+function getTreatmentScope(searchParams: URLSearchParams): TreatmentScope {
+  const medicalCategoryValue = searchParams.get(MEDICAL_CATEGORY_QUERY_KEY);
+  const treatmentCategoryValue = searchParams.get(TREATMENT_CATEGORY_QUERY_KEY);
+
+  if (medicalCategoryValue === null && treatmentCategoryValue === null) {
+    return defaultTreatmentScope;
+  }
+
+  const medicalCategoryId =
+    medicalCategoryValue === null
+      ? defaultTreatmentScope.medicalCategoryId
+      : Number(medicalCategoryValue);
+  const medicalCategory = medicalCategories.find(
+    ({ id }) => id === medicalCategoryId,
+  );
+
+  if (!medicalCategory) {
+    return defaultTreatmentScope;
+  }
+
+  if (treatmentCategoryValue === null || treatmentCategoryValue === 'all') {
+    return { medicalCategoryId, treatmentCategoryId: null };
+  }
+
+  const treatmentCategory = medicalCategory.treatmentCategories.find(
+    ({ id }) => id === Number(treatmentCategoryValue),
+  );
+
+  if (!treatmentCategory) {
+    return medicalCategoryId === defaultTreatmentScope.medicalCategoryId
+      ? defaultTreatmentScope
+      : { medicalCategoryId, treatmentCategoryId: null };
+  }
+
+  return { medicalCategoryId, treatmentCategoryId: treatmentCategory.id };
+}
+
+function getSelectedProcedureIds(
+  searchParams: URLSearchParams,
+  procedures: Treatment[],
+) {
+  return Array.from(
+    new Set(
+      searchParams
+        .getAll(PROCEDURE_QUERY_KEY)
+        .map(Number)
+        .filter((procedureId) =>
+          procedures.some(({ id }) => id === procedureId),
+        ),
+    ),
+  );
+}
 
 function parsePriceRangeValue(value: string | null, fallback: number) {
   if (!value) {
@@ -238,8 +295,31 @@ const lowestPriceSortOption: MenuTriggerOption<HospitalSort> = {
 
 function HospitalSearchResultPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedProcedureIds, setSelectedProcedureIds] = useState<number[]>(
-    [],
+  const treatmentScope = useMemo(
+    () => getTreatmentScope(searchParams),
+    [searchParams],
+  );
+  const [isCategorySheetOpen, setCategorySheetOpen] = useState(false);
+  const categoryTriggerRef = useRef<HTMLElement>(null);
+  const medicalCategory =
+    medicalCategories.find(
+      ({ id }) => id === treatmentScope.medicalCategoryId,
+    ) ?? medicalCategories[0];
+  const treatmentCategory = medicalCategory.treatmentCategories.find(
+    ({ id }) => id === treatmentScope.treatmentCategoryId,
+  );
+  const treatments = useMemo(
+    () =>
+      treatmentCategory
+        ? treatmentCategory.treatments
+        : medicalCategory.treatmentCategories.flatMap(
+            ({ treatments: categoryTreatments }) => categoryTreatments,
+          ),
+    [medicalCategory, treatmentCategory],
+  );
+  const selectedProcedureIds = useMemo(
+    () => getSelectedProcedureIds(searchParams, treatments),
+    [searchParams, treatments],
   );
   const [selectedTab, setSelectedTab] = useState<HospitalSearchTab>('hospital');
   const [selectedSort, setSelectedSort] =
@@ -251,6 +331,11 @@ function HospitalSearchResultPage() {
     () => getFilterState(searchParams),
     [searchParams],
   );
+
+  if (selectedProcedureIds.length === 0 && selectedSort === 'lowest-price') {
+    setSelectedSort('most-visited');
+  }
+
   const hasAppliedFilter =
     appliedFilterState.regionSelections.length > 0 ||
     appliedFilterState.priceRange.min !== PRICE_MINIMUM ||
@@ -261,11 +346,17 @@ function HospitalSearchResultPage() {
     : '필터';
 
   const handleProcedureClick = (procedureId: number) => {
-    setSelectedProcedureIds((currentIds) =>
-      currentIds.includes(procedureId)
-        ? currentIds.filter((id) => id !== procedureId)
-        : [...currentIds, procedureId],
-    );
+    const nextProcedureIds = selectedProcedureIds.includes(procedureId)
+      ? selectedProcedureIds.filter((id) => id !== procedureId)
+      : [...selectedProcedureIds, procedureId];
+    const nextSearchParams = new URLSearchParams(searchParams);
+
+    nextSearchParams.delete(PROCEDURE_QUERY_KEY);
+    nextProcedureIds.forEach((id) => {
+      nextSearchParams.append(PROCEDURE_QUERY_KEY, String(id));
+    });
+
+    setSearchParams(nextSearchParams);
   };
 
   const handleFilterApply = (filterState: HospitalSearchFilterState) => {
@@ -304,6 +395,38 @@ function HospitalSearchResultPage() {
     setFilterSheetOpen(true);
   };
 
+  const handleCategorySheetOpen = () => {
+    categoryTriggerRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    setCategorySheetOpen((isOpen) => !isOpen);
+  };
+
+  const handleScopeSelect = (scope: TreatmentScope) => {
+    if (
+      scope.medicalCategoryId === treatmentScope.medicalCategoryId &&
+      scope.treatmentCategoryId === treatmentScope.treatmentCategoryId
+    ) {
+      return;
+    }
+
+    const nextSearchParams = new URLSearchParams(searchParams);
+
+    nextSearchParams.set(
+      MEDICAL_CATEGORY_QUERY_KEY,
+      String(scope.medicalCategoryId),
+    );
+    nextSearchParams.set(
+      TREATMENT_CATEGORY_QUERY_KEY,
+      scope.treatmentCategoryId === null
+        ? 'all'
+        : String(scope.treatmentCategoryId),
+    );
+    nextSearchParams.delete(PROCEDURE_QUERY_KEY);
+    setSearchParams(nextSearchParams);
+  };
+
   const sortOptions =
     selectedProcedureIds.length > 0
       ? [...defaultHospitalSortOptions, lowestPriceSortOption]
@@ -315,18 +438,25 @@ function HospitalSearchResultPage() {
   return (
     <>
       <TopArea>
-        <Header type="DetailSearch" categoryName="시력교정술" />
-        <div className="flex gap-gap-xs overflow-x-auto pl-padding-m py-padding-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {hospitalSearchProcedures.map((procedure) => (
-            <FilterChip
-              key={procedure.id}
-              label={procedure.name}
-              selected={selectedProcedureIds.includes(procedure.id)}
-              onClick={() => handleProcedureClick(procedure.id)}
-            />
-          ))}
-          <div aria-hidden="true" className="h-8 w-4 shrink-0" />
-        </div>
+        <Header
+          type="DetailSearch"
+          categoryName={treatmentCategory?.name ?? medicalCategory.name}
+          isTitleOpen={isCategorySheetOpen}
+          onTitleClick={handleCategorySheetOpen}
+        />
+        {treatments.length > 0 && (
+          <div className="flex gap-gap-xs overflow-x-auto pl-padding-m py-padding-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {treatments.map((procedure) => (
+              <FilterChip
+                key={procedure.id}
+                label={procedure.name}
+                selected={selectedProcedureIds.includes(procedure.id)}
+                onClick={() => handleProcedureClick(procedure.id)}
+              />
+            ))}
+            <div aria-hidden="true" className="h-8 w-4 shrink-0" />
+          </div>
+        )}
         <div className="bg-surface-default pt-padding-xs">
           <Tab
             items={hospitalSearchTabItems}
@@ -353,11 +483,25 @@ function HospitalSearchResultPage() {
           />
         </div>
       </TopArea>
+      <TreatmentCategorySheet
+        isOpen={isCategorySheetOpen}
+        categories={medicalCategories}
+        selectedScope={treatmentScope}
+        onSelect={handleScopeSelect}
+        onClose={() => setCategorySheetOpen(false)}
+        triggerRef={categoryTriggerRef}
+        topOffset="calc(env(safe-area-inset-top) + 52px)"
+      />
       <HospitalSearchFilterSheet
         key={filterSheetSession}
         isOpen={isFilterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
         initialFilterState={appliedFilterState}
+        procedureIds={
+          selectedProcedureIds.length > 0
+            ? selectedProcedureIds
+            : treatments.map(({ id }) => id)
+        }
         onApply={handleFilterApply}
         triggerRef={filterTriggerRef}
       />

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import closeIcon from '@/assets/icons/close.svg';
 import CategoryPicker from '@/components/common/CategoryPicker';
-import type { MedicalCategory, TreatmentScope } from '@/types/universityMall';
+import type { MedicalCategory, TreatmentScope } from '@/types/treatment';
 
 const SHEET_TRANSITION_DURATION = 400;
 
@@ -24,20 +24,20 @@ function TreatmentCategoryRow({
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className="flex h-[51px] w-full shrink-0 items-center border-b border-border-neutral p-padding-m text-left"
+      className="flex h-[50px] w-full shrink-0 items-center border-b border-border-weak p-padding-m text-left"
     >
-      <span className="truncate">
+      <span className="flex min-w-0 items-center">
         <span
           className={
             selected
-              ? 'typography-label-large-medium text-text-brand'
-              : 'typography-label-large-regular text-text-primary'
+              ? 'shrink-0 typography-label-large-medium text-text-brand'
+              : 'shrink-0 typography-label-large-regular text-text-primary'
           }
         >
           {name}
         </span>
         {description && (
-          <span className="typography-label-small-regular text-text-tertiary">
+          <span className="truncate typography-label-small-regular text-text-tertiary">
             ({description})
           </span>
         )}
@@ -53,6 +53,7 @@ type TreatmentCategorySheetProps = {
   onSelect: (scope: TreatmentScope) => void;
   onClose: () => void;
   triggerRef: RefObject<HTMLElement | null>;
+  topOffset?: string;
 };
 
 function TreatmentCategorySheet({
@@ -62,6 +63,7 @@ function TreatmentCategorySheet({
   onSelect,
   onClose,
   triggerRef,
+  topOffset,
 }: TreatmentCategorySheetProps) {
   const [browsingCategoryId, setBrowsingCategoryId] = useState(
     selectedScope.medicalCategoryId,
@@ -210,7 +212,10 @@ function TreatmentCategorySheet({
 
   return (
     <div
-      className={`fixed inset-0 z-20 flex w-full flex-col items-center justify-end bg-black/70 pt-[140px] transition-opacity duration-200 motion-reduce:transition-none ${
+      style={{ top: topOffset ?? 0 }}
+      className={`fixed bottom-0 left-1/2 z-20 flex w-full max-w-[480px] -translate-x-1/2 flex-col items-center justify-end bg-black/70 ${
+        topOffset ? '' : 'pt-[140px]'
+      } transition-opacity duration-200 motion-reduce:transition-none ${
         isVisible ? 'opacity-100 ease-out' : 'opacity-0 ease-in'
       }`}
       onMouseDown={onClose}
@@ -248,6 +253,8 @@ function TreatmentCategorySheet({
           categories={categories}
           selectedCategoryId={browsingCategory.id}
           onCategoryChange={setBrowsingCategoryId}
+          categoryWidth={136}
+          unselectedCategoryWeight="regular"
         >
           <TreatmentCategoryRow
             name="전체"

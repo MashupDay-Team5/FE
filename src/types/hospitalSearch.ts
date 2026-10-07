@@ -45,12 +45,6 @@ export type HospitalSearchRegionSelection = {
   districtId: number;
 };
 
-// 진료 항목 칩 및 선택 시트에서 사용할 시술 데이터 구조
-export type HospitalSearchProcedure = {
-  id: number;
-  name: string;
-};
-
 // 가격 카드 타입 (배지, 기본, 무료) 구분
 export type HospitalSearchPriceCard =
   | {
