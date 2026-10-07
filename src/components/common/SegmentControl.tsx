@@ -28,8 +28,8 @@ function SegmentControl<T extends string>({
             onClick={() => onValueChange(value)}
             className={`flex min-w-0 flex-1 items-center justify-center px-padding-xs typography-label-small-medium ${
               isSelected
-                ? 'bg-interaction-brand text-text-inverse'
-                : 'bg-surface-default text-text-primary'
+                ? 'bg-interaction-neutral-pressed text-text-inverse'
+                : 'bg-surface-default text-text-secondary'
             }`}
           >
             <span className="truncate">{label}</span>
