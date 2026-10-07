@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import SegmentControl, {
+  type SegmentControlItem,
+} from '@/components/common/SegmentControl';
+import Tab, { type TabItem } from '@/components/common/Tab';
 import HospitalDetailTitle from '@/components/hospital/HospitalDetailTitle';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import { findHospitalDetail } from '@/mocks/hospitalDetail';
+import type {
+  HospitalDetailTab,
+  HospitalReviewSegment,
+} from '@/types/hospitalDetail';
 
 type SectionPlaceholderProps = {
   label: string;
@@ -32,6 +40,9 @@ function HospitalDetailPage() {
   const hospital = findHospitalDetail(Number(hospitalId));
   const heroImageRef = useRef<HTMLDivElement>(null);
   const [isHeroVisible, setHeroVisible] = useState(true);
+  const [selectedTab, setSelectedTab] = useState<HospitalDetailTab>('review');
+  const [selectedSegment, setSelectedSegment] =
+    useState<HospitalReviewSegment>('related');
 
   // 대표 이미지가 Header 뒤로 완전히 지나가면 Header 배경과 타이틀을 보여준다.
   useEffect(() => {
@@ -59,6 +70,23 @@ function HospitalDetailPage() {
       </>
     );
   }
+
+  // 가격·Q&A 탭은 디자인 확정 전까지 비활성화한다.
+  const tabItems: TabItem<HospitalDetailTab>[] = [
+    { value: 'price', label: '가격', disabled: true },
+    {
+      value: 'review',
+      label: `리뷰(${hospital.relatedReviewCount + hospital.otherReviewCount})`,
+    },
+    { value: 'qna', label: `Q&A(${hospital.qnaCount})`, disabled: true },
+  ];
+  const segmentItems: SegmentControlItem<HospitalReviewSegment>[] = [
+    { value: 'related', label: `관련 리뷰 (${hospital.relatedReviewCount})` },
+    {
+      value: 'other',
+      label: `이 병원의 다른 리뷰(${hospital.otherReviewCount})`,
+    },
+  ];
 
   return (
     <>
@@ -102,9 +130,21 @@ function HospitalDetailPage() {
         <SectionPlaceholder label="관련된 리뷰 보러가기" className="h-12" />
 
         <section>
-          <SectionPlaceholder label="가격 / 리뷰 / Q&A 탭" className="h-12" />
+          {/* 탭은 스크롤 시 Header 바로 아래에 고정한다. */}
+          <div className="sticky top-[calc(env(safe-area-inset-top)+52px)] z-[5] bg-surface-default pt-padding-xs">
+            <Tab
+              items={tabItems}
+              selectedValue={selectedTab}
+              onValueChange={setSelectedTab}
+              layout="fill"
+            />
+          </div>
           <div className="flex flex-col gap-gap-m px-padding-m py-padding-m">
-            <SectionPlaceholder label="세그먼트" className="h-11" />
+            <SegmentControl
+              items={segmentItems}
+              selectedValue={selectedSegment}
+              onValueChange={setSelectedSegment}
+            />
             <SectionPlaceholder label="리뷰 헤더 · 정렬" className="h-11" />
           </div>
           <div className="flex flex-col gap-gap-l">

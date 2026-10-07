@@ -1,3 +1,6 @@
+// 병원 상세 탭: 가격 / 리뷰 / Q&A
+export type HospitalDetailTab = 'price' | 'review' | 'qna';
+
 // 리뷰 세그먼트: 관련 리뷰 / 이 병원의 다른 리뷰
 export type HospitalReviewSegment = 'related' | 'other';
 
