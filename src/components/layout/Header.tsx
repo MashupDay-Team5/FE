@@ -118,7 +118,7 @@ function DetailSearchHeader({
   return (
     // 좌우 영역을 1fr로 같게 두어 타이틀이 항상 가운데에 오도록 한다.
     <header
-      className={`${HEADER_BASE_CLASS} grid grid-cols-[1fr_auto_1fr] bg-surface-default px-padding-xxs`}
+      className={`${HEADER_BASE_CLASS} grid grid-cols-[1fr_auto_1fr] bg-surface-default pl-padding-xxs pr-padding-xs`}
     >
       <div className="justify-self-start">
         <IconButton icon={backIcon} label="뒤로 가기" onClick={onBackClick} />

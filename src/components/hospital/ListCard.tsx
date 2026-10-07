@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { Children, type ReactNode } from 'react';
 import bookmarkIcon from '@/assets/icons/bookmark28.svg';
 import checkBadgeIcon from '@/assets/icons/checkBadgeIcon.svg';
 import discountIcon from '@/assets/icons/discount.svg';
@@ -35,7 +35,7 @@ function ListCard({
   const hasBadges = visitCount !== undefined || isReservable || badges;
 
   return (
-    <article className="flex w-full flex-col gap-gap-l overflow-hidden border-b border-border-neutral bg-surface-default py-padding-l">
+    <article className="flex w-full flex-col gap-gap-l overflow-hidden border-b border-border-weak bg-surface-default py-padding-l">
       <div className="flex flex-col gap-gap-s px-padding-m">
         {hasBadges && (
           <div className="flex gap-gap-xs">
@@ -120,7 +120,9 @@ function ListCard({
 
       <div className="flex w-full items-center gap-gap-s overflow-x-auto overflow-y-hidden px-padding-m [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {priceCards}
-        <div aria-hidden="true" className="h-8 w-4 shrink-0" />
+        {Children.count(priceCards) > 1 && (
+          <div aria-hidden="true" className="h-8 w-4 shrink-0" />
+        )}
       </div>
     </article>
   );

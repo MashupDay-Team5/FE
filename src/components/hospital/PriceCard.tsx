@@ -2,7 +2,7 @@ import badgeDiscountIcon from '@/assets/icons/badgeDiscount.svg';
 import Badge from '@/components/common/Badge';
 
 type PriceCardBaseProps = {
-  width?: 'fill' | 'fixed';
+  width?: 'fill' | 'fixed' | 'flex';
   procedureName: string;
   originalPrice: string;
   originalPriceLabel?: string;
@@ -37,12 +37,16 @@ function PriceCard({
   className,
 }: PriceCardProps) {
   const cardHeightClassName = type === 'free' ? 'h-[84px]' : 'h-[120px]';
+  const cardWidthClassName =
+    width === 'fill'
+      ? 'w-full'
+      : width === 'flex'
+        ? 'flex-[1_0_0]'
+        : 'w-[220px] shrink-0';
 
   return (
     <article
-      className={`flex ${cardHeightClassName} min-w-[220px] flex-col overflow-hidden rounded-[var(--radius-s)] border-[0.5px] border-border-brand ${
-        width === 'fill' ? 'w-full' : 'w-[220px] shrink-0'
-      } ${className ?? ''}`}
+      className={`flex ${cardHeightClassName} min-w-[220px] flex-col overflow-hidden rounded-[var(--radius-s)] border-[0.5px] border-border-brand ${cardWidthClassName} ${className ?? ''}`}
     >
       <div className="flex h-10 items-center justify-between bg-surface-brand-weak px-padding-s py-padding-xs">
         <h3 className="typography-body-medium text-text-primary">

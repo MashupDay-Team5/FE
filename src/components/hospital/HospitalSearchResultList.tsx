@@ -29,7 +29,7 @@ function HospitalSearchResultList({
             <PriceCard
               key={priceCard.procedureId}
               {...priceCard}
-              width="fixed"
+              width="flex"
             />
           ))}
         />

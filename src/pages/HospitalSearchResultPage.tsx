@@ -449,7 +449,7 @@ function HospitalSearchResultPage() {
           onTitleClick={handleCategorySheetOpen}
         />
         {treatments.length > 0 && (
-          <div className="flex gap-gap-xs overflow-x-auto pl-padding-m py-padding-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-gap-xs overflow-x-auto bg-surface-default pl-padding-m py-padding-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {treatments.map((procedure) => (
               <FilterChip
                 key={procedure.id}
