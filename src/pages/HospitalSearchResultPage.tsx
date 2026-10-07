@@ -7,6 +7,7 @@ import MenuTrigger, {
 import Tab, { type TabItem } from '@/components/common/Tab';
 import TreatmentCategorySheet from '@/components/common/TreatmentCategorySheet';
 import HospitalSearchFilterSheet from '@/components/hospital/HospitalSearchFilterSheet';
+import HospitalSearchResultList from '@/components/hospital/HospitalSearchResultList';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import {
@@ -15,7 +16,10 @@ import {
   hospitalSearchPriceUnitInWon,
   hospitalSearchTreatmentConditions,
 } from '@/constants/hospitalSearch';
-import { hospitalSearchRegions } from '@/mocks/hospitalSearch';
+import {
+  hospitalSearchItems,
+  hospitalSearchRegions,
+} from '@/mocks/hospitalSearch';
 import { defaultTreatmentScope } from '@/constants/treatment';
 import { medicalCategories } from '@/mocks/treatment';
 import type { Treatment, TreatmentScope } from '@/types/treatment';
@@ -483,6 +487,7 @@ function HospitalSearchResultPage() {
           />
         </div>
       </TopArea>
+      <HospitalSearchResultList hospitals={hospitalSearchItems} />
       <TreatmentCategorySheet
         isOpen={isCategorySheetOpen}
         categories={medicalCategories}
