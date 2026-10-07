@@ -9,6 +9,22 @@ type HospitalSearchResultListProps = {
 function HospitalSearchResultList({
   hospitals,
 }: HospitalSearchResultListProps) {
+  if (hospitals.length === 0) {
+    return (
+      <section
+        aria-label="병원 검색 결과"
+        className="-mx-padding-m mt-padding-m flex h-[120px] items-center justify-center overflow-hidden"
+      >
+        <p
+          role="status"
+          className="text-center typography-body-regular whitespace-nowrap text-text-tertiary"
+        >
+          해당 조건에 맞는 병원이 없어요
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section
       aria-label="병원 검색 결과"
