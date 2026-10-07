@@ -23,6 +23,8 @@ type DetailSearchHeaderProps = {
 type DetailHeaderProps = {
   type: 'Detail';
   title: string;
+  // 이미지 위에 겹쳐 있을 때: 배경을 투명하게 하고 타이틀을 숨긴다.
+  transparent?: boolean;
   onBackClick?: () => void;
   onHomeClick?: () => void;
 };
@@ -128,18 +130,32 @@ function DetailSearchHeader({
   );
 }
 
-function DetailHeader({ title, onBackClick, onHomeClick }: DetailHeaderProps) {
+function DetailHeader({
+  title,
+  transparent = false,
+  onBackClick,
+  onHomeClick,
+}: DetailHeaderProps) {
   return (
     // 오른쪽 영역은 비어 있지만 1fr 칸을 유지해 타이틀을 가운데에 둔다.
     <header
-      className={`${HEADER_BASE_CLASS} grid grid-cols-[1fr_auto_1fr] bg-surface-default px-padding-xxs`}
+      className={`${HEADER_BASE_CLASS} grid grid-cols-[1fr_auto_1fr] px-padding-xxs transition-colors ${
+        transparent ? 'bg-transparent' : 'bg-surface-default'
+      }`}
     >
       <div className="flex justify-self-start">
         <IconButton icon={backIcon} label="뒤로 가기" onClick={onBackClick} />
         <IconButton icon={homeIcon} label="홈" onClick={onHomeClick} />
       </div>
 
-      <h1 className="typography-body-bold">{title}</h1>
+      <h1
+        aria-hidden={transparent}
+        className={`typography-body-bold transition-opacity ${
+          transparent ? 'opacity-0' : 'opacity-100'
+        }`}
+      >
+        {title}
+      </h1>
     </header>
   );
 }
