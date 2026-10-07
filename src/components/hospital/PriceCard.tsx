@@ -32,7 +32,7 @@ function PriceCard({
   procedureName,
   originalPrice,
   discountedPrice,
-  originalPriceLabel = '정상가',
+  originalPriceLabel,
   badgeLabel,
   className,
 }: PriceCardProps) {
@@ -65,16 +65,28 @@ function PriceCard({
 
       <div
         className={`flex flex-1 p-padding-s ${
-          type !== 'free'
-            ? 'flex-col gap-gap-s'
-            : 'items-center justify-between typography-label-small-regular text-text-tertiary'
+          type !== 'free' ? 'flex-col gap-gap-s' : 'items-center'
         }`}
       >
-        <div className="flex w-full items-center justify-between typography-label-small-regular text-text-tertiary">
-          <span className="typography-label-small-medium">
-            {originalPriceLabel}
+        <div className="flex w-full items-center justify-between">
+          <span
+            className={
+              type === 'free'
+                ? 'typography-label-small-regular font-medium text-text-secondary'
+                : 'typography-label-small-medium text-text-tertiary'
+            }
+          >
+            {originalPriceLabel ?? (type === 'free' ? '정상가격' : '정상가')}
           </span>
-          <span>{originalPrice}</span>
+          <span
+            className={
+              type === 'free'
+                ? 'typography-label-large-medium text-text-primary'
+                : 'typography-label-small-regular text-text-tertiary'
+            }
+          >
+            {originalPrice}
+          </span>
         </div>
         {type !== 'free' && (
           <>
