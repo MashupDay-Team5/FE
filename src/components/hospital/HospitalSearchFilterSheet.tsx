@@ -158,7 +158,7 @@ function FilterPricePanel({
         <RangeSlider
           min={PRICE_MINIMUM}
           max={PRICE_MAXIMUM}
-          step={10}
+          step={50}
           value={priceRange}
           onChange={onPriceRangeChange}
           formatValue={formatPrice}
