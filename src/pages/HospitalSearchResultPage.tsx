@@ -25,6 +25,7 @@ import { medicalCategories } from '@/mocks/treatment';
 import type { Treatment, TreatmentScope } from '@/types/treatment';
 import type {
   HospitalSearchFilterState,
+  HospitalSearchItem,
   HospitalSearchRegionSelection,
   HospitalSearchTab,
   HospitalSearchTreatmentConditionId,
@@ -321,6 +322,36 @@ const hospitalSearchTabItems: TabItem<HospitalSearchTab>[] = [
 type HospitalSort =
   'most-visited' | 'highest-rating' | 'most-reviews' | 'lowest-price';
 
+function getSortedHospitals(
+  hospitals: HospitalSearchItem[],
+  sort: HospitalSort,
+) {
+  return hospitals.toSorted((firstHospital, secondHospital) => {
+    switch (sort) {
+      case 'most-visited':
+        return (
+          (secondHospital.visitCount ?? 0) - (firstHospital.visitCount ?? 0)
+        );
+      case 'highest-rating':
+        return Number(secondHospital.rating) - Number(firstHospital.rating);
+      case 'most-reviews':
+        return (
+          Number(secondHospital.reviewCount.replaceAll(',', '')) -
+          Number(firstHospital.reviewCount.replaceAll(',', ''))
+        );
+      case 'lowest-price':
+        return (
+          Math.min(
+            ...firstHospital.priceCards.map(({ priceAmount }) => priceAmount),
+          ) -
+          Math.min(
+            ...secondHospital.priceCards.map(({ priceAmount }) => priceAmount),
+          )
+        );
+    }
+  });
+}
+
 const defaultHospitalSortOptions: MenuTriggerOption<HospitalSort>[] = [
   { value: 'most-visited', label: '방문 많은 순' },
   { value: 'highest-rating', label: '평점순' },
@@ -399,6 +430,10 @@ function HospitalSearchResultPage() {
           ),
         })),
     [appliedFilterState, activeProcedureIds],
+  );
+  const sortedHospitals = useMemo(
+    () => getSortedHospitals(filteredHospitals, selectedSort),
+    [filteredHospitals, selectedSort],
   );
 
   if (selectedProcedureIds.length === 0 && selectedSort === 'lowest-price') {
@@ -552,7 +587,7 @@ function HospitalSearchResultPage() {
           />
         </div>
       </TopArea>
-      <HospitalSearchResultList hospitals={filteredHospitals} />
+      <HospitalSearchResultList hospitals={sortedHospitals} />
       <TreatmentCategorySheet
         isOpen={isCategorySheetOpen}
         categories={medicalCategories}
