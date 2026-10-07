@@ -1,3 +1,5 @@
+import { defaultTreatmentScope } from '@/constants/treatment';
+import { medicalCategories } from '@/mocks/treatment';
 import { useRef, useState } from 'react';
 import arrowDownIcon from '@/assets/icons/arrowDown20.svg';
 import FilterChip from '@/components/common/FilterChip';
@@ -10,12 +12,8 @@ import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import MallBanner from '@/components/mall/MallBanner';
 import MallHospitalList from '@/components/mall/MallHospitalList';
-import {
-  defaultTreatmentScope,
-  medicalCategories,
-  universityMallHospitals,
-} from '@/mocks/universityMall';
-import type { TreatmentScope } from '@/types/universityMall';
+import { universityMallHospitals } from '@/mocks/universityMall';
+import type { TreatmentScope } from '@/types/treatment';
 
 const HOSPITAL_PAGE_SIZE = 8;
 

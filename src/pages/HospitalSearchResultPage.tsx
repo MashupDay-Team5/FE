@@ -16,14 +16,11 @@ import {
   hospitalSearchTreatmentConditions,
 } from '@/constants/hospitalSearch';
 import { hospitalSearchRegions } from '@/mocks/hospitalSearch';
-import {
-  defaultTreatmentScope,
-  medicalCategories,
-} from '@/mocks/universityMall';
-import type { TreatmentScope } from '@/types/universityMall';
+import { defaultTreatmentScope } from '@/constants/treatment';
+import { medicalCategories } from '@/mocks/treatment';
+import type { Treatment, TreatmentScope } from '@/types/treatment';
 import type {
   HospitalSearchFilterState,
-  HospitalSearchProcedure,
   HospitalSearchRegionSelection,
   HospitalSearchTab,
   HospitalSearchTreatmentConditionId,
@@ -79,7 +76,7 @@ function getTreatmentScope(searchParams: URLSearchParams): TreatmentScope {
 
 function getSelectedProcedureIds(
   searchParams: URLSearchParams,
-  procedures: HospitalSearchProcedure[],
+  procedures: Treatment[],
 ) {
   return Array.from(
     new Set(

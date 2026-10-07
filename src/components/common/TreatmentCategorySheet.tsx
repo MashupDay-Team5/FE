@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import closeIcon from '@/assets/icons/close.svg';
 import CategoryPicker from '@/components/common/CategoryPicker';
-import type { MedicalCategory, TreatmentScope } from '@/types/universityMall';
+import type { MedicalCategory, TreatmentScope } from '@/types/treatment';
 
 const SHEET_TRANSITION_DURATION = 400;
 
