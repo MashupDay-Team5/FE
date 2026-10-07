@@ -561,32 +561,37 @@ function HospitalSearchResultPage() {
             <div aria-hidden="true" className="h-8 w-4 shrink-0" />
           </div>
         )}
-        <div className="bg-surface-default pt-padding-xs">
-          <Tab
-            items={hospitalSearchTabItems}
-            selectedValue={selectedTab}
-            onValueChange={setSelectedTab}
-            layout="fill"
-          />
-        </div>
-        <div className="flex items-center justify-between bg-surface-default px-padding-m py-padding-s">
-          <FilterChip
-            ref={filterTriggerRef}
-            label={filterChipLabel}
-            selected={hasAppliedFilter}
-            showIcon
-            onClick={handleFilterSheetOpen}
-          />
-          <MenuTrigger<HospitalSort>
-            label={selectedSortOption.label}
-            size="s"
-            options={sortOptions}
-            selectedValue={selectedSortOption.value}
-            align="end"
-            onValueChange={setSelectedSort}
-          />
-        </div>
       </TopArea>
+      <div className="-mx-padding-m bg-surface-default pt-padding-xs">
+        <Tab
+          items={hospitalSearchTabItems}
+          selectedValue={selectedTab}
+          onValueChange={setSelectedTab}
+          layout="fill"
+        />
+      </div>
+      <div
+        className="sticky z-10 -mx-padding-m flex items-center justify-between bg-surface-default px-padding-m py-padding-s"
+        style={{
+          top: `calc(env(safe-area-inset-top) + ${treatments.length > 0 ? 100 : 52}px)`,
+        }}
+      >
+        <FilterChip
+          ref={filterTriggerRef}
+          label={filterChipLabel}
+          selected={hasAppliedFilter}
+          showIcon
+          onClick={handleFilterSheetOpen}
+        />
+        <MenuTrigger<HospitalSort>
+          label={selectedSortOption.label}
+          size="s"
+          options={sortOptions}
+          selectedValue={selectedSortOption.value}
+          align="end"
+          onValueChange={setSelectedSort}
+        />
+      </div>
       <HospitalSearchResultList hospitals={sortedHospitals} />
       <TreatmentCategorySheet
         isOpen={isCategorySheetOpen}
