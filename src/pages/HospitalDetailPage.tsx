@@ -88,6 +88,11 @@ function HospitalDetailPage() {
     },
   ];
 
+  const selectedSegmentReviewCount =
+    selectedSegment === 'related'
+      ? hospital.relatedReviewCount
+      : hospital.otherReviewCount;
+
   return (
     <>
       <TopArea transparent={isHeroVisible}>
@@ -139,13 +144,23 @@ function HospitalDetailPage() {
               layout="fill"
             />
           </div>
-          <div className="flex flex-col gap-gap-m px-padding-m py-padding-m">
+          <div className="px-padding-m py-padding-m">
             <SegmentControl
               items={segmentItems}
               selectedValue={selectedSegment}
               onValueChange={setSelectedSegment}
             />
-            <SectionPlaceholder label="리뷰 헤더 · 정렬" className="h-11" />
+          </div>
+          {/* 리뷰 헤더: 오른쪽 정렬 드롭다운은 스펙 확인 후 추가한다. */}
+          <div className="flex items-center justify-between p-padding-m">
+            <h2 className="flex items-center gap-gap-xs typography-heading-bold">
+              <span className="text-text-strong">
+                {hospital.treatment.name} 리뷰
+              </span>
+              <span className="text-text-brand">
+                {selectedSegmentReviewCount}
+              </span>
+            </h2>
           </div>
           <div className="flex flex-col gap-gap-l">
             <SectionPlaceholder label="리뷰 카드" className="h-[480px]" />
