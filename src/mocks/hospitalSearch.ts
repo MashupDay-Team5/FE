@@ -285,7 +285,7 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
       {
         type: 'free',
         procedureId: 1,
-        procedureName: '무료 수술명',
+        procedureName: '시력교정술 검진',
         priceAmount: 0,
         originalPrice: '0원',
       },
