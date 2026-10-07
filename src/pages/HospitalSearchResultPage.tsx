@@ -40,6 +40,7 @@ const REGION_QUERY_KEY = 'region';
 const MIN_PRICE_QUERY_KEY = 'minPrice';
 const MAX_PRICE_QUERY_KEY = 'maxPrice';
 const TREATMENT_CONDITION_QUERY_KEY = 'treatmentCondition';
+const MAX_FILTER_SUMMARY_LENGTH = 20;
 
 function getTreatmentScope(searchParams: URLSearchParams): TreatmentScope {
   const medicalCategoryValue = searchParams.get(MEDICAL_CATEGORY_QUERY_KEY);
@@ -233,9 +234,7 @@ function getRegionSummaryLabel(selection: HospitalSearchRegionSelection) {
     return undefined;
   }
 
-  const abbreviatedRegionName = region.name
-    .replace('특별', '')
-    .replace('광역', '');
+  const abbreviatedRegionName = region.name.replace(/특별시$|광역시$/, '');
 
   return district.name === '전체'
     ? abbreviatedRegionName
@@ -243,14 +242,12 @@ function getRegionSummaryLabel(selection: HospitalSearchRegionSelection) {
 }
 
 function getFilterSummaryLabel(filterState: HospitalSearchFilterState) {
-  const summaryLabels: string[] = [];
   let hiddenFilterCount = 0;
   const regionLabel = filterState.regionSelections
     .map(getRegionSummaryLabel)
     .find((label) => label !== undefined);
 
   if (regionLabel) {
-    summaryLabels.push(regionLabel);
     hiddenFilterCount += filterState.regionSelections.length - 1;
   }
 
@@ -258,22 +255,56 @@ function getFilterSummaryLabel(filterState: HospitalSearchFilterState) {
     filterState.priceRange.min !== PRICE_MINIMUM ||
     filterState.priceRange.max !== PRICE_MAXIMUM;
 
-  if (hasPriceFilter) {
-    summaryLabels.push('가격');
-  }
+  let priceLabel = hasPriceFilter
+    ? `${filterState.priceRange.min}만원~${filterState.priceRange.max}만원`
+    : undefined;
 
   const treatmentCondition = hospitalSearchTreatmentConditions.find(({ id }) =>
     filterState.treatmentConditionIds.includes(id),
   );
 
-  if (treatmentCondition) {
-    summaryLabels.push(treatmentCondition.label);
+  let treatmentConditionLabel = treatmentCondition?.label;
+
+  if (treatmentConditionLabel) {
     hiddenFilterCount += filterState.treatmentConditionIds.length - 1;
   }
 
-  const suffix = hiddenFilterCount > 0 ? ` 외 ${hiddenFilterCount}개` : '';
+  const getSummaryLabel = () => {
+    const summaryLabels = [regionLabel, priceLabel, treatmentConditionLabel];
+    const suffix = hiddenFilterCount > 0 ? ` 외 ${hiddenFilterCount}` : '';
 
-  return `${summaryLabels.join(', ')}${suffix}`;
+    return `${summaryLabels.filter(Boolean).join(', ')}${suffix}`;
+  };
+  let summaryLabel = getSummaryLabel();
+
+  if (
+    Array.from(summaryLabel).length > MAX_FILTER_SUMMARY_LENGTH &&
+    priceLabel &&
+    (regionLabel || treatmentConditionLabel)
+  ) {
+    priceLabel = undefined;
+    hiddenFilterCount += 1;
+    summaryLabel = getSummaryLabel();
+  }
+
+  const overflowLength =
+    Array.from(summaryLabel).length - MAX_FILTER_SUMMARY_LENGTH;
+
+  if (overflowLength > 0 && treatmentConditionLabel) {
+    const conditionCharacters = Array.from(treatmentConditionLabel);
+    const ellipsis = '...';
+    const visibleCharacterCount = Math.max(
+      0,
+      conditionCharacters.length - overflowLength - ellipsis.length,
+    );
+
+    treatmentConditionLabel = `${conditionCharacters
+      .slice(0, visibleCharacterCount)
+      .join('')}${ellipsis}`;
+    summaryLabel = getSummaryLabel();
+  }
+
+  return summaryLabel;
 }
 
 const hospitalSearchTabItems: TabItem<HospitalSearchTab>[] = [
