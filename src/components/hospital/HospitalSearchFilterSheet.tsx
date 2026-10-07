@@ -10,7 +10,6 @@ import RangeSlider, {
 import {
   MAX_SELECTED_REGION_COUNT,
   hospitalSearchPriceRange,
-  hospitalSearchPriceUnitInWon,
   hospitalSearchTreatmentConditions,
 } from '@/constants/hospitalSearch';
 import {
@@ -23,11 +22,11 @@ import type {
   HospitalSearchRegionSelection,
   HospitalSearchTreatmentConditionId,
 } from '@/types/hospitalSearch';
+import { matchesHospitalSearchFilters } from '@/utils/hospitalSearch';
 
 const SHEET_TRANSITION_DURATION = 400;
 const PRICE_MINIMUM = hospitalSearchPriceRange.min;
 const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
-const PRICE_UNIT_IN_WON = hospitalSearchPriceUnitInWon;
 const DEFAULT_PRICE_RANGE: RangeSliderValue = {
   min: PRICE_MINIMUM,
   max: PRICE_MAXIMUM,
@@ -565,36 +564,18 @@ function HospitalSearchFilterSheet({
     selectedRegionSelections.length > 0 ||
     hasSelectedPriceRange ||
     selectedTreatmentConditionIds.length > 0;
-  const priceRangeInWon = {
-    min: priceRange.min * PRICE_UNIT_IN_WON,
-    max: priceRange.max * PRICE_UNIT_IN_WON,
-  };
-  const hospitalCount = hospitalSearchItems.filter((hospital) => {
-    const matchesRegion =
-      selectedRegionSelections.length === 0 ||
-      selectedRegionSelections.some(({ regionId, districtId }) => {
-        const region = hospitalSearchRegions.find(({ id }) => id === regionId);
-        const wholeDistrictId = region?.districts[0].id;
-
-        return (
-          hospital.regionId === regionId &&
-          (districtId === wholeDistrictId || hospital.districtId === districtId)
-        );
-      });
-    const matchesProcedureAndPrice = hospital.priceCards.some(
-      ({ procedureId, priceAmount }) =>
-        procedureIds.includes(procedureId) &&
-        priceAmount >= priceRangeInWon.min &&
-        priceAmount <= priceRangeInWon.max,
-    );
-    const matchesTreatmentConditions = selectedTreatmentConditionIds.every(
-      (conditionId) => hospital.treatmentConditionIds.includes(conditionId),
-    );
-
-    return (
-      matchesRegion && matchesProcedureAndPrice && matchesTreatmentConditions
-    );
-  }).length;
+  const hospitalCount = hospitalSearchItems.filter((hospital) =>
+    matchesHospitalSearchFilters(
+      hospital,
+      {
+        regionSelections: selectedRegionSelections,
+        priceRange,
+        treatmentConditionIds: selectedTreatmentConditionIds,
+      },
+      procedureIds,
+      hospitalSearchRegions,
+    ),
+  ).length;
   const filterCounts = {
     region: selectedRegionSelections.length,
     price: hasSelectedPriceRange ? 1 : undefined,
