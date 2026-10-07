@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import mapIcon from '@/assets/icons/mapIcon.svg';
 import FilterChip from '@/components/common/FilterChip';
 import MenuTrigger, {
   type MenuTriggerOption,
@@ -593,6 +594,16 @@ function HospitalSearchResultPage() {
         />
       </div>
       <HospitalSearchResultList hospitals={sortedHospitals} />
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+20px)] z-20 mx-auto flex w-full max-w-[480px] justify-end px-padding-m">
+        <button
+          type="button"
+          disabled
+          className="inline-flex h-10 w-[105px] items-center justify-center gap-gap-xs rounded-[var(--radius-full)] border border-border-weak bg-interaction-neutral-inverse px-padding-s typography-label-large-medium text-text-brand shadow-[0_0_4px_rgb(0_0_0/12%)]"
+        >
+          <img src={mapIcon} alt="" className="size-5 shrink-0" />
+          지도보기
+        </button>
+      </div>
       <TreatmentCategorySheet
         isOpen={isCategorySheetOpen}
         categories={medicalCategories}

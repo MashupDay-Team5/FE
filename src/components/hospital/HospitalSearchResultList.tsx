@@ -28,7 +28,7 @@ function HospitalSearchResultList({
   return (
     <section
       aria-label="병원 검색 결과"
-      className="-mx-padding-m flex flex-col"
+      className="-mx-padding-m flex flex-col pb-8"
     >
       {hospitals.map((hospital) => (
         <ListCard
