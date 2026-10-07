@@ -351,7 +351,7 @@ type HospitalSearchFilterSheetProps = {
   isOpen: boolean;
   onClose: () => void;
   initialFilterState: HospitalSearchFilterState;
-  selectedProcedureIds: number[];
+  procedureIds: number[];
   onApply: (filterState: HospitalSearchFilterState) => void;
   triggerRef: RefObject<HTMLButtonElement | null>;
 };
@@ -360,7 +360,7 @@ function HospitalSearchFilterSheet({
   isOpen,
   onClose,
   initialFilterState,
-  selectedProcedureIds,
+  procedureIds,
   onApply,
   triggerRef,
 }: HospitalSearchFilterSheetProps) {
@@ -583,8 +583,7 @@ function HospitalSearchFilterSheet({
       });
     const matchesProcedureAndPrice = hospital.priceCards.some(
       ({ procedureId, priceAmount }) =>
-        (selectedProcedureIds.length === 0 ||
-          selectedProcedureIds.includes(procedureId)) &&
+        procedureIds.includes(procedureId) &&
         priceAmount >= priceRangeInWon.min &&
         priceAmount <= priceRangeInWon.max,
     );

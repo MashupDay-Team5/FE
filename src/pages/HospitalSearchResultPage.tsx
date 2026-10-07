@@ -500,7 +500,11 @@ function HospitalSearchResultPage() {
         isOpen={isFilterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
         initialFilterState={appliedFilterState}
-        selectedProcedureIds={selectedProcedureIds}
+        procedureIds={
+          selectedProcedureIds.length > 0
+            ? selectedProcedureIds
+            : treatments.map(({ id }) => id)
+        }
         onApply={handleFilterApply}
         triggerRef={filterTriggerRef}
       />
