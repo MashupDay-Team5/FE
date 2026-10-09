@@ -15,12 +15,17 @@ function ToggleButton({
   icon,
   children,
 }: ToggleButtonProps) {
+  // 켜진 상태에서는 pressed 배경색을 그대로 유지한다.
   return (
     <button
       type="button"
       aria-pressed={selected}
       onClick={() => onSelectedChange(!selected)}
-      className="flex h-8 min-w-[126px] shrink-0 items-center justify-center gap-gap-xs rounded-[var(--radius-s)] border border-border-neutral bg-interaction-neutral-inverse px-padding-s typography-label-small-regular leading-[18px] font-medium whitespace-nowrap text-text-primary active:bg-interaction-neutral-inverse-pressed"
+      className={`flex h-8 min-w-[126px] shrink-0 items-center justify-center gap-gap-xs rounded-[var(--radius-s)] border border-border-neutral px-padding-s typography-label-small-regular leading-[18px] font-medium whitespace-nowrap text-text-primary active:bg-interaction-neutral-inverse-pressed ${
+        selected
+          ? 'bg-interaction-neutral-inverse-pressed'
+          : 'bg-interaction-neutral-inverse'
+      }`}
     >
       {icon && (
         <span
