@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, useLayoutEffect, useRef, useState } from 'react';
 import checkIcon from '@/assets/icons/check.svg';
 import dividerIcon from '@/assets/icons/divider.svg';
 import meatballIcon from '@/assets/icons/meatball.svg';
@@ -77,6 +77,112 @@ function PaymentBox({ payments }: PaymentBoxProps) {
   );
 }
 
+type ReviewBodyProps = {
+  body: string;
+};
+
+// 본문 최대 높이: body-regular 행간 24px × 3줄
+const REVIEW_BODY_MAX_HEIGHT = 72;
+const MORE_BUTTON_CLASS =
+  'ml-padding-xs typography-label-small-regular font-medium text-text-secondary';
+
+// 리뷰 본문: 최대 3줄까지 보여주고, 넘치면 글자 단위로 잘라 3줄째 끝에 ...더보기를 붙인다.
+// 더보기를 누르면 같은 자리에서 본문 전체를 펼친다.
+function ReviewBody({ body }: ReviewBodyProps) {
+  const measureRef = useRef<HTMLParagraphElement>(null);
+  const measureTextRef = useRef<HTMLSpanElement>(null);
+  const [isExpanded, setExpanded] = useState(false);
+  // null이면 3줄 안에 다 들어가 자를 필요가 없다.
+  const [truncatedBody, setTruncatedBody] = useState<string | null>(null);
+
+  useLayoutEffect(() => {
+    const measure = measureRef.current;
+    const measureText = measureTextRef.current;
+    if (!measure || !measureText || isExpanded) return;
+
+    const fits = (text: string, withMoreButton: boolean) => {
+      measureText.textContent = text;
+      measure.dataset.more = String(withMoreButton);
+      return measure.scrollHeight <= REVIEW_BODY_MAX_HEIGHT;
+    };
+
+    // 더보기까지 3줄 안에 들어가는 가장 긴 글자 수를 이진 탐색으로 찾는다.
+    const updateTruncation = () => {
+      if (fits(body, false)) {
+        setTruncatedBody(null);
+        return;
+      }
+
+      const characters = Array.from(body);
+      let low = 0;
+      let high = characters.length;
+      while (low < high) {
+        const middle = Math.ceil((low + high) / 2);
+        if (fits(characters.slice(0, middle).join(''), true)) {
+          low = middle;
+        } else {
+          high = middle - 1;
+        }
+      }
+      setTruncatedBody(characters.slice(0, low).join('').trimEnd());
+    };
+    updateTruncation();
+    // 웹폰트가 늦게 로드되면 글자 너비가 달라지므로 로드 후 한 번 더 계산한다.
+    let isActive = true;
+    void document.fonts.ready.then(() => {
+      if (isActive) updateTruncation();
+    });
+
+    // 화면 너비가 바뀌면 줄바꿈 위치도 달라지므로 너비가 바뀔 때만 다시 계산한다.
+    let lastWidth = measure.clientWidth;
+    const observer = new ResizeObserver(() => {
+      if (measure.clientWidth === lastWidth) return;
+      lastWidth = measure.clientWidth;
+      updateTruncation();
+    });
+    observer.observe(measure);
+    return () => {
+      isActive = false;
+      observer.disconnect();
+    };
+  }, [body, isExpanded]);
+
+  const isTruncated = !isExpanded && truncatedBody !== null;
+
+  return (
+    <div className="relative">
+      <p className="typography-body-regular whitespace-pre-line text-text-primary">
+        {isTruncated ? truncatedBody : body}
+        {isTruncated && (
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            className={MORE_BUTTON_CLASS}
+          >
+            ...더보기
+          </button>
+        )}
+      </p>
+
+      {/* 글자 수 계산용 보이지 않는 복제본: 실제 본문과 같은 너비·글자 스타일로 높이를 잰다. */}
+      {!isExpanded && (
+        <p
+          ref={measureRef}
+          aria-hidden="true"
+          className="group invisible absolute inset-x-0 top-0 typography-body-regular whitespace-pre-line"
+        >
+          <span ref={measureTextRef} />
+          <span
+            className={`hidden group-data-[more=true]:inline ${MORE_BUTTON_CLASS}`}
+          >
+            ...더보기
+          </span>
+        </p>
+      )}
+    </div>
+  );
+}
+
 type MainAreaProps = {
   review: HospitalReview;
 };
@@ -151,6 +257,8 @@ function MainArea({ review }: MainAreaProps) {
       </div>
 
       {review.payments.length > 0 && <PaymentBox payments={review.payments} />}
+
+      <ReviewBody body={review.body} />
     </div>
   );
 }
