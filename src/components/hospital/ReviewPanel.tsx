@@ -1,9 +1,13 @@
+import { Fragment } from 'react';
 import checkIcon from '@/assets/icons/check.svg';
 import dividerIcon from '@/assets/icons/divider.svg';
 import meatballIcon from '@/assets/icons/meatball.svg';
 import ratingStarIcon from '@/assets/icons/ratingStar.svg';
 import Badge from '@/components/common/Badge';
-import type { HospitalReview } from '@/types/hospitalDetail';
+import type {
+  HospitalReview,
+  HospitalReviewPayment,
+} from '@/types/hospitalDetail';
 
 // UserTypeBanner: 리뷰 작성자 유형 안내 띠. 현재는 일반 유저 문구만 있다.
 function UserTypeBanner() {
@@ -23,6 +27,53 @@ function CheckBadgeIcon() {
     >
       <img src={checkIcon} alt="" />
     </span>
+  );
+}
+
+type PaymentBoxProps = {
+  payments: HospitalReviewPayment[];
+};
+
+// 결제 금액 박스: 제목 아래 구분선, 항목 사이 구분선으로 결제 항목을 나열한다.
+function PaymentBox({ payments }: PaymentBoxProps) {
+  return (
+    <div className="flex flex-col gap-gap-s rounded-[var(--radius-s)] bg-surface-weak px-padding-m py-padding-s">
+      <div className="flex flex-col gap-[6px]">
+        <p className="typography-label-small-regular leading-[18px] font-medium text-text-primary">
+          결제 금액
+        </p>
+        {/* Figma에서 제목 구분선은 높이 0(테두리만)이라 1px을 겹쳐 묶음 높이 24를 맞춘다. */}
+        <hr className="-mb-px border-border-neutral" />
+      </div>
+
+      <ul className="flex flex-col gap-gap-s">
+        {payments.map((payment, index) => (
+          <Fragment key={payment.treatmentName}>
+            {index > 0 && (
+              <li aria-hidden="true" className="px-padding-xs">
+                <hr className="border-border-neutral" />
+              </li>
+            )}
+            <li className="flex flex-col gap-gap-xs px-padding-xs">
+              <div className="flex items-center justify-between gap-gap-s">
+                <div className="flex min-w-0 items-center gap-gap-xs typography-label-small-regular leading-[18px] font-medium text-text-primary">
+                  <span aria-hidden="true">·</span>
+                  <span className="truncate">{payment.treatmentName}</span>
+                </div>
+                <span className="shrink-0 typography-label-small-regular text-text-secondary">
+                  {payment.price}
+                </span>
+              </div>
+              {payment.description && (
+                <p className="pl-padding-xs typography-caption-regular whitespace-pre-line text-text-secondary">
+                  {payment.description}
+                </p>
+              )}
+            </li>
+          </Fragment>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -98,6 +149,8 @@ function MainArea({ review }: MainAreaProps) {
           </button>
         </div>
       </div>
+
+      {review.payments.length > 0 && <PaymentBox payments={review.payments} />}
     </div>
   );
 }
