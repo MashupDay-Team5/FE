@@ -191,7 +191,7 @@ function MenuTrigger<T extends string>({
         aria-haspopup={hasOptions ? 'menu' : undefined}
         onClick={handleTriggerClick}
         onKeyDown={handleTriggerKeyDown}
-        className={`flex items-center ${size === 'm' ? 'h-11 gap-gap-xs' : 'h-9'}`}
+        className={`flex items-center ${size === 'm' ? 'h-11 gap-gap-xs' : 'h-[34px]'}`}
       >
         {size === 'm' ? (
           <span className="whitespace-nowrap text-text-primary">
