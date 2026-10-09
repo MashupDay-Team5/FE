@@ -178,8 +178,20 @@ function HospitalDetailPage() {
               <img src={bookmarkIcon} alt="" width={28} height={28} />
             </button>
           </div>
-          {/* 캡션~AI 안내 문구 영역(144px)은 이어서 구현한다. */}
-          <SectionPlaceholder label="캡션 · 리뷰 키워드" className="h-36" />
+          {/* 캡션 줄: 높이 44 안에서 글자를 세로 가운데 정렬한다. 더보기는 동작 없이 UI만 둔다. */}
+          <div className="flex h-11 min-w-0 items-center gap-gap-xs typography-label-small-regular leading-[18px] font-medium">
+            <p className="truncate text-text-primary">
+              {hospital.treatment.promotionCaption}
+            </p>
+            <button
+              type="button"
+              className="shrink-0 text-text-tertiary underline"
+            >
+              더보기
+            </button>
+          </div>
+          {/* 리뷰 키워드 칩과 AI 안내 문구 영역(96px)은 이어서 구현한다. */}
+          <SectionPlaceholder label="리뷰 키워드" className="h-24" />
         </section>
 
         {hospital.relatedReviewCount >= MIN_RELATED_REVIEW_COUNT && (
