@@ -1,4 +1,7 @@
 import checkIcon from '@/assets/icons/check.svg';
+import dividerIcon from '@/assets/icons/divider.svg';
+import meatballIcon from '@/assets/icons/meatball.svg';
+import ratingStarIcon from '@/assets/icons/ratingStar.svg';
 import Badge from '@/components/common/Badge';
 import type { HospitalReview } from '@/types/hospitalDetail';
 
@@ -58,6 +61,42 @@ function MainArea({ review }: MainAreaProps) {
             )}
           </div>
         )}
+
+        <div className="flex justify-between">
+          <div className="flex min-w-0 flex-col gap-gap-xs">
+            <p className="typography-body-bold text-text-strong">
+              받은 진료: {review.treatmentNames.join(', ')}
+            </p>
+            <div className="flex items-center gap-[10px]">
+              <span className="flex items-center">
+                <img src={ratingStarIcon} alt="" width={16} height={16} />
+                <span className="typography-label-small-regular leading-[18px] font-medium text-text-primary">
+                  {review.rating.toFixed(1)}
+                </span>
+              </span>
+              {review.willRevisit && (
+                <>
+                  <img src={dividerIcon} alt="" />
+                  <span className="typography-label-small-regular text-text-secondary">
+                    재방문 의사 있음
+                  </span>
+                </>
+              )}
+            </div>
+            {review.doctorName && (
+              <p className="typography-label-small-regular text-text-secondary">
+                의사: {review.doctorName}
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            aria-label="리뷰 메뉴"
+            className="flex size-6 shrink-0 items-center justify-center"
+          >
+            <img src={meatballIcon} alt="" />
+          </button>
+        </div>
       </div>
     </div>
   );
