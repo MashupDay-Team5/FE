@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import bookmarkIcon from '@/assets/icons/bookmark28.svg';
 import MenuTrigger, {
   type MenuTriggerOption,
 } from '@/components/common/MenuTrigger';
@@ -161,9 +162,22 @@ function HospitalDetailPage() {
           address={hospital.address}
         />
 
-        <section className="flex flex-col gap-gap-m px-padding-m py-padding-l">
-          <SectionPlaceholder label="진료 항목" className="h-11" />
-          <SectionPlaceholder label="리뷰 키워드" className="h-24" />
+        <section className="flex flex-col gap-gap-xs p-padding-m">
+          <div className="flex h-11 items-center justify-between">
+            <h2 className="typography-heading-bold text-text-primary">
+              {hospital.treatment.name}
+            </h2>
+            {/* 채워진 북마크 시안이 확정되면 저장 상태 토글을 연결한다. */}
+            <button
+              type="button"
+              aria-label={`${hospital.treatment.name} 저장`}
+              className="flex size-11 shrink-0 items-center justify-center"
+            >
+              <img src={bookmarkIcon} alt="" width={28} height={28} />
+            </button>
+          </div>
+          {/* 캡션~AI 안내 문구 영역(144px)은 이어서 구현한다. */}
+          <SectionPlaceholder label="캡션 · 리뷰 키워드" className="h-36" />
         </section>
 
         {hospital.relatedReviewCount >= MIN_RELATED_REVIEW_COUNT && (
