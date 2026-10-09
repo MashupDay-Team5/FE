@@ -5,7 +5,10 @@ import heartIcon from '@/assets/icons/heart.svg';
 import meatballIcon from '@/assets/icons/meatball.svg';
 import pencilIcon from '@/assets/icons/pencil.svg';
 import ratingStarIcon from '@/assets/icons/ratingStar.svg';
+import toggleButtonHeartIcon from '@/assets/icons/toggleButtonHeart.svg';
+import toggleButtonHeartFillIcon from '@/assets/icons/toggleButtonHeartFill.svg';
 import Badge from '@/components/common/Badge';
+import ToggleButton from '@/components/hospital/ToggleButton';
 import type {
   HospitalReview,
   HospitalReviewAuthor,
@@ -269,6 +272,7 @@ function MainArea({ review }: MainAreaProps) {
 type ProfileProps = {
   author: HospitalReviewAuthor;
   createdAt: string;
+  helpfulCount: number;
 };
 
 // 작성 정보의 아이콘 + 숫자 묶음 (작성한 리뷰 수, 받은 좋아요 수)
@@ -286,8 +290,11 @@ function ProfileStat({ icon, count }: { icon: string; count: number }) {
   );
 }
 
-// Profile: 작성자 정보. 오른쪽 '도움이 돼요' ToggleButton은 별도 컴포넌트로 추가한다.
-function Profile({ author, createdAt }: ProfileProps) {
+// Profile: 왼쪽 작성자 정보, 오른쪽 '도움이 돼요' ToggleButton.
+function Profile({ author, createdAt, helpfulCount }: ProfileProps) {
+  // API 연동 전까지는 화면에서만 토글하고, 켜면 도움이 돼요 수를 1 올린다.
+  const [isHelpful, setHelpful] = useState(false);
+
   return (
     <div className="flex items-center justify-between px-padding-m">
       <div className="flex min-w-0 items-center gap-gap-s">
@@ -321,6 +328,18 @@ function Profile({ author, createdAt }: ProfileProps) {
           </div>
         </div>
       </div>
+      <ToggleButton
+        selected={isHelpful}
+        onSelectedChange={setHelpful}
+        icon={
+          <img
+            src={isHelpful ? toggleButtonHeartFillIcon : toggleButtonHeartIcon}
+            alt=""
+          />
+        }
+      >
+        도움이 돼요 {helpfulCount + (isHelpful ? 1 : 0)}
+      </ToggleButton>
     </div>
   );
 }
@@ -336,7 +355,11 @@ function ReviewPanel({ review }: ReviewPanelProps) {
     <article aria-label={`리뷰 ${review.reviewId}`}>
       <UserTypeBanner />
       <MainArea review={review} />
-      <Profile author={review.author} createdAt={review.createdAt} />
+      <Profile
+        author={review.author}
+        createdAt={review.createdAt}
+        helpfulCount={review.helpfulCount}
+      />
     </article>
   );
 }
