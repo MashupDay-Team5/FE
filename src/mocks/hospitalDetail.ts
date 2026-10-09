@@ -1,7 +1,7 @@
 import type { HospitalDetail, HospitalReview } from '@/types/hospitalDetail';
 
 const SAMPLE_REVIEW_BODY =
-  '시력교정술 상담을 위해 방문했는데 검사 과정부터 전체적으로 꼼꼼하게 진행해주셔서 좋았습니다. 다양했고 각 검사 결과와 현재 눈 상태에 대해서도 이해하기 쉽게 설명해주셔서 수술 결정에 큰 도움이 되었습니다.';
+  '시력교정술 상담을 위해 방문했는데 검사 과정부터 전체적으로 꼼꼼하게 진행해주셔서 좋았습니다. 다양했고 각 검사 결과와 현재 눈 상태에 대해서도 이해하기 쉽게 설명해주셔서 수술 결정에 큰 도움이 되었습니다. 수술 당일에도 대기 시간이 길지 않았고, 수술 후에는 보호안경 착용법과 안약 넣는 순서까지 자세히 알려주셨어요. 일주일 뒤 검진에서도 회복이 잘 되고 있다고 해서 안심했습니다.';
 
 // 리뷰 목업 공통값. 리뷰마다 정렬·세그먼트 확인에 필요한 값만 덮어쓴다.
 const baseReview: Omit<
@@ -53,6 +53,7 @@ const richHospitalReviews: HospitalReview[] = [
   {
     ...baseReview,
     reviewId: 103,
+    body: '라섹으로 상담을 받았는데 각막 두께 때문에 스마일라식보다 라섹이 낫다고 솔직하게 말씀해주셨어요. 회복 기간이 길다는 점도 미리 알려주셔서 마음의 준비를 할 수 있었습니다. 수술 후 3일 정도는 눈이 많이 시렸지만 처방해주신 안약 덕분에 금방 괜찮아졌어요.',
     segment: 'related',
     isSameTreatment: false,
     treatmentNames: ['라섹'],
@@ -65,6 +66,7 @@ const richHospitalReviews: HospitalReview[] = [
   {
     ...baseReview,
     reviewId: 104,
+    body: '할인몰에서 보고 처음 방문했어요. 가격은 안내받은 그대로였고 추가 비용도 없었습니다. 다만 주말이라 대기 인원이 많아서 검사까지 한 시간 가까이 기다렸어요. 평일 오전에 방문하시는 걸 추천드려요.',
     segment: 'related',
     createdAt: '2026.08.30',
     rating: 6,
@@ -75,6 +77,7 @@ const richHospitalReviews: HospitalReview[] = [
   {
     ...baseReview,
     reviewId: 105,
+    body: '검사 장비가 최신이라 그런지 검사가 빠르게 끝났어요. 설명도 친절하셨습니다.',
     segment: 'related',
     isReceiptVerified: false,
     createdAt: '2026.09.05',
@@ -85,6 +88,7 @@ const richHospitalReviews: HospitalReview[] = [
   {
     ...baseReview,
     reviewId: 201,
+    body: '렌즈삽입술 상담을 받았는데 렌즈 종류별 장단점을 표로 정리해서 보여주셔서 비교하기 편했어요. 수술 후 빛 번짐이 조금 있었지만 한 달 정도 지나니 거의 느껴지지 않아요. 정기 검진 일정도 문자로 미리 알려주셔서 잊지 않고 다녀올 수 있었습니다.',
     segment: 'other',
     isSameTreatment: false,
     treatmentNames: ['렌즈삽입술'],
@@ -97,6 +101,7 @@ const richHospitalReviews: HospitalReview[] = [
   {
     ...baseReview,
     reviewId: 202,
+    body: '아이 드림렌즈 검사로 방문했어요. 아이가 겁이 많은 편인데 선생님께서 하나하나 설명해주시면서 천천히 진행해주셨어요. 렌즈 관리 방법도 보호자에게 따로 자세히 알려주셔서 좋았습니다. 다음 정기 검진도 여기서 받으려고 해요.',
     segment: 'other',
     isSameTreatment: false,
     treatmentNames: ['드림렌즈 검사'],
