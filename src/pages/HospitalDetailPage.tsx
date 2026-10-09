@@ -11,6 +11,7 @@ import SegmentControl, {
 import Tab, { type TabItem } from '@/components/common/Tab';
 import HospitalDetailTitle from '@/components/hospital/HospitalDetailTitle';
 import RelatedReviewBar from '@/components/hospital/RelatedReviewBar';
+import ScrollToTopButton from '@/components/hospital/ScrollToTopButton';
 import ReviewPanel from '@/components/hospital/ReviewPanel';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
@@ -139,8 +140,8 @@ function HospitalDetailPage() {
         />
       </TopArea>
 
-      {/* 하단 고정 CTA에 마지막 콘텐츠가 가려지지 않도록 CTA 높이만큼 여백을 둔다. */}
-      <div className="-mx-padding-m pb-[calc(80px+env(safe-area-inset-bottom))]">
+      {/* 마지막 콘텐츠가 하단 CTA와 맨 위로 버튼(40px + 간격 20px)에 가려지지 않도록 여백을 둔다. */}
+      <div className="-mx-padding-m pb-[calc(116px+max(14px,calc(var(--spacing-padding-xxs)+env(safe-area-inset-bottom))))]">
         {/* 대표 이미지는 Header 아래까지 끌어올려 Header가 이미지 위에 겹치게 한다. */}
         <div
           ref={heroImageRef}
@@ -237,7 +238,13 @@ function HospitalDetailPage() {
         </section>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 mx-auto grid w-full max-w-[480px] grid-cols-2 gap-gap-s bg-surface-default px-padding-m pt-padding-s pb-[calc(var(--spacing-padding-m)+env(safe-area-inset-bottom))]">
+      {/* 맨 위로 버튼: 하단 CTA 영역(위 패딩 4 + 버튼 52 + 아래 패딩) 위 20px, 오른쪽 16px */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(76px+max(14px,calc(var(--spacing-padding-xxs)+env(safe-area-inset-bottom))))] mx-auto flex w-full max-w-[480px] justify-end px-padding-m">
+        <ScrollToTopButton className="pointer-events-auto" />
+      </div>
+
+      {/* 하단 CTA: 위 패딩 4px, 아래 패딩은 Figma 기준 safe area를 포함해 14px(4px + 10px)이다. */}
+      <div className="fixed inset-x-0 bottom-0 mx-auto grid w-full max-w-[480px] grid-cols-2 gap-gap-s bg-surface-default px-padding-m pt-padding-xxs pb-[max(14px,calc(var(--spacing-padding-xxs)+env(safe-area-inset-bottom)))]">
         <button
           type="button"
           className="h-[52px] rounded-[var(--radius-s)] border border-border-brand typography-body-bold text-text-brand"
