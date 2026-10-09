@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import bookmarkIcon from '@/assets/icons/bookmark28.svg';
+import messageIcon from '@/assets/icons/message.svg';
 import MenuTrigger, {
   type MenuTriggerOption,
 } from '@/components/common/MenuTrigger';
@@ -236,17 +237,18 @@ function HospitalDetailPage() {
         </section>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 mx-auto flex w-full max-w-[480px] gap-gap-s bg-surface-default px-padding-m pt-padding-s pb-[calc(var(--spacing-padding-m)+env(safe-area-inset-bottom))]">
+      <div className="fixed inset-x-0 bottom-0 mx-auto grid w-full max-w-[480px] grid-cols-2 gap-gap-s bg-surface-default px-padding-m pt-padding-s pb-[calc(var(--spacing-padding-m)+env(safe-area-inset-bottom))]">
         <button
           type="button"
-          className="h-12 flex-1 rounded-[var(--radius-s)] border border-border-brand typography-body-bold text-text-brand"
+          className="h-[52px] rounded-[var(--radius-s)] border border-border-brand typography-body-bold text-text-brand"
         >
           상담 신청
         </button>
         <button
           type="button"
-          className="h-12 flex-1 rounded-[var(--radius-s)] bg-interaction-brand typography-body-bold text-text-inverse"
+          className="flex h-[52px] items-center justify-center gap-0.5 rounded-[var(--radius-s)] bg-interaction-brand typography-body-bold text-text-inverse"
         >
+          <img src={messageIcon} alt="" />
           예약하기
         </button>
       </div>
