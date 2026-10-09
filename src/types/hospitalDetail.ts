@@ -8,9 +8,6 @@ export type HospitalReviewSegment = 'related' | 'other';
 export type HospitalReviewSort =
   'default' | 'latest' | 'highest-rating' | 'lowest-rating' | 'most-helpful';
 
-// 리뷰 작성자 유형 (UserTypeBanner 문구 구분)
-export type HospitalReviewUserType = 'general' | 'discount-mall';
-
 // 리뷰 결제 금액 항목
 export type HospitalReviewPayment = {
   treatmentName: string;
@@ -29,7 +26,6 @@ export type HospitalReviewAuthor = {
 export type HospitalReview = {
   reviewId: number;
   segment: HospitalReviewSegment;
-  userType: HospitalReviewUserType;
   // 기본순 정렬에서 같은 치료 항목 리뷰를 우선 노출하기 위한 값
   isSameTreatment: boolean;
   isReceiptVerified: boolean;

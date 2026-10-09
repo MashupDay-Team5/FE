@@ -8,7 +8,6 @@ const baseReview: Omit<
   HospitalReview,
   'reviewId' | 'segment' | 'createdAt' | 'rating' | 'helpfulCount'
 > = {
-  userType: 'general',
   isSameTreatment: true,
   isReceiptVerified: true,
   isVisitedViaModoodoc: true,
@@ -67,7 +66,6 @@ const richHospitalReviews: HospitalReview[] = [
     ...baseReview,
     reviewId: 104,
     segment: 'related',
-    userType: 'discount-mall',
     createdAt: '2026.08.30',
     rating: 6,
     helpfulCount: 27,
