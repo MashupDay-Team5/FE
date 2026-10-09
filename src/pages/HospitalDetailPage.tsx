@@ -238,13 +238,14 @@ function HospitalDetailPage() {
         </section>
       </div>
 
-      {/* 맨 위로 버튼: 하단 CTA 영역(위 패딩 4 + 버튼 52 + 아래 패딩) 위 20px, 오른쪽 16px */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(76px+max(14px,calc(var(--spacing-padding-xxs)+env(safe-area-inset-bottom))))] mx-auto flex w-full max-w-[480px] justify-end px-padding-m">
+      {/* 맨 위로 버튼: 하단 CTA 영역(위 패딩 4 + 버튼 52 + 아래 패딩) 위 20px, 오른쪽 16px.
+          고정 탭(z-5)보다 앞에 보이도록 z-10을 준다. */}
+      <div className="pointer-events-none fixed inset-x-0 z-10 bottom-[calc(76px+max(14px,calc(var(--spacing-padding-xxs)+env(safe-area-inset-bottom))))] mx-auto flex w-full max-w-[480px] justify-end px-padding-m">
         <ScrollToTopButton className="pointer-events-auto" />
       </div>
 
       {/* 하단 CTA: 위 패딩 4px, 아래 패딩은 Figma 기준 safe area를 포함해 14px(4px + 10px)이다. */}
-      <div className="fixed inset-x-0 bottom-0 mx-auto grid w-full max-w-[480px] grid-cols-2 gap-gap-s bg-surface-default px-padding-m pt-padding-xxs pb-[max(14px,calc(var(--spacing-padding-xxs)+env(safe-area-inset-bottom)))]">
+      <div className="fixed inset-x-0 bottom-0 z-10 mx-auto grid w-full max-w-[480px] grid-cols-2 gap-gap-s bg-surface-default px-padding-m pt-padding-xxs pb-[max(14px,calc(var(--spacing-padding-xxs)+env(safe-area-inset-bottom)))]">
         <button
           type="button"
           className="h-[52px] rounded-[var(--radius-s)] border border-border-brand typography-body-bold text-text-brand"
