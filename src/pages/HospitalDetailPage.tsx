@@ -192,7 +192,8 @@ function HospitalDetailPage() {
               onValueChange={setSelectedSort}
             />
           </div>
-          <div className="flex flex-col">
+          {/* 리뷰 카드 사이 16px은 Figma 시안 간격을 재서 맞춘 값이다. */}
+          <div className="flex flex-col gap-gap-l">
             {segmentReviews.map((review) => (
               <ReviewPanel key={review.reviewId} review={review} />
             ))}

@@ -297,7 +297,7 @@ function Profile({ author, createdAt, helpfulCount }: ProfileProps) {
   const [isHelpful, setHelpful] = useState(false);
 
   return (
-    <div className="flex items-center justify-between px-padding-m">
+    <div className="flex items-center justify-between px-padding-m py-padding-xs">
       <div className="flex min-w-0 items-center gap-gap-s">
         <div className="size-8 shrink-0 overflow-hidden rounded-full border border-border-neutral bg-surface-weak">
           {author.profileImageUrl && (
@@ -308,7 +308,8 @@ function Profile({ author, createdAt, helpfulCount }: ProfileProps) {
             />
           )}
         </div>
-        <div className="flex min-w-0 flex-col">
+        {/* 닉네임·작성 정보 사이 1px은 ReviewPannel 높이(568)에서 역산한 값이다. */}
+        <div className="flex min-w-0 flex-col gap-px">
           <p className="truncate typography-label-small-regular leading-[18px] font-medium text-text-secondary">
             {author.nickname}
           </p>
@@ -392,9 +393,8 @@ type ReviewPanelProps = {
 // ReviewPanel: 병원 상세 리뷰 탭에서만 쓰는 리뷰 카드.
 // UserTypeBanner / MainArea / Profile / Callout 순서로 구성하며, 나머지 영역은 이어서 추가한다.
 function ReviewPanel({ review }: ReviewPanelProps) {
-  // Profile·Callout 사이(pt)와 카드 아래 여백(pb) 16px은 Figma 확인 전 임시 값이다.
   return (
-    <article aria-label={`리뷰 ${review.reviewId}`} className="pb-padding-m">
+    <article aria-label={`리뷰 ${review.reviewId}`}>
       <UserTypeBanner />
       <MainArea review={review} />
       <Profile
@@ -403,7 +403,7 @@ function ReviewPanel({ review }: ReviewPanelProps) {
         helpfulCount={review.helpfulCount}
       />
       {review.isReservationVisit && (
-        <div className="px-padding-m pt-padding-m">
+        <div className="p-padding-m">
           <Callout isPriceMatched={review.isPriceMatched} />
         </div>
       )}
