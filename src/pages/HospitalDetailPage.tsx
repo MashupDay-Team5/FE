@@ -8,6 +8,7 @@ import SegmentControl, {
 } from '@/components/common/SegmentControl';
 import Tab, { type TabItem } from '@/components/common/Tab';
 import HospitalDetailTitle from '@/components/hospital/HospitalDetailTitle';
+import RelatedReviewBar from '@/components/hospital/RelatedReviewBar';
 import ReviewPanel from '@/components/hospital/ReviewPanel';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
@@ -31,6 +32,9 @@ const reviewSortOptions: MenuTriggerOption<HospitalReviewSort>[] = [
   { value: 'most-helpful', label: '도움많은순' },
 ];
 
+// 관련 리뷰가 이 수보다 적으면 키워드를 공개하지 않고 관련된 리뷰 바도 숨긴다.
+const MIN_RELATED_REVIEW_COUNT = 10;
+
 // Detail Header 높이. 대표 이미지가 이만큼 Header 뒤로 지나가면 Header 배경을 보여준다.
 const HEADER_HEIGHT = 52;
 
@@ -52,6 +56,7 @@ function HospitalDetailPage() {
   const { hospitalId } = useParams();
   const hospital = findHospitalDetail(Number(hospitalId));
   const heroImageRef = useRef<HTMLDivElement>(null);
+  const reviewSectionRef = useRef<HTMLElement>(null);
   const [isHeroVisible, setHeroVisible] = useState(true);
   const [selectedTab, setSelectedTab] = useState<HospitalDetailTab>('review');
   const [selectedSegment, setSelectedSegment] =
@@ -115,6 +120,13 @@ function HospitalDetailPage() {
       ? hospital.relatedReviewCount
       : hospital.otherReviewCount;
 
+  // 관련된 리뷰 바: 리뷰 탭·관련 리뷰를 선택하고 탭이 Header 아래에 붙는 위치로 스크롤한다.
+  const handleRelatedReviewClick = () => {
+    setSelectedTab('review');
+    setSelectedSegment('related');
+    reviewSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <>
       <TopArea transparent={isHeroVisible}>
@@ -154,9 +166,18 @@ function HospitalDetailPage() {
           <SectionPlaceholder label="리뷰 키워드" className="h-24" />
         </section>
 
-        <SectionPlaceholder label="관련된 리뷰 보러가기" className="h-12" />
+        {hospital.relatedReviewCount >= MIN_RELATED_REVIEW_COUNT && (
+          <RelatedReviewBar
+            reviewCount={hospital.relatedReviewCount}
+            onClick={handleRelatedReviewClick}
+          />
+        )}
 
-        <section>
+        {/* 관련된 리뷰 바와 탭 사이 24px. 스크롤 이동 시 탭이 Header 아래에 오도록 여백을 둔다. */}
+        <section
+          ref={reviewSectionRef}
+          className="mt-padding-l scroll-mt-[calc(env(safe-area-inset-top)+52px)]"
+        >
           {/* 탭은 스크롤 시 Header 바로 아래에 고정한다. */}
           <div className="sticky top-[calc(env(safe-area-inset-top)+52px)] z-[5] bg-surface-default pt-padding-xs">
             <Tab
