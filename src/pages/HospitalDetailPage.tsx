@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import MenuTrigger, {
+  type MenuTriggerOption,
+} from '@/components/common/MenuTrigger';
 import SegmentControl, {
   type SegmentControlItem,
 } from '@/components/common/SegmentControl';
@@ -11,12 +14,21 @@ import { findHospitalDetail } from '@/mocks/hospitalDetail';
 import type {
   HospitalDetailTab,
   HospitalReviewSegment,
+  HospitalReviewSort,
 } from '@/types/hospitalDetail';
 
 type SectionPlaceholderProps = {
   label: string;
   className?: string;
 };
+
+const reviewSortOptions: MenuTriggerOption<HospitalReviewSort>[] = [
+  { value: 'default', label: '기본순' },
+  { value: 'latest', label: '최신순' },
+  { value: 'highest-rating', label: '높은평점순' },
+  { value: 'lowest-rating', label: '낮은평점순' },
+  { value: 'most-helpful', label: '도움많은순' },
+];
 
 // Detail Header 높이. 대표 이미지가 이만큼 Header 뒤로 지나가면 Header 배경을 보여준다.
 const HEADER_HEIGHT = 52;
@@ -43,6 +55,8 @@ function HospitalDetailPage() {
   const [selectedTab, setSelectedTab] = useState<HospitalDetailTab>('review');
   const [selectedSegment, setSelectedSegment] =
     useState<HospitalReviewSegment>('related');
+  const [selectedSort, setSelectedSort] =
+    useState<HospitalReviewSort>('default');
 
   // 대표 이미지가 Header 뒤로 완전히 지나가면 Header 배경과 타이틀을 보여준다.
   useEffect(() => {
@@ -88,6 +102,9 @@ function HospitalDetailPage() {
     },
   ];
 
+  const selectedSortOption =
+    reviewSortOptions.find(({ value }) => value === selectedSort) ??
+    reviewSortOptions[0];
   const selectedSegmentReviewCount =
     selectedSegment === 'related'
       ? hospital.relatedReviewCount
@@ -151,7 +168,7 @@ function HospitalDetailPage() {
               onValueChange={setSelectedSegment}
             />
           </div>
-          {/* 리뷰 헤더: 오른쪽 정렬 드롭다운은 스펙 확인 후 추가한다. */}
+          {/* 리뷰 헤더 */}
           <div className="flex items-center justify-between p-padding-m">
             <h2 className="flex items-center gap-gap-xs typography-heading-bold">
               <span className="text-text-strong">
@@ -161,6 +178,14 @@ function HospitalDetailPage() {
                 {selectedSegmentReviewCount}
               </span>
             </h2>
+            <MenuTrigger<HospitalReviewSort>
+              label={selectedSortOption.label}
+              size="s"
+              options={reviewSortOptions}
+              selectedValue={selectedSort}
+              align="end"
+              onValueChange={setSelectedSort}
+            />
           </div>
           <div className="flex flex-col gap-gap-l">
             <SectionPlaceholder label="리뷰 카드" className="h-[480px]" />

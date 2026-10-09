@@ -4,6 +4,10 @@ export type HospitalDetailTab = 'price' | 'review' | 'qna';
 // 리뷰 세그먼트: 관련 리뷰 / 이 병원의 다른 리뷰
 export type HospitalReviewSegment = 'related' | 'other';
 
+// 리뷰 정렬: 기본순 / 최신순 / 높은평점순 / 낮은평점순 / 도움많은순
+export type HospitalReviewSort =
+  'default' | 'latest' | 'highest-rating' | 'lowest-rating' | 'most-helpful';
+
 // 리뷰 작성자 유형 (UserTypeBanner 문구 구분)
 export type HospitalReviewUserType = 'general' | 'discount-mall';
 
