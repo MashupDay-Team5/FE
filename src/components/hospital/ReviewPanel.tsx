@@ -1,5 +1,6 @@
 import { Fragment, useLayoutEffect, useRef, useState } from 'react';
 import checkIcon from '@/assets/icons/check.svg';
+import discountIcon from '@/assets/icons/discount.svg';
 import dividerIcon from '@/assets/icons/divider.svg';
 import heartIcon from '@/assets/icons/heart.svg';
 import meatballIcon from '@/assets/icons/meatball.svg';
@@ -344,6 +345,46 @@ function Profile({ author, createdAt, helpfulCount }: ProfileProps) {
   );
 }
 
+// Callout 체크 아이콘: check.svg 모양만 쓰고 색은 accent/foreground/green으로 칠한다.
+function CalloutCheckIcon() {
+  return (
+    <span
+      aria-hidden="true"
+      className="flex size-5 shrink-0 items-center justify-center"
+    >
+      <span
+        className="h-2 w-3 bg-accent-foreground-green mask-contain mask-center mask-no-repeat"
+        style={{
+          maskImage: `url("${checkIcon}")`,
+          WebkitMaskImage: `url("${checkIcon}")`,
+        }}
+      />
+    </span>
+  );
+}
+
+type CalloutProps = {
+  isPriceMatched: boolean;
+};
+
+// Callout: 예약으로 방문한 리뷰에만 보여주는 안내 박스.
+function Callout({ isPriceMatched }: CalloutProps) {
+  return (
+    <div className="flex flex-col gap-gap-s rounded-[var(--radius-s)] bg-surface-brand-weak px-padding-m py-padding-s">
+      <p className="flex items-center gap-gap-s typography-body-bold text-text-brand">
+        <img src={discountIcon} alt="" width={16} height={16} />
+        예약으로 방문했어요
+      </p>
+      {isPriceMatched && (
+        <p className="flex items-center gap-gap-s typography-label-small-regular leading-[18px] font-medium text-text-primary">
+          <CalloutCheckIcon />
+          모두닥에서 확인한 가격과 같았어요.
+        </p>
+      )}
+    </div>
+  );
+}
+
 type ReviewPanelProps = {
   review: HospitalReview;
 };
@@ -351,8 +392,9 @@ type ReviewPanelProps = {
 // ReviewPanel: 병원 상세 리뷰 탭에서만 쓰는 리뷰 카드.
 // UserTypeBanner / MainArea / Profile / Callout 순서로 구성하며, 나머지 영역은 이어서 추가한다.
 function ReviewPanel({ review }: ReviewPanelProps) {
+  // Profile·Callout 사이(pt)와 카드 아래 여백(pb) 16px은 Figma 확인 전 임시 값이다.
   return (
-    <article aria-label={`리뷰 ${review.reviewId}`}>
+    <article aria-label={`리뷰 ${review.reviewId}`} className="pb-padding-m">
       <UserTypeBanner />
       <MainArea review={review} />
       <Profile
@@ -360,6 +402,11 @@ function ReviewPanel({ review }: ReviewPanelProps) {
         createdAt={review.createdAt}
         helpfulCount={review.helpfulCount}
       />
+      {review.isReservationVisit && (
+        <div className="px-padding-m pt-padding-m">
+          <Callout isPriceMatched={review.isPriceMatched} />
+        </div>
+      )}
     </article>
   );
 }

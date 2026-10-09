@@ -194,13 +194,7 @@ function HospitalDetailPage() {
           </div>
           <div className="flex flex-col">
             {segmentReviews.map((review) => (
-              <div key={review.reviewId}>
-                <ReviewPanel review={review} />
-                <SectionPlaceholder
-                  label="MainArea · Profile · Callout"
-                  className="h-[440px]"
-                />
-              </div>
+              <ReviewPanel key={review.reviewId} review={review} />
             ))}
           </div>
         </section>
