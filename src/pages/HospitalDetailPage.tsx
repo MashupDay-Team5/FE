@@ -8,6 +8,7 @@ import SegmentControl, {
 } from '@/components/common/SegmentControl';
 import Tab, { type TabItem } from '@/components/common/Tab';
 import HospitalDetailTitle from '@/components/hospital/HospitalDetailTitle';
+import ReviewPanel from '@/components/hospital/ReviewPanel';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import { findHospitalDetail } from '@/mocks/hospitalDetail';
@@ -105,6 +106,10 @@ function HospitalDetailPage() {
   const selectedSortOption =
     reviewSortOptions.find(({ value }) => value === selectedSort) ??
     reviewSortOptions[0];
+  // 정렬은 ReviewPanel 목록 연결 단계에서 적용한다.
+  const segmentReviews = hospital.reviews.filter(
+    ({ segment }) => segment === selectedSegment,
+  );
   const selectedSegmentReviewCount =
     selectedSegment === 'related'
       ? hospital.relatedReviewCount
@@ -187,9 +192,16 @@ function HospitalDetailPage() {
               onValueChange={setSelectedSort}
             />
           </div>
-          <div className="flex flex-col gap-gap-l">
-            <SectionPlaceholder label="리뷰 카드" className="h-[480px]" />
-            <SectionPlaceholder label="리뷰 카드" className="h-[480px]" />
+          <div className="flex flex-col">
+            {segmentReviews.map((review) => (
+              <div key={review.reviewId}>
+                <ReviewPanel review={review} />
+                <SectionPlaceholder
+                  label="MainArea · Profile · Callout"
+                  className="h-[440px]"
+                />
+              </div>
+            ))}
           </div>
         </section>
       </div>
