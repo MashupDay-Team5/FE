@@ -4,41 +4,47 @@ import Badge from '@/components/common/Badge';
 const MAX_KEYWORD_COUNT = 6;
 // 2줄째 끝에 남은 공간이 이보다 좁으면 넘친 키워드를 말줄임으로 붙이지 않고 숨긴다.
 const MIN_TRUNCATED_CHIP_WIDTH = 48;
+// 말줄임 칩 최대 너비(Figma 기준 218px). 넓은 화면에서도 이 너비를 넘지 않는다.
+const MAX_TRUNCATED_CHIP_WIDTH = 218;
 const CHIP_GAP = 4;
 const CHIP_LIST_CLASS = 'flex flex-wrap gap-x-gap-xs gap-y-gap-s';
 
+const ELLIPSIS = '...';
+
 type KeywordLayout = {
   visibleCount: number;
-  // 2줄째 끝에 말줄임으로 붙는 마지막 칩의 최대 너비
-  lastChipMaxWidth?: number;
+  // 2줄째 끝에 붙는 마지막 칩의 말줄임 문구. 칩 너비가 잘린 글자에 맞춰 줄어든다.
+  truncatedLastKeyword?: string;
 };
 
-function KeywordChip({
-  keyword,
-  maxWidth,
-}: {
-  keyword: string;
-  maxWidth?: number;
-}) {
+function KeywordChip({ keyword }: { keyword: string }) {
   return (
-    <span className="flex max-w-full" style={{ maxWidth }}>
-      <Badge size="L" color="keyword" shape="pill" className="max-w-full">
-        <span className="min-w-0 truncate">{keyword}</span>
-      </Badge>
-    </span>
+    <Badge size="L" color="keyword" shape="pill" className="max-w-full">
+      <span className="min-w-0 truncate">{keyword}</span>
+    </Badge>
   );
 }
 
-// 키워드 칩 목록: 최대 2줄. 3줄째로 넘어가는 첫 칩은 2줄째 남은 공간에 말줄임으로 붙이고 나머지는 숨긴다.
+// 키워드 칩 목록: 최대 2줄. 3줄째로 넘어가는 첫 칩은 2줄째 남은 공간에 들어가는 글자까지만 남기고
+// '...'을 붙여 이어 붙인다. 나머지 칩은 숨긴다.
 function KeywordChipList({ keywords }: { keywords: string[] }) {
   const measureRef = useRef<HTMLDivElement>(null);
+  const probeRef = useRef<HTMLSpanElement>(null);
   const [layout, setLayout] = useState<KeywordLayout>({
     visibleCount: keywords.length,
   });
 
   useLayoutEffect(() => {
     const measure = measureRef.current;
-    if (!measure) return;
+    const probe = probeRef.current;
+    if (!measure || !probe) return;
+
+    // 잘린 글자를 넣었을 때의 칩 너비(패딩 포함)
+    const getChipWidth = (text: string) => {
+      const probeText = probe.querySelector(':scope > span > span');
+      if (probeText) probeText.textContent = text;
+      return probe.offsetWidth;
+    };
 
     const updateLayout = () => {
       const chips = Array.from(measure.children) as HTMLElement[];
@@ -57,12 +63,31 @@ function KeywordChipList({ keywords }: { keywords: string[] }) {
         measure.clientWidth -
         (lastSecondRowChip.offsetLeft + lastSecondRowChip.offsetWidth) -
         CHIP_GAP;
+      const truncatedChipWidth = Math.min(
+        remainingWidth,
+        MAX_TRUNCATED_CHIP_WIDTH,
+      );
+
+      // 남은 공간에 '...'까지 들어가는 가장 긴 글자 수를 이진 탐색으로 찾는다.
+      const characters = Array.from(keywords[overflowIndex]);
+      const toTruncated = (length: number) =>
+        characters.slice(0, length).join('').trimEnd() + ELLIPSIS;
+      let low = 0;
+      let high = characters.length;
+      while (low < high) {
+        const middle = Math.ceil((low + high) / 2);
+        if (getChipWidth(toTruncated(middle)) <= truncatedChipWidth) {
+          low = middle;
+        } else {
+          high = middle - 1;
+        }
+      }
 
       setLayout(
-        remainingWidth >= MIN_TRUNCATED_CHIP_WIDTH
+        low > 0 && remainingWidth >= MIN_TRUNCATED_CHIP_WIDTH
           ? {
               visibleCount: overflowIndex + 1,
-              lastChipMaxWidth: remainingWidth,
+              truncatedLastKeyword: toTruncated(low),
             }
           : { visibleCount: overflowIndex },
       );
@@ -95,17 +120,17 @@ function KeywordChipList({ keywords }: { keywords: string[] }) {
         {visibleKeywords.map((keyword, index) => (
           <KeywordChip
             key={keyword}
-            keyword={keyword}
-            maxWidth={
-              index === visibleKeywords.length - 1
-                ? layout.lastChipMaxWidth
-                : undefined
+            keyword={
+              index === visibleKeywords.length - 1 &&
+              layout.truncatedLastKeyword
+                ? layout.truncatedLastKeyword
+                : keyword
             }
           />
         ))}
       </div>
 
-      {/* 줄 수 계산용 보이지 않는 복제본: 모든 칩을 제한 없이 배치해 위치를 잰다. */}
+      {/* 계산용 보이지 않는 요소: 모든 칩의 위치를 재는 복제본과, 잘린 칩 너비를 재는 칩 하나 */}
       <div
         ref={measureRef}
         aria-hidden="true"
@@ -115,6 +140,13 @@ function KeywordChipList({ keywords }: { keywords: string[] }) {
           <KeywordChip key={keyword} keyword={keyword} />
         ))}
       </div>
+      <span
+        ref={probeRef}
+        aria-hidden="true"
+        className="invisible absolute top-0 left-0 inline-flex"
+      >
+        <KeywordChip keyword="" />
+      </span>
     </div>
   );
 }
