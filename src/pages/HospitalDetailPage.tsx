@@ -11,6 +11,7 @@ import SegmentControl, {
 import Tab, { type TabItem } from '@/components/common/Tab';
 import HospitalDetailTitle from '@/components/hospital/HospitalDetailTitle';
 import RelatedReviewBar from '@/components/hospital/RelatedReviewBar';
+import ReviewKeywords from '@/components/hospital/ReviewKeywords';
 import ScrollToTopButton from '@/components/hospital/ScrollToTopButton';
 import ReviewPanel from '@/components/hospital/ReviewPanel';
 import Header from '@/components/layout/Header';
@@ -21,11 +22,6 @@ import type {
   HospitalReviewSegment,
   HospitalReviewSort,
 } from '@/types/hospitalDetail';
-
-type SectionPlaceholderProps = {
-  label: string;
-  className?: string;
-};
 
 const reviewSortOptions: MenuTriggerOption<HospitalReviewSort>[] = [
   { value: 'default', label: '기본순' },
@@ -40,20 +36,6 @@ const MIN_RELATED_REVIEW_COUNT = 10;
 
 // Detail Header 높이. 대표 이미지가 이만큼 Header 뒤로 지나가면 Header 배경을 보여준다.
 const HEADER_HEIGHT = 52;
-
-// 골격 단계에서 각 영역의 위치만 잡아두는 임시 박스. 영역을 구현하면서 하나씩 교체한다.
-function SectionPlaceholder({
-  label,
-  className = '',
-}: SectionPlaceholderProps) {
-  return (
-    <div
-      className={`flex items-center justify-center border border-dashed border-border-neutral-strong bg-surface-weak typography-label-small-medium text-text-tertiary ${className}`}
-    >
-      {label}
-    </div>
-  );
-}
 
 function HospitalDetailPage() {
   const { hospitalId } = useParams();
@@ -111,6 +93,8 @@ function HospitalDetailPage() {
     },
   ];
 
+  const hasEnoughRelatedReviews =
+    hospital.relatedReviewCount >= MIN_RELATED_REVIEW_COUNT;
   const selectedSortOption =
     reviewSortOptions.find(({ value }) => value === selectedSort) ??
     reviewSortOptions[0];
@@ -190,11 +174,13 @@ function HospitalDetailPage() {
               더보기
             </button>
           </div>
-          {/* 리뷰 키워드 칩과 AI 안내 문구 영역(96px)은 이어서 구현한다. */}
-          <SectionPlaceholder label="리뷰 키워드" className="h-24" />
+          <ReviewKeywords
+            keywords={hospital.keywords}
+            isLocked={!hasEnoughRelatedReviews}
+          />
         </section>
 
-        {hospital.relatedReviewCount >= MIN_RELATED_REVIEW_COUNT && (
+        {hasEnoughRelatedReviews && (
           <RelatedReviewBar
             reviewCount={hospital.relatedReviewCount}
             onClick={handleRelatedReviewClick}
