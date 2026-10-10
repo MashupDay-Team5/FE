@@ -30,15 +30,23 @@ function ScrollToTopButton({
     return () => scrollContainer.removeEventListener('scroll', handleScroll);
   }, [visibility]);
 
-  if (visibility === 'afterScroll' && !isScrolledDown) return null;
+  const isVisible = visibility === 'always' || isScrolledDown;
 
   return (
+    // 나타날 때 60px 아래에서 위로 올라오고, 사라질 때 같은 길이만큼 내려가며 흐려진다.
+    // 숨겨진 동안에는 자리만 차지하고 누를 수 없게 한다.
     <button
       type="button"
+      aria-hidden={!isVisible}
+      tabIndex={isVisible ? undefined : -1}
       onClick={() =>
         getScrollContainer()?.scrollTo({ top: 0, behavior: 'smooth' })
       }
-      className={`flex h-10 items-center gap-gap-xs rounded-full border border-border-weak bg-interaction-neutral-inverse px-padding-s shadow-[0_0_4px_0_rgb(0_0_0/12%)] typography-label-large-medium text-text-primary ${className}`}
+      className={`flex h-10 items-center gap-gap-xs rounded-full border border-border-weak bg-interaction-neutral-inverse px-padding-s shadow-[0_0_4px_0_rgb(0_0_0/12%)] typography-label-large-medium text-text-primary transition-[translate,opacity] duration-300 ease-out ${
+        isVisible
+          ? 'pointer-events-auto translate-y-0 opacity-100'
+          : 'pointer-events-none translate-y-[60px] opacity-0'
+      } ${className}`}
     >
       <img src={arrowDownIcon} alt="" className="size-5 rotate-180" />맨 위로
     </button>
