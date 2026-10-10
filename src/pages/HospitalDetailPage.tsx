@@ -19,6 +19,7 @@ import TopArea from '@/components/layout/TopArea';
 import { findHospitalDetail } from '@/mocks/hospitalDetail';
 import type {
   HospitalDetailTab,
+  HospitalReview,
   HospitalReviewSegment,
   HospitalReviewSort,
 } from '@/types/hospitalDetail';
@@ -30,6 +31,31 @@ const reviewSortOptions: MenuTriggerOption<HospitalReviewSort>[] = [
   { value: 'lowest-rating', label: '낮은평점순' },
   { value: 'most-helpful', label: '도움많은순' },
 ];
+
+// 작성일(YYYY.MM.DD)이 최근인 리뷰가 앞에 오도록 비교한다.
+function compareLatest(a: HospitalReview, b: HospitalReview) {
+  return b.createdAt.localeCompare(a.createdAt);
+}
+
+// API 연동 전 확인용 정렬. 기준 값이 같으면 최신순으로 정렬한다.
+// 연동 후에는 서버 정렬 결과로 대체한다.
+function sortReviews(reviews: HospitalReview[], sort: HospitalReviewSort) {
+  const compare: Record<
+    HospitalReviewSort,
+    (a: HospitalReview, b: HospitalReview) => number
+  > = {
+    // 기본순: 같은 치료 항목 리뷰를 우선 노출한다.
+    default: (a, b) => Number(b.isSameTreatment) - Number(a.isSameTreatment),
+    latest: () => 0,
+    'highest-rating': (a, b) => b.rating - a.rating,
+    'lowest-rating': (a, b) => a.rating - b.rating,
+    'most-helpful': (a, b) => b.helpfulCount - a.helpfulCount,
+  };
+
+  return [...reviews].sort(
+    (a, b) => compare[sort](a, b) || compareLatest(a, b),
+  );
+}
 
 // 관련 리뷰가 이 수보다 적으면 키워드를 공개하지 않고 관련된 리뷰 바도 숨긴다.
 const MIN_RELATED_REVIEW_COUNT = 10;
@@ -98,9 +124,9 @@ function HospitalDetailPage() {
   const selectedSortOption =
     reviewSortOptions.find(({ value }) => value === selectedSort) ??
     reviewSortOptions[0];
-  // 정렬은 ReviewPanel 목록 연결 단계에서 적용한다.
-  const segmentReviews = hospital.reviews.filter(
-    ({ segment }) => segment === selectedSegment,
+  const segmentReviews = sortReviews(
+    hospital.reviews.filter(({ segment }) => segment === selectedSegment),
+    selectedSort,
   );
   const selectedSegmentReviewCount =
     selectedSegment === 'related'
