@@ -8,6 +8,7 @@ export const hospitalSearchPriceRange = {
 };
 
 export const hospitalSearchPriceUnitInWon = 10000;
+export const hospitalSearchPriceStep = 50;
 
 export const hospitalSearchTreatmentConditions: HospitalSearchTreatmentCondition[] =
   [

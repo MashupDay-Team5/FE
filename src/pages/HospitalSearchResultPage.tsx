@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import mapIcon from '@/assets/icons/mapIcon.svg';
 import FilterChip from '@/components/common/FilterChip';
@@ -14,6 +14,7 @@ import TopArea from '@/components/layout/TopArea';
 import {
   MAX_SELECTED_REGION_COUNT,
   hospitalSearchPriceRange,
+  hospitalSearchPriceStep,
   hospitalSearchPriceUnitInWon,
   hospitalSearchTreatmentConditions,
 } from '@/constants/hospitalSearch';
@@ -114,7 +115,11 @@ function parsePriceRangeValue(value: string | null, fallback: number) {
 
   return Math.min(
     PRICE_MAXIMUM,
-    Math.max(PRICE_MINIMUM, priceInWon / PRICE_UNIT_IN_WON),
+    Math.max(
+      PRICE_MINIMUM,
+      Math.round(priceInWon / PRICE_UNIT_IN_WON / hospitalSearchPriceStep) *
+        hospitalSearchPriceStep,
+    ),
   );
 }
 
@@ -409,6 +414,23 @@ function HospitalSearchResultPage() {
     () => getFilterState(searchParams),
     [searchParams],
   );
+  useEffect(() => {
+    const nextSearchParams = new URLSearchParams(searchParams);
+    const priceEntries = [
+      [MIN_PRICE_QUERY_KEY, appliedFilterState.priceRange.min],
+      [MAX_PRICE_QUERY_KEY, appliedFilterState.priceRange.max],
+    ] as const;
+
+    for (const [queryKey, price] of priceEntries) {
+      if (searchParams.has(queryKey)) {
+        nextSearchParams.set(queryKey, String(price * PRICE_UNIT_IN_WON));
+      }
+    }
+
+    if (nextSearchParams.toString() !== searchParams.toString()) {
+      setSearchParams(nextSearchParams, { replace: true });
+    }
+  }, [appliedFilterState.priceRange, searchParams, setSearchParams]);
   const filteredHospitals = useMemo(
     () =>
       hospitalSearchItems

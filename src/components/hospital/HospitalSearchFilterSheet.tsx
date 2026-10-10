@@ -10,6 +10,7 @@ import RangeSlider, {
 import {
   MAX_SELECTED_REGION_COUNT,
   hospitalSearchPriceRange,
+  hospitalSearchPriceStep,
   hospitalSearchTreatmentConditions,
 } from '@/constants/hospitalSearch';
 import {
@@ -157,7 +158,7 @@ function FilterPricePanel({
         <RangeSlider
           min={PRICE_MINIMUM}
           max={PRICE_MAXIMUM}
-          step={50}
+          step={hospitalSearchPriceStep}
           value={priceRange}
           onChange={onPriceRangeChange}
           formatValue={formatPrice}
