@@ -153,7 +153,7 @@ export const hospitalDetails: HospitalDetail[] = [
     },
     keywords: [
       '사후관리가 좋았어요',
-      '친절한 상담',
+      '친절한',
       '자가혈청',
       '전문의',
       '최신 장비를 써요',
