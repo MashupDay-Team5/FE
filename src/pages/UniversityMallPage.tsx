@@ -1,6 +1,7 @@
 import { defaultTreatmentScope } from '@/constants/treatment';
 import { medicalCategories } from '@/mocks/treatment';
 import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import arrowDownIcon from '@/assets/icons/arrowDown20.svg';
 import FilterChip from '@/components/common/FilterChip';
 import MenuTrigger, {
@@ -14,6 +15,7 @@ import MallBanner from '@/components/mall/MallBanner';
 import MallHospitalList from '@/components/mall/MallHospitalList';
 import { universityMallHospitals } from '@/mocks/universityMall';
 import type { TreatmentScope } from '@/types/treatment';
+import { getHospitalSearchUrl } from '@/utils/hospitalSearchUrl';
 
 const HOSPITAL_PAGE_SIZE = 8;
 
@@ -32,6 +34,7 @@ const lowestPriceSortOption: MenuTriggerOption<HospitalSort> = {
 };
 
 function UniversityMallPage() {
+  const navigate = useNavigate();
   const [treatmentScope, setTreatmentScope] = useState<TreatmentScope>(
     defaultTreatmentScope,
   );
@@ -101,7 +104,13 @@ function UniversityMallPage() {
   return (
     <>
       <TopArea>
-        <Header type="MainHome" schoolName="5팀대학교" />
+        <Header
+          type="MainHome"
+          schoolName="5팀대학교"
+          onSearchClick={() =>
+            navigate(getHospitalSearchUrl(treatmentScope, selectedProcedureId))
+          }
+        />
       </TopArea>
 
       <div className="pb-[calc(56px+env(safe-area-inset-bottom))]">
