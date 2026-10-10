@@ -1,5 +1,6 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import mapIcon from '@/assets/icons/mapIcon.svg';
 import FilterChip from '@/components/common/FilterChip';
 import MenuTrigger, {
   type MenuTriggerOption,
@@ -7,24 +8,34 @@ import MenuTrigger, {
 import Tab, { type TabItem } from '@/components/common/Tab';
 import TreatmentCategorySheet from '@/components/common/TreatmentCategorySheet';
 import HospitalSearchFilterSheet from '@/components/hospital/HospitalSearchFilterSheet';
+import HospitalSearchResultList from '@/components/hospital/HospitalSearchResultList';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import {
   MAX_SELECTED_REGION_COUNT,
   hospitalSearchPriceRange,
+  hospitalSearchPriceStep,
   hospitalSearchPriceUnitInWon,
   hospitalSearchTreatmentConditions,
 } from '@/constants/hospitalSearch';
-import { hospitalSearchRegions } from '@/mocks/hospitalSearch';
+import {
+  hospitalSearchItems,
+  hospitalSearchRegions,
+} from '@/mocks/hospitalSearch';
 import { defaultTreatmentScope } from '@/constants/treatment';
 import { medicalCategories } from '@/mocks/treatment';
 import type { Treatment, TreatmentScope } from '@/types/treatment';
 import type {
   HospitalSearchFilterState,
+  HospitalSearchItem,
   HospitalSearchRegionSelection,
   HospitalSearchTab,
   HospitalSearchTreatmentConditionId,
 } from '@/types/hospitalSearch';
+import {
+  matchesHospitalSearchFilters,
+  matchesHospitalSearchPriceCard,
+} from '@/utils/hospitalSearch';
 
 const PRICE_MINIMUM = hospitalSearchPriceRange.min;
 const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
@@ -36,6 +47,7 @@ const REGION_QUERY_KEY = 'region';
 const MIN_PRICE_QUERY_KEY = 'minPrice';
 const MAX_PRICE_QUERY_KEY = 'maxPrice';
 const TREATMENT_CONDITION_QUERY_KEY = 'treatmentCondition';
+const MAX_FILTER_SUMMARY_LENGTH = 20;
 
 function getTreatmentScope(searchParams: URLSearchParams): TreatmentScope {
   const medicalCategoryValue = searchParams.get(MEDICAL_CATEGORY_QUERY_KEY);
@@ -103,7 +115,11 @@ function parsePriceRangeValue(value: string | null, fallback: number) {
 
   return Math.min(
     PRICE_MAXIMUM,
-    Math.max(PRICE_MINIMUM, priceInWon / PRICE_UNIT_IN_WON),
+    Math.max(
+      PRICE_MINIMUM,
+      Math.round(priceInWon / PRICE_UNIT_IN_WON / hospitalSearchPriceStep) *
+        hospitalSearchPriceStep,
+    ),
   );
 }
 
@@ -229,9 +245,7 @@ function getRegionSummaryLabel(selection: HospitalSearchRegionSelection) {
     return undefined;
   }
 
-  const abbreviatedRegionName = region.name
-    .replace('특별', '')
-    .replace('광역', '');
+  const abbreviatedRegionName = region.name.replace(/특별시$|광역시$/, '');
 
   return district.name === '전체'
     ? abbreviatedRegionName
@@ -239,14 +253,12 @@ function getRegionSummaryLabel(selection: HospitalSearchRegionSelection) {
 }
 
 function getFilterSummaryLabel(filterState: HospitalSearchFilterState) {
-  const summaryLabels: string[] = [];
   let hiddenFilterCount = 0;
   const regionLabel = filterState.regionSelections
     .map(getRegionSummaryLabel)
     .find((label) => label !== undefined);
 
   if (regionLabel) {
-    summaryLabels.push(regionLabel);
     hiddenFilterCount += filterState.regionSelections.length - 1;
   }
 
@@ -254,22 +266,56 @@ function getFilterSummaryLabel(filterState: HospitalSearchFilterState) {
     filterState.priceRange.min !== PRICE_MINIMUM ||
     filterState.priceRange.max !== PRICE_MAXIMUM;
 
-  if (hasPriceFilter) {
-    summaryLabels.push('가격');
-  }
+  let priceLabel = hasPriceFilter
+    ? `${filterState.priceRange.min}만원~${filterState.priceRange.max}만원`
+    : undefined;
 
   const treatmentCondition = hospitalSearchTreatmentConditions.find(({ id }) =>
     filterState.treatmentConditionIds.includes(id),
   );
 
-  if (treatmentCondition) {
-    summaryLabels.push(treatmentCondition.label);
+  let treatmentConditionLabel = treatmentCondition?.label;
+
+  if (treatmentConditionLabel) {
     hiddenFilterCount += filterState.treatmentConditionIds.length - 1;
   }
 
-  const suffix = hiddenFilterCount > 0 ? ` 외 ${hiddenFilterCount}개` : '';
+  const getSummaryLabel = () => {
+    const summaryLabels = [regionLabel, priceLabel, treatmentConditionLabel];
+    const suffix = hiddenFilterCount > 0 ? ` 외 ${hiddenFilterCount}` : '';
 
-  return `${summaryLabels.join(', ')}${suffix}`;
+    return `${summaryLabels.filter(Boolean).join(', ')}${suffix}`;
+  };
+  let summaryLabel = getSummaryLabel();
+
+  if (
+    Array.from(summaryLabel).length > MAX_FILTER_SUMMARY_LENGTH &&
+    priceLabel &&
+    (regionLabel || treatmentConditionLabel)
+  ) {
+    priceLabel = undefined;
+    hiddenFilterCount += 1;
+    summaryLabel = getSummaryLabel();
+  }
+
+  const overflowLength =
+    Array.from(summaryLabel).length - MAX_FILTER_SUMMARY_LENGTH;
+
+  if (overflowLength > 0 && treatmentConditionLabel) {
+    const conditionCharacters = Array.from(treatmentConditionLabel);
+    const ellipsis = '...';
+    const visibleCharacterCount = Math.max(
+      0,
+      conditionCharacters.length - overflowLength - ellipsis.length,
+    );
+
+    treatmentConditionLabel = `${conditionCharacters
+      .slice(0, visibleCharacterCount)
+      .join('')}${ellipsis}`;
+    summaryLabel = getSummaryLabel();
+  }
+
+  return summaryLabel;
 }
 
 const hospitalSearchTabItems: TabItem<HospitalSearchTab>[] = [
@@ -281,6 +327,36 @@ const hospitalSearchTabItems: TabItem<HospitalSearchTab>[] = [
 
 type HospitalSort =
   'most-visited' | 'highest-rating' | 'most-reviews' | 'lowest-price';
+
+function getSortedHospitals(
+  hospitals: HospitalSearchItem[],
+  sort: HospitalSort,
+) {
+  return hospitals.toSorted((firstHospital, secondHospital) => {
+    switch (sort) {
+      case 'most-visited':
+        return (
+          (secondHospital.visitCount ?? 0) - (firstHospital.visitCount ?? 0)
+        );
+      case 'highest-rating':
+        return Number(secondHospital.rating) - Number(firstHospital.rating);
+      case 'most-reviews':
+        return (
+          Number(secondHospital.reviewCount.replaceAll(',', '')) -
+          Number(firstHospital.reviewCount.replaceAll(',', ''))
+        );
+      case 'lowest-price':
+        return (
+          Math.min(
+            ...firstHospital.priceCards.map(({ priceAmount }) => priceAmount),
+          ) -
+          Math.min(
+            ...secondHospital.priceCards.map(({ priceAmount }) => priceAmount),
+          )
+        );
+    }
+  });
+}
 
 const defaultHospitalSortOptions: MenuTriggerOption<HospitalSort>[] = [
   { value: 'most-visited', label: '방문 많은 순' },
@@ -321,6 +397,13 @@ function HospitalSearchResultPage() {
     () => getSelectedProcedureIds(searchParams, treatments),
     [searchParams, treatments],
   );
+  const activeProcedureIds = useMemo(
+    () =>
+      selectedProcedureIds.length > 0
+        ? selectedProcedureIds
+        : treatments.map(({ id }) => id),
+    [selectedProcedureIds, treatments],
+  );
   const [selectedTab, setSelectedTab] = useState<HospitalSearchTab>('hospital');
   const [selectedSort, setSelectedSort] =
     useState<HospitalSort>('most-visited');
@@ -330,6 +413,50 @@ function HospitalSearchResultPage() {
   const appliedFilterState = useMemo(
     () => getFilterState(searchParams),
     [searchParams],
+  );
+  useEffect(() => {
+    const nextSearchParams = new URLSearchParams(searchParams);
+    const priceEntries = [
+      [MIN_PRICE_QUERY_KEY, appliedFilterState.priceRange.min],
+      [MAX_PRICE_QUERY_KEY, appliedFilterState.priceRange.max],
+    ] as const;
+
+    for (const [queryKey, price] of priceEntries) {
+      if (searchParams.has(queryKey)) {
+        nextSearchParams.set(queryKey, String(price * PRICE_UNIT_IN_WON));
+      }
+    }
+
+    if (nextSearchParams.toString() !== searchParams.toString()) {
+      setSearchParams(nextSearchParams, { replace: true });
+    }
+  }, [appliedFilterState.priceRange, searchParams, setSearchParams]);
+  const filteredHospitals = useMemo(
+    () =>
+      hospitalSearchItems
+        .filter((hospital) =>
+          matchesHospitalSearchFilters(
+            hospital,
+            appliedFilterState,
+            activeProcedureIds,
+            hospitalSearchRegions,
+          ),
+        )
+        .map((hospital) => ({
+          ...hospital,
+          priceCards: hospital.priceCards.filter((priceCard) =>
+            matchesHospitalSearchPriceCard(
+              priceCard,
+              appliedFilterState.priceRange,
+              activeProcedureIds,
+            ),
+          ),
+        })),
+    [appliedFilterState, activeProcedureIds],
+  );
+  const sortedHospitals = useMemo(
+    () => getSortedHospitals(filteredHospitals, selectedSort),
+    [filteredHospitals, selectedSort],
   );
 
   if (selectedProcedureIds.length === 0 && selectedSort === 'lowest-price') {
@@ -445,7 +572,7 @@ function HospitalSearchResultPage() {
           onTitleClick={handleCategorySheetOpen}
         />
         {treatments.length > 0 && (
-          <div className="flex gap-gap-xs overflow-x-auto pl-padding-m py-padding-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-gap-xs overflow-x-auto bg-surface-default pl-padding-m py-padding-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {treatments.map((procedure) => (
               <FilterChip
                 key={procedure.id}
@@ -457,32 +584,48 @@ function HospitalSearchResultPage() {
             <div aria-hidden="true" className="h-8 w-4 shrink-0" />
           </div>
         )}
-        <div className="bg-surface-default pt-padding-xs">
-          <Tab
-            items={hospitalSearchTabItems}
-            selectedValue={selectedTab}
-            onValueChange={setSelectedTab}
-            layout="fill"
-          />
-        </div>
-        <div className="flex items-center justify-between bg-surface-default px-padding-m py-padding-s">
-          <FilterChip
-            ref={filterTriggerRef}
-            label={filterChipLabel}
-            selected={hasAppliedFilter}
-            showIcon
-            onClick={handleFilterSheetOpen}
-          />
-          <MenuTrigger<HospitalSort>
-            label={selectedSortOption.label}
-            size="s"
-            options={sortOptions}
-            selectedValue={selectedSortOption.value}
-            align="end"
-            onValueChange={setSelectedSort}
-          />
-        </div>
       </TopArea>
+      <div className="-mx-padding-m bg-surface-default pt-padding-xs">
+        <Tab
+          items={hospitalSearchTabItems}
+          selectedValue={selectedTab}
+          onValueChange={setSelectedTab}
+          layout="fill"
+        />
+      </div>
+      <div
+        className="sticky z-10 -mx-padding-m flex items-center justify-between bg-surface-default px-padding-m py-padding-s"
+        style={{
+          top: `calc(env(safe-area-inset-top) + ${treatments.length > 0 ? 100 : 52}px)`,
+        }}
+      >
+        <FilterChip
+          ref={filterTriggerRef}
+          label={filterChipLabel}
+          selected={hasAppliedFilter}
+          showIcon
+          onClick={handleFilterSheetOpen}
+        />
+        <MenuTrigger<HospitalSort>
+          label={selectedSortOption.label}
+          size="s"
+          options={sortOptions}
+          selectedValue={selectedSortOption.value}
+          align="end"
+          onValueChange={setSelectedSort}
+        />
+      </div>
+      <HospitalSearchResultList hospitals={sortedHospitals} />
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+20px)] z-20 mx-auto flex w-full max-w-[480px] justify-end px-padding-m">
+        <button
+          type="button"
+          disabled
+          className="inline-flex h-10 w-[105px] items-center justify-center gap-gap-xs rounded-[var(--radius-full)] border border-border-weak bg-interaction-neutral-inverse px-padding-s typography-label-large-medium text-text-brand shadow-[0_0_4px_rgb(0_0_0/12%)]"
+        >
+          <img src={mapIcon} alt="" className="size-5 shrink-0" />
+          지도보기
+        </button>
+      </div>
       <TreatmentCategorySheet
         isOpen={isCategorySheetOpen}
         categories={medicalCategories}
@@ -497,11 +640,7 @@ function HospitalSearchResultPage() {
         isOpen={isFilterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
         initialFilterState={appliedFilterState}
-        procedureIds={
-          selectedProcedureIds.length > 0
-            ? selectedProcedureIds
-            : treatments.map(({ id }) => id)
-        }
+        procedureIds={activeProcedureIds}
         onApply={handleFilterApply}
         triggerRef={filterTriggerRef}
       />

@@ -36,13 +36,9 @@ function Tab<T extends string>({
                 : resource
               : undefined;
           const hasResource = resourceLabel !== undefined;
-          const labelClassName = hasResource
-            ? isSelected
-              ? 'typography-body-bold'
-              : 'typography-body-medium'
-            : isSelected
-              ? 'typography-label-large-bold'
-              : 'typography-label-large-medium';
+          const labelClassName = isSelected
+            ? 'typography-body-bold'
+            : 'typography-body-medium';
 
           return (
             <button
@@ -51,7 +47,7 @@ function Tab<T extends string>({
               aria-pressed={isSelected}
               disabled={disabled}
               onClick={() => onValueChange(value)}
-              className={`flex h-[30px] flex-col justify-end gap-gap-xs whitespace-nowrap ${
+              className={`flex h-[30px] flex-col items-center gap-gap-xs whitespace-nowrap ${
                 isFillLayout ? 'min-w-0 flex-1' : 'shrink-0'
               } ${isSelected ? 'text-text-brand' : 'text-text-disabled'} disabled:cursor-not-allowed`}
             >
@@ -67,12 +63,11 @@ function Tab<T extends string>({
                   </span>
                 )}
               </span>
-              <span
-                aria-hidden="true"
-                className={`h-1 w-full ${
-                  isSelected ? 'bg-border-brand' : 'bg-transparent'
-                }`}
-              />
+              <span aria-hidden="true" className="relative h-0 w-full shrink-0">
+                {isSelected && (
+                  <span className="absolute inset-x-0 -top-0.5 h-1 bg-border-brand" />
+                )}
+              </span>
             </button>
           );
         })}

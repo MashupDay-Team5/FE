@@ -2,7 +2,7 @@ import badgeDiscountIcon from '@/assets/icons/badgeDiscount.svg';
 import Badge from '@/components/common/Badge';
 
 type PriceCardBaseProps = {
-  width?: 'fill' | 'fixed';
+  width?: 'fill' | 'fixed' | 'flex';
   procedureName: string;
   originalPrice: string;
   originalPriceLabel?: string;
@@ -32,17 +32,21 @@ function PriceCard({
   procedureName,
   originalPrice,
   discountedPrice,
-  originalPriceLabel = '정상가',
+  originalPriceLabel,
   badgeLabel,
   className,
 }: PriceCardProps) {
   const cardHeightClassName = type === 'free' ? 'h-[84px]' : 'h-[120px]';
+  const cardWidthClassName =
+    width === 'fill'
+      ? 'w-full'
+      : width === 'flex'
+        ? 'flex-[1_0_0]'
+        : 'w-[220px] shrink-0';
 
   return (
     <article
-      className={`flex ${cardHeightClassName} min-w-[220px] flex-col overflow-hidden rounded-[var(--radius-s)] border-[0.5px] border-border-brand ${
-        width === 'fill' ? 'w-full' : 'w-[220px] shrink-0'
-      } ${className ?? ''}`}
+      className={`flex ${cardHeightClassName} min-w-[220px] flex-col overflow-hidden rounded-[var(--radius-s)] border-[0.5px] border-border-brand ${cardWidthClassName} ${className ?? ''}`}
     >
       <div className="flex h-10 items-center justify-between bg-surface-brand-weak px-padding-s py-padding-xs">
         <h3 className="typography-body-medium text-text-primary">
@@ -61,16 +65,28 @@ function PriceCard({
 
       <div
         className={`flex flex-1 p-padding-s ${
-          type !== 'free'
-            ? 'flex-col gap-gap-s'
-            : 'items-center justify-between typography-label-small-regular text-text-tertiary'
+          type !== 'free' ? 'flex-col gap-gap-s' : 'items-center'
         }`}
       >
-        <div className="flex w-full items-center justify-between typography-label-small-regular text-text-tertiary">
-          <span className="typography-label-small-medium">
-            {originalPriceLabel}
+        <div className="flex w-full items-center justify-between">
+          <span
+            className={
+              type === 'free'
+                ? 'typography-label-small-regular font-medium text-text-secondary'
+                : 'typography-label-small-medium text-text-tertiary'
+            }
+          >
+            {originalPriceLabel ?? (type === 'free' ? '정상가격' : '정상가')}
           </span>
-          <span>{originalPrice}</span>
+          <span
+            className={
+              type === 'free'
+                ? 'typography-label-large-medium text-text-primary'
+                : 'typography-label-small-regular text-text-tertiary'
+            }
+          >
+            {originalPrice}
+          </span>
         </div>
         {type !== 'free' && (
           <>
