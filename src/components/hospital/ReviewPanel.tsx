@@ -274,6 +274,8 @@ type ProfileProps = {
   author: HospitalReviewAuthor;
   createdAt: string;
   helpfulCount: number;
+  isHelpful: boolean;
+  onHelpfulChange: (isHelpful: boolean) => void;
 };
 
 // 작성 정보의 아이콘 + 숫자 묶음 (작성한 리뷰 수, 받은 좋아요 수)
@@ -292,10 +294,14 @@ function ProfileStat({ icon, count }: { icon: string; count: number }) {
 }
 
 // Profile: 왼쪽 작성자 정보, 오른쪽 '도움이 돼요' ToggleButton.
-function Profile({ author, createdAt, helpfulCount }: ProfileProps) {
-  // API 연동 전까지는 화면에서만 토글하고, 켜면 도움이 돼요 수를 1 올린다.
-  const [isHelpful, setHelpful] = useState(false);
-
+// 켜면 도움이 돼요 수를 1 올린다. 정렬에도 쓰이므로 선택 상태는 페이지에서 관리한다.
+function Profile({
+  author,
+  createdAt,
+  helpfulCount,
+  isHelpful,
+  onHelpfulChange,
+}: ProfileProps) {
   return (
     <div className="flex items-center justify-between px-padding-m py-padding-xs">
       <div className="flex min-w-0 items-center gap-gap-s">
@@ -332,7 +338,7 @@ function Profile({ author, createdAt, helpfulCount }: ProfileProps) {
       </div>
       <ToggleButton
         selected={isHelpful}
-        onSelectedChange={setHelpful}
+        onSelectedChange={onHelpfulChange}
         icon={
           <img
             src={isHelpful ? toggleButtonHeartFillIcon : toggleButtonHeartIcon}
@@ -388,11 +394,13 @@ function Callout({ isPriceMatched }: CalloutProps) {
 
 type ReviewPanelProps = {
   review: HospitalReview;
+  isHelpful: boolean;
+  onHelpfulChange: (isHelpful: boolean) => void;
 };
 
 // ReviewPanel: 병원 상세 리뷰 탭에서만 쓰는 리뷰 카드.
 // UserTypeBanner / MainArea / Profile / Callout 순서로 구성하며, 나머지 영역은 이어서 추가한다.
-function ReviewPanel({ review }: ReviewPanelProps) {
+function ReviewPanel({ review, isHelpful, onHelpfulChange }: ReviewPanelProps) {
   return (
     <article aria-label={`리뷰 ${review.reviewId}`}>
       <UserTypeBanner />
@@ -401,6 +409,8 @@ function ReviewPanel({ review }: ReviewPanelProps) {
         author={review.author}
         createdAt={review.createdAt}
         helpfulCount={review.helpfulCount}
+        isHelpful={isHelpful}
+        onHelpfulChange={onHelpfulChange}
       />
       {review.isReservationVisit && (
         <div className="p-padding-m">

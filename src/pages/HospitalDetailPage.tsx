@@ -37,9 +37,21 @@ function compareLatest(a: HospitalReview, b: HospitalReview) {
   return b.createdAt.localeCompare(a.createdAt);
 }
 
+// 목데이터 도움 수에 화면에서 누른 '도움이 돼요'를 더한 값
+function getHelpfulCount(
+  review: HospitalReview,
+  helpfulReviewIds: Set<number>,
+) {
+  return review.helpfulCount + (helpfulReviewIds.has(review.reviewId) ? 1 : 0);
+}
+
 // API 연동 전 확인용 정렬. 기준 값이 같으면 최신순으로 정렬한다.
 // 연동 후에는 서버 정렬 결과로 대체한다.
-function sortReviews(reviews: HospitalReview[], sort: HospitalReviewSort) {
+function sortReviews(
+  reviews: HospitalReview[],
+  sort: HospitalReviewSort,
+  helpfulReviewIds: Set<number>,
+) {
   const compare: Record<
     HospitalReviewSort,
     (a: HospitalReview, b: HospitalReview) => number
@@ -49,7 +61,9 @@ function sortReviews(reviews: HospitalReview[], sort: HospitalReviewSort) {
     latest: () => 0,
     'highest-rating': (a, b) => b.rating - a.rating,
     'lowest-rating': (a, b) => a.rating - b.rating,
-    'most-helpful': (a, b) => b.helpfulCount - a.helpfulCount,
+    'most-helpful': (a, b) =>
+      getHelpfulCount(b, helpfulReviewIds) -
+      getHelpfulCount(a, helpfulReviewIds),
   };
 
   return [...reviews].sort(
@@ -74,6 +88,13 @@ function HospitalDetailPage() {
     useState<HospitalReviewSegment>('related');
   const [selectedSort, setSelectedSort] =
     useState<HospitalReviewSort>('default');
+  // API 연동 전까지 '도움이 돼요'를 누른 리뷰 ID를 화면에서만 관리한다.
+  const [helpfulReviewIds, setHelpfulReviewIds] = useState<Set<number>>(
+    () => new Set(),
+  );
+  // 누르자마자 카드 순서가 바뀌지 않도록, 정렬은 정렬 기준을 고른 시점의 값으로 계산한다.
+  const [sortedHelpfulReviewIds, setSortedHelpfulReviewIds] =
+    useState(helpfulReviewIds);
 
   // 대표 이미지가 Header 뒤로 완전히 지나가면 Header 배경과 타이틀을 보여준다.
   useEffect(() => {
@@ -127,6 +148,7 @@ function HospitalDetailPage() {
   const segmentReviews = sortReviews(
     hospital.reviews.filter(({ segment }) => segment === selectedSegment),
     selectedSort,
+    sortedHelpfulReviewIds,
   );
   const selectedSegmentReviewCount =
     selectedSegment === 'related'
@@ -138,6 +160,24 @@ function HospitalDetailPage() {
     setSelectedTab('review');
     setSelectedSegment('related');
     reviewSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // 같은 정렬 기준을 다시 골라도 그 시점의 도움 수로 다시 정렬한다.
+  const handleSortChange = (sort: HospitalReviewSort) => {
+    setSelectedSort(sort);
+    setSortedHelpfulReviewIds(helpfulReviewIds);
+  };
+
+  const handleHelpfulChange = (reviewId: number, isHelpful: boolean) => {
+    setHelpfulReviewIds((previous) => {
+      const next = new Set(previous);
+      if (isHelpful) {
+        next.add(reviewId);
+      } else {
+        next.delete(reviewId);
+      }
+      return next;
+    });
   };
 
   return (
@@ -250,13 +290,20 @@ function HospitalDetailPage() {
               options={reviewSortOptions}
               selectedValue={selectedSort}
               align="end"
-              onValueChange={setSelectedSort}
+              onValueChange={handleSortChange}
             />
           </div>
           {/* 리뷰 카드 사이 16px은 Figma 시안 간격을 재서 맞춘 값이다. */}
           <div className="flex flex-col gap-gap-l">
             {segmentReviews.map((review) => (
-              <ReviewPanel key={review.reviewId} review={review} />
+              <ReviewPanel
+                key={review.reviewId}
+                review={review}
+                isHelpful={helpfulReviewIds.has(review.reviewId)}
+                onHelpfulChange={(isHelpful) =>
+                  handleHelpfulChange(review.reviewId, isHelpful)
+                }
+              />
             ))}
           </div>
         </section>
