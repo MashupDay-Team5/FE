@@ -194,7 +194,7 @@ function MenuTrigger<T extends string>({
         }
         onClick={handleTriggerClick}
         onKeyDown={handleTriggerKeyDown}
-        className={`flex items-center ${size === 'm' ? 'h-11 gap-gap-xs' : 'h-9'}`}
+        className={`flex items-center ${size === 'm' ? 'h-11 gap-gap-xs' : 'h-[34px]'}`}
       >
         {size === 'm' ? (
           <span className="whitespace-nowrap text-text-primary">

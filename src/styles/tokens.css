@@ -112,7 +112,7 @@
   --color-interaction-neutral-pressed: var(--color-gray-800);
   --color-interaction-neutral-inverse: var(--color-gray-0);
   --color-interaction-neutral-inverse-hover: var(--color-violet-50);
-  --color-interaction-neutral-inverse-pressed: var(--color-violet-100);
+  --color-interaction-neutral-inverse-pressed: var(--color-gray-100);
   --color-interaction-disabled: var(--color-gray-500);
 
   /* Semantic Color - 아이콘 */

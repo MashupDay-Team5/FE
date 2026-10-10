@@ -9,6 +9,7 @@ type BadgeProps = {
   color: BadgeColor;
   shape?: BadgeShape;
   icon?: ReactNode;
+  className?: string;
   children: ReactNode;
 };
 
@@ -53,13 +54,20 @@ export function BadgeIcon({ src }: { src: string }) {
   );
 }
 
-function Badge({ size, color, shape = 'pill', icon, children }: BadgeProps) {
+function Badge({
+  size,
+  color,
+  shape = 'pill',
+  icon,
+  className = '',
+  children,
+}: BadgeProps) {
   // Figma 기준 S pill만 아이콘과 텍스트 사이 간격이 없다.
   const gapClass = size === 'S' && shape === 'pill' ? 'gap-0' : 'gap-gap-xs';
 
   return (
     <span
-      className={`inline-flex shrink-0 items-center whitespace-nowrap ${gapClass} ${SIZE_CLASS[size]} ${SHAPE_CLASS[shape]} ${getColorClass(color, shape)}`}
+      className={`inline-flex shrink-0 items-center whitespace-nowrap ${gapClass} ${SIZE_CLASS[size]} ${SHAPE_CLASS[shape]} ${getColorClass(color, shape)} ${className}`}
     >
       {icon}
       {children}

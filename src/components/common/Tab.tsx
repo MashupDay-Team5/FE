@@ -52,7 +52,7 @@ function Tab<T extends string>({
               } ${isSelected ? 'text-text-brand' : 'text-text-disabled'} disabled:cursor-not-allowed`}
             >
               <span
-                className={`flex items-center justify-center gap-gap-xs ${
+                className={`flex w-full items-center justify-center gap-gap-xs ${
                   hasResource ? 'px-padding-m' : ''
                 }`}
               >
