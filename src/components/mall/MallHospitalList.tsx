@@ -1,58 +1,12 @@
 import ListCard from '@/components/hospital/ListCard';
 import PriceCard from '@/components/hospital/PriceCard';
-import type {
-  HospitalSearchItem,
-  HospitalSearchPriceCard,
-} from '@/types/hospitalSearch';
+import type { HospitalSearchItem } from '@/types/hospitalSearch';
 
 type MallHospitalListProps = {
   hospitals: HospitalSearchItem[];
   hasMore: boolean;
   onMoreClick: () => void;
 };
-
-function renderPriceCard(
-  priceCard: HospitalSearchPriceCard,
-  width: 'fill' | 'fixed',
-) {
-  if (priceCard.type === 'free') {
-    return (
-      <PriceCard
-        key={priceCard.procedureId}
-        type="free"
-        width={width}
-        procedureName={priceCard.procedureName}
-        originalPrice={priceCard.originalPrice}
-        originalPriceLabel={priceCard.originalPriceLabel}
-      />
-    );
-  }
-
-  if (priceCard.type === 'badge') {
-    return (
-      <PriceCard
-        key={priceCard.procedureId}
-        type="badge"
-        width={width}
-        procedureName={priceCard.procedureName}
-        originalPrice={priceCard.originalPrice}
-        discountedPrice={priceCard.discountedPrice}
-        badgeLabel={priceCard.badgeLabel}
-      />
-    );
-  }
-
-  return (
-    <PriceCard
-      key={priceCard.procedureId}
-      type="default"
-      width={width}
-      procedureName={priceCard.procedureName}
-      originalPrice={priceCard.originalPrice}
-      discountedPrice={priceCard.discountedPrice}
-    />
-  );
-}
 
 function MallHospitalList({
   hospitals,
@@ -73,12 +27,13 @@ function MallHospitalList({
   return (
     <section className="-mx-padding-m flex flex-col">
       {hospitals.map((hospital) => {
-        const priceCards = hospital.priceCards.map((priceCard) =>
-          renderPriceCard(
-            priceCard,
-            hospital.priceCards.length === 1 ? 'fill' : 'fixed',
-          ),
-        );
+        const priceCards = hospital.priceCards.map((priceCard) => (
+          <PriceCard
+            key={priceCard.procedureId}
+            {...priceCard}
+            width={hospital.priceCards.length === 1 ? 'fill' : 'fixed'}
+          />
+        ));
 
         return (
           <ListCard
