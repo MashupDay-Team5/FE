@@ -12,7 +12,7 @@ import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import MallBanner from '@/components/mall/MallBanner';
 import MallHospitalList from '@/components/mall/MallHospitalList';
-import { universityMallHospitals } from '@/mocks/universityMall';
+import { hospitalSearchItems } from '@/mocks/hospitals';
 import type { TreatmentScope } from '@/types/treatment';
 import {
   getHospitalSearchUrl,
@@ -101,7 +101,7 @@ function UniversityMallPage() {
       ? treatments.map(({ id }) => id)
       : selectedProcedureIds,
   );
-  const filteredHospitals = universityMallHospitals
+  const filteredHospitals = hospitalSearchItems
     .map((hospital) => ({
       ...hospital,
       priceCards: hospital.priceCards.filter(({ procedureId }) =>

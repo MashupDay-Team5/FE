@@ -18,10 +18,8 @@ import {
   hospitalSearchPriceUnitInWon,
   hospitalSearchTreatmentConditions,
 } from '@/constants/hospitalSearch';
-import {
-  hospitalSearchItems,
-  hospitalSearchRegions,
-} from '@/mocks/hospitalSearch';
+import { hospitalSearchRegions } from '@/mocks/hospitalSearch';
+import { hospitalSearchItems } from '@/mocks/hospitals';
 import { medicalCategories } from '@/mocks/treatment';
 import type { TreatmentScope } from '@/types/treatment';
 import type {

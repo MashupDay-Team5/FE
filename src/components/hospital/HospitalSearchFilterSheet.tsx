@@ -13,10 +13,8 @@ import {
   hospitalSearchPriceStep,
   hospitalSearchTreatmentConditions,
 } from '@/constants/hospitalSearch';
-import {
-  hospitalSearchItems,
-  hospitalSearchRegions,
-} from '@/mocks/hospitalSearch';
+import { hospitalSearchRegions } from '@/mocks/hospitalSearch';
+import { hospitalSearchItems } from '@/mocks/hospitals';
 import type {
   HospitalSearchIntegratedFilterCategory,
   HospitalSearchFilterState,
