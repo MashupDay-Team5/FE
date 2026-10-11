@@ -142,6 +142,7 @@ function UniversityMallPage() {
           ref={scopeTriggerRef}
           type="button"
           aria-haspopup="dialog"
+          aria-expanded={isCategorySheetOpen}
           onClick={() => setCategorySheetOpen(true)}
           className="mt-padding-l flex h-11 items-center"
         >
