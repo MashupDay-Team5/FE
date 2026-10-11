@@ -78,6 +78,13 @@ function UniversityMallPage() {
   };
 
   const handleScopeSelect = (scope: TreatmentScope) => {
+    if (
+      scope.medicalCategoryId === treatmentScope.medicalCategoryId &&
+      scope.treatmentCategoryId === treatmentScope.treatmentCategoryId
+    ) {
+      return;
+    }
+
     setSearchParams(getTreatmentSearchParams(scope), { replace: true });
     setVisibleHospitalCount(HOSPITAL_PAGE_SIZE);
   };
