@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import mapIcon from '@/assets/icons/mapIcon.svg';
 import FilterChip from '@/components/common/FilterChip';
 import MenuTrigger, {
@@ -22,7 +22,6 @@ import {
   hospitalSearchItems,
   hospitalSearchRegions,
 } from '@/mocks/hospitalSearch';
-import { defaultTreatmentScope } from '@/constants/treatment';
 import { medicalCategories } from '@/mocks/treatment';
 import type { Treatment, TreatmentScope } from '@/types/treatment';
 import type {
@@ -36,6 +35,7 @@ import {
   matchesHospitalSearchFilters,
   matchesHospitalSearchPriceCard,
 } from '@/utils/hospitalSearch';
+import { getTreatmentScope } from '@/utils/hospitalSearchUrl';
 
 const PRICE_MINIMUM = hospitalSearchPriceRange.min;
 const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
@@ -48,43 +48,6 @@ const MIN_PRICE_QUERY_KEY = 'minPrice';
 const MAX_PRICE_QUERY_KEY = 'maxPrice';
 const TREATMENT_CONDITION_QUERY_KEY = 'treatmentCondition';
 const MAX_FILTER_SUMMARY_LENGTH = 20;
-
-function getTreatmentScope(searchParams: URLSearchParams): TreatmentScope {
-  const medicalCategoryValue = searchParams.get(MEDICAL_CATEGORY_QUERY_KEY);
-  const treatmentCategoryValue = searchParams.get(TREATMENT_CATEGORY_QUERY_KEY);
-
-  if (medicalCategoryValue === null && treatmentCategoryValue === null) {
-    return defaultTreatmentScope;
-  }
-
-  const medicalCategoryId =
-    medicalCategoryValue === null
-      ? defaultTreatmentScope.medicalCategoryId
-      : Number(medicalCategoryValue);
-  const medicalCategory = medicalCategories.find(
-    ({ id }) => id === medicalCategoryId,
-  );
-
-  if (!medicalCategory) {
-    return defaultTreatmentScope;
-  }
-
-  if (treatmentCategoryValue === null || treatmentCategoryValue === 'all') {
-    return { medicalCategoryId, treatmentCategoryId: null };
-  }
-
-  const treatmentCategory = medicalCategory.treatmentCategories.find(
-    ({ id }) => id === Number(treatmentCategoryValue),
-  );
-
-  if (!treatmentCategory) {
-    return medicalCategoryId === defaultTreatmentScope.medicalCategoryId
-      ? defaultTreatmentScope
-      : { medicalCategoryId, treatmentCategoryId: null };
-  }
-
-  return { medicalCategoryId, treatmentCategoryId: treatmentCategory.id };
-}
 
 function getSelectedProcedureIds(
   searchParams: URLSearchParams,
@@ -370,6 +333,8 @@ const lowestPriceSortOption: MenuTriggerOption<HospitalSort> = {
 };
 
 function HospitalSearchResultPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const treatmentScope = useMemo(
     () => getTreatmentScope(searchParams),
@@ -428,9 +393,17 @@ function HospitalSearchResultPage() {
     }
 
     if (nextSearchParams.toString() !== searchParams.toString()) {
-      setSearchParams(nextSearchParams, { replace: true });
+      setSearchParams(nextSearchParams, {
+        replace: true,
+        state: location.state,
+      });
     }
-  }, [appliedFilterState.priceRange, searchParams, setSearchParams]);
+  }, [
+    appliedFilterState.priceRange,
+    location.state,
+    searchParams,
+    setSearchParams,
+  ]);
   const filteredHospitals = useMemo(
     () =>
       hospitalSearchItems
@@ -483,7 +456,7 @@ function HospitalSearchResultPage() {
       nextSearchParams.append(PROCEDURE_QUERY_KEY, String(id));
     });
 
-    setSearchParams(nextSearchParams);
+    setSearchParams(nextSearchParams, { state: location.state });
   };
 
   const handleFilterApply = (filterState: HospitalSearchFilterState) => {
@@ -513,7 +486,7 @@ function HospitalSearchResultPage() {
       nextSearchParams.append(TREATMENT_CONDITION_QUERY_KEY, conditionId);
     });
 
-    setSearchParams(nextSearchParams);
+    setSearchParams(nextSearchParams, { state: location.state });
     setFilterSheetOpen(false);
   };
 
@@ -551,7 +524,7 @@ function HospitalSearchResultPage() {
         : String(scope.treatmentCategoryId),
     );
     nextSearchParams.delete(PROCEDURE_QUERY_KEY);
-    setSearchParams(nextSearchParams);
+    setSearchParams(nextSearchParams, { state: location.state });
   };
 
   const sortOptions =
@@ -567,6 +540,18 @@ function HospitalSearchResultPage() {
       <TopArea>
         <Header
           type="DetailSearch"
+          onBackClick={() => {
+            navigate(
+              {
+                pathname: '/mall/university',
+                search:
+                  typeof location.state?.homeSearch === 'string'
+                    ? location.state.homeSearch
+                    : '',
+              },
+              { replace: true },
+            );
+          }}
           categoryName={treatmentCategory?.name ?? medicalCategory.name}
           isTitleOpen={isCategorySheetOpen}
           onTitleClick={handleCategorySheetOpen}
