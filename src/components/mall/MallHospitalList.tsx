@@ -7,7 +7,6 @@ import type {
 
 type MallHospitalListProps = {
   hospitals: HospitalSearchItem[];
-  selectedProcedureId: number | null;
   hasMore: boolean;
   onMoreClick: () => void;
 };
@@ -55,10 +54,8 @@ function renderPriceCard(
   );
 }
 
-// 시술을 선택하지 않으면 병원별 가격 카드를 가로 스크롤로, 선택하면 해당 시술 카드 1개를 전체 너비로 보여준다.
 function MallHospitalList({
   hospitals,
-  selectedProcedureId,
   hasMore,
   onMoreClick,
 }: MallHospitalListProps) {
@@ -76,16 +73,12 @@ function MallHospitalList({
   return (
     <section className="-mx-padding-m flex flex-col">
       {hospitals.map((hospital) => {
-        const priceCards =
-          selectedProcedureId === null
-            ? hospital.priceCards.map((priceCard) =>
-                renderPriceCard(priceCard, 'fixed'),
-              )
-            : hospital.priceCards
-                .filter(
-                  ({ procedureId }) => procedureId === selectedProcedureId,
-                )
-                .map((priceCard) => renderPriceCard(priceCard, 'fill'));
+        const priceCards = hospital.priceCards.map((priceCard) =>
+          renderPriceCard(
+            priceCard,
+            hospital.priceCards.length === 1 ? 'fill' : 'fixed',
+          ),
+        );
 
         return (
           <ListCard

@@ -16,6 +16,7 @@ import { universityMallHospitals } from '@/mocks/universityMall';
 import type { TreatmentScope } from '@/types/treatment';
 import {
   getHospitalSearchUrl,
+  getSelectedProcedureIds,
   getTreatmentScope,
   getTreatmentSearchParams,
 } from '@/utils/hospitalSearchUrl';
@@ -60,19 +61,17 @@ function UniversityMallPage() {
     : medicalCategory.treatmentCategories.flatMap(
         ({ treatments: categoryTreatments }) => categoryTreatments,
       );
-  const procedureValue = searchParams.get('procedure');
-  const procedureId = procedureValue === null ? null : Number(procedureValue);
-  const selectedProcedureId = treatments.some(({ id }) => id === procedureId)
-    ? procedureId
-    : null;
+  const selectedProcedureIds = getSelectedProcedureIds(
+    searchParams,
+    treatments,
+  );
 
-  // 진료 항목은 하나만 선택하고, 다시 누르면 해제해 '전체 조회'로 돌아간다.
   const handleProcedureClick = (procedureId: number) => {
+    const nextProcedureIds = selectedProcedureIds.includes(procedureId)
+      ? selectedProcedureIds.filter((id) => id !== procedureId)
+      : [...selectedProcedureIds, procedureId];
     setSearchParams(
-      getTreatmentSearchParams(
-        treatmentScope,
-        selectedProcedureId === procedureId ? null : procedureId,
-      ),
+      getTreatmentSearchParams(treatmentScope, nextProcedureIds),
       { replace: true },
     );
     setVisibleHospitalCount(HOSPITAL_PAGE_SIZE);
@@ -84,19 +83,23 @@ function UniversityMallPage() {
   };
 
   const sortOptions =
-    selectedProcedureId !== null
+    selectedProcedureIds.length > 0
       ? [...defaultHospitalSortOptions, lowestPriceSortOption]
       : defaultHospitalSortOptions;
   const selectedSortOption =
     sortOptions.find((option) => option.value === selectedSort) ??
     sortOptions[0];
 
+  if (selectedProcedureIds.length === 0 && selectedSort === 'lowest-price') {
+    setSelectedSort('most-visited');
+  }
+
   // API 연동 전 확인용 필터: 선택한 시술(없으면 현재 진료 범위의 시술)에 해당하는 가격 카드만 남기고,
   // 남은 카드가 없는 병원은 목록에서 뺀다. 연동 후에는 서버 응답으로 대체한다.
   const visibleProcedureIds = new Set(
-    selectedProcedureId === null
+    selectedProcedureIds.length === 0
       ? treatments.map(({ id }) => id)
-      : [selectedProcedureId],
+      : selectedProcedureIds,
   );
   const filteredHospitals = universityMallHospitals
     .map((hospital) => ({
@@ -116,7 +119,7 @@ function UniversityMallPage() {
           schoolName="5팀대학교"
           onSearchClick={() =>
             navigate(
-              getHospitalSearchUrl(treatmentScope, selectedProcedureId),
+              getHospitalSearchUrl(treatmentScope, selectedProcedureIds),
               {
                 state: { homeSearch: searchParams.toString() },
               },
@@ -147,7 +150,7 @@ function UniversityMallPage() {
             <FilterChip
               key={treatment.id}
               label={treatment.name}
-              selected={treatment.id === selectedProcedureId}
+              selected={selectedProcedureIds.includes(treatment.id)}
               onClick={() => handleProcedureClick(treatment.id)}
             />
           ))}
@@ -164,7 +167,6 @@ function UniversityMallPage() {
 
         <MallHospitalList
           hospitals={visibleHospitals}
-          selectedProcedureId={selectedProcedureId}
           hasMore={visibleHospitalCount < filteredHospitals.length}
           onMoreClick={() =>
             setVisibleHospitalCount((count) => count + HOSPITAL_PAGE_SIZE)

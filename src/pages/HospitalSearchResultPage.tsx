@@ -23,7 +23,7 @@ import {
   hospitalSearchRegions,
 } from '@/mocks/hospitalSearch';
 import { medicalCategories } from '@/mocks/treatment';
-import type { Treatment, TreatmentScope } from '@/types/treatment';
+import type { TreatmentScope } from '@/types/treatment';
 import type {
   HospitalSearchFilterState,
   HospitalSearchItem,
@@ -35,7 +35,10 @@ import {
   matchesHospitalSearchFilters,
   matchesHospitalSearchPriceCard,
 } from '@/utils/hospitalSearch';
-import { getTreatmentScope } from '@/utils/hospitalSearchUrl';
+import {
+  getSelectedProcedureIds,
+  getTreatmentScope,
+} from '@/utils/hospitalSearchUrl';
 
 const PRICE_MINIMUM = hospitalSearchPriceRange.min;
 const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
@@ -48,22 +51,6 @@ const MIN_PRICE_QUERY_KEY = 'minPrice';
 const MAX_PRICE_QUERY_KEY = 'maxPrice';
 const TREATMENT_CONDITION_QUERY_KEY = 'treatmentCondition';
 const MAX_FILTER_SUMMARY_LENGTH = 20;
-
-function getSelectedProcedureIds(
-  searchParams: URLSearchParams,
-  procedures: Treatment[],
-) {
-  return Array.from(
-    new Set(
-      searchParams
-        .getAll(PROCEDURE_QUERY_KEY)
-        .map(Number)
-        .filter((procedureId) =>
-          procedures.some(({ id }) => id === procedureId),
-        ),
-    ),
-  );
-}
 
 function parsePriceRangeValue(value: string | null, fallback: number) {
   if (!value) {

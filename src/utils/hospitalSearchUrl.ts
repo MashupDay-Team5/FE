@@ -1,6 +1,6 @@
 import { defaultTreatmentScope } from '@/constants/treatment';
 import { medicalCategories } from '@/mocks/treatment';
-import type { TreatmentScope } from '@/types/treatment';
+import type { Treatment, TreatmentScope } from '@/types/treatment';
 
 export function getTreatmentScope(
   searchParams: URLSearchParams,
@@ -41,9 +41,25 @@ export function getTreatmentScope(
   return { medicalCategoryId, treatmentCategoryId: treatmentCategory.id };
 }
 
+export function getSelectedProcedureIds(
+  searchParams: URLSearchParams,
+  procedures: Treatment[],
+) {
+  return Array.from(
+    new Set(
+      searchParams
+        .getAll('procedure')
+        .map(Number)
+        .filter((procedureId) =>
+          procedures.some(({ id }) => id === procedureId),
+        ),
+    ),
+  );
+}
+
 export function getTreatmentSearchParams(
   scope: TreatmentScope,
-  selectedProcedureId: number | null = null,
+  selectedProcedureIds: number[] = [],
 ) {
   const searchParams = new URLSearchParams({
     medicalCategory: String(scope.medicalCategoryId),
@@ -53,18 +69,18 @@ export function getTreatmentSearchParams(
         : String(scope.treatmentCategoryId),
   });
 
-  if (selectedProcedureId !== null) {
-    searchParams.set('procedure', String(selectedProcedureId));
-  }
+  [...new Set(selectedProcedureIds)].forEach((procedureId) => {
+    searchParams.append('procedure', String(procedureId));
+  });
 
   return searchParams;
 }
 
 export function getHospitalSearchUrl(
   scope: TreatmentScope,
-  selectedProcedureId: number | null = null,
+  selectedProcedureIds: number[] = [],
 ) {
-  const searchParams = getTreatmentSearchParams(scope, selectedProcedureId);
+  const searchParams = getTreatmentSearchParams(scope, selectedProcedureIds);
 
   return `/mall/university/results?${searchParams.toString()}`;
 }
