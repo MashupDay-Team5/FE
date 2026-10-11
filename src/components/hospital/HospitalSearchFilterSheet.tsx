@@ -13,10 +13,8 @@ import {
   hospitalSearchPriceStep,
   hospitalSearchTreatmentConditions,
 } from '@/constants/hospitalSearch';
-import {
-  hospitalSearchItems,
-  hospitalSearchRegions,
-} from '@/mocks/hospitalSearch';
+import { hospitalSearchRegions } from '@/mocks/hospitalSearch';
+import { hospitalSearchItems } from '@/mocks/hospitals';
 import type {
   HospitalSearchIntegratedFilterCategory,
   HospitalSearchFilterState,
@@ -110,6 +108,8 @@ function FilterRegionPanel({
       categories={hospitalSearchRegions}
       selectedCategoryId={selectedRegionId}
       onCategoryChange={onRegionChange}
+      categoryWidth={136}
+      unselectedCategoryWeight="regular"
     >
       {selectedRegion.districts.map(({ id, name }) => {
         const isSelected = selectedDistrictIds.includes(id);
@@ -120,7 +120,7 @@ function FilterRegionPanel({
             type="button"
             aria-pressed={isSelected}
             onClick={() => onDistrictClick(selectedRegionId, id)}
-            className={`flex h-[51px] w-full shrink-0 items-center border-b border-border-neutral p-padding-m text-left ${
+            className={`flex h-[51px] w-full shrink-0 items-center border-b border-border-weak p-padding-m text-left ${
               isSelected
                 ? 'typography-label-large-medium text-text-brand'
                 : 'typography-label-large-regular text-text-primary'

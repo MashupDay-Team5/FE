@@ -1,6 +1,6 @@
-import { defaultTreatmentScope } from '@/constants/treatment';
 import { medicalCategories } from '@/mocks/treatment';
 import { useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import arrowDownIcon from '@/assets/icons/arrowDown20.svg';
 import FilterChip from '@/components/common/FilterChip';
 import MenuTrigger, {
@@ -12,8 +12,14 @@ import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import MallBanner from '@/components/mall/MallBanner';
 import MallHospitalList from '@/components/mall/MallHospitalList';
-import { universityMallHospitals } from '@/mocks/universityMall';
+import { hospitalSearchItems } from '@/mocks/hospitals';
 import type { TreatmentScope } from '@/types/treatment';
+import {
+  getHospitalSearchUrl,
+  getSelectedProcedureIds,
+  getTreatmentScope,
+  getTreatmentSearchParams,
+} from '@/utils/hospitalSearchUrl';
 
 const HOSPITAL_PAGE_SIZE = 8;
 
@@ -32,12 +38,9 @@ const lowestPriceSortOption: MenuTriggerOption<HospitalSort> = {
 };
 
 function UniversityMallPage() {
-  const [treatmentScope, setTreatmentScope] = useState<TreatmentScope>(
-    defaultTreatmentScope,
-  );
-  const [selectedProcedureId, setSelectedProcedureId] = useState<number | null>(
-    null,
-  );
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const treatmentScope = getTreatmentScope(searchParams);
   const [selectedSort, setSelectedSort] =
     useState<HospitalSort>('most-visited');
   const [visibleHospitalCount, setVisibleHospitalCount] =
@@ -58,37 +61,54 @@ function UniversityMallPage() {
     : medicalCategory.treatmentCategories.flatMap(
         ({ treatments: categoryTreatments }) => categoryTreatments,
       );
+  const selectedProcedureIds = getSelectedProcedureIds(
+    searchParams,
+    treatments,
+  );
 
-  // 진료 항목은 하나만 선택하고, 다시 누르면 해제해 '전체 조회'로 돌아간다.
   const handleProcedureClick = (procedureId: number) => {
-    setSelectedProcedureId((currentId) =>
-      currentId === procedureId ? null : procedureId,
+    const nextProcedureIds = selectedProcedureIds.includes(procedureId)
+      ? selectedProcedureIds.filter((id) => id !== procedureId)
+      : [...selectedProcedureIds, procedureId];
+    setSearchParams(
+      getTreatmentSearchParams(treatmentScope, nextProcedureIds),
+      { replace: true },
     );
     setVisibleHospitalCount(HOSPITAL_PAGE_SIZE);
   };
 
   const handleScopeSelect = (scope: TreatmentScope) => {
-    setTreatmentScope(scope);
-    setSelectedProcedureId(null);
+    if (
+      scope.medicalCategoryId === treatmentScope.medicalCategoryId &&
+      scope.treatmentCategoryId === treatmentScope.treatmentCategoryId
+    ) {
+      return;
+    }
+
+    setSearchParams(getTreatmentSearchParams(scope), { replace: true });
     setVisibleHospitalCount(HOSPITAL_PAGE_SIZE);
   };
 
   const sortOptions =
-    selectedProcedureId !== null
+    selectedProcedureIds.length > 0
       ? [...defaultHospitalSortOptions, lowestPriceSortOption]
       : defaultHospitalSortOptions;
   const selectedSortOption =
     sortOptions.find((option) => option.value === selectedSort) ??
     sortOptions[0];
 
+  if (selectedProcedureIds.length === 0 && selectedSort === 'lowest-price') {
+    setSelectedSort('most-visited');
+  }
+
   // API 연동 전 확인용 필터: 선택한 시술(없으면 현재 진료 범위의 시술)에 해당하는 가격 카드만 남기고,
   // 남은 카드가 없는 병원은 목록에서 뺀다. 연동 후에는 서버 응답으로 대체한다.
   const visibleProcedureIds = new Set(
-    selectedProcedureId === null
+    selectedProcedureIds.length === 0
       ? treatments.map(({ id }) => id)
-      : [selectedProcedureId],
+      : selectedProcedureIds,
   );
-  const filteredHospitals = universityMallHospitals
+  const filteredHospitals = hospitalSearchItems
     .map((hospital) => ({
       ...hospital,
       priceCards: hospital.priceCards.filter(({ procedureId }) =>
@@ -101,7 +121,18 @@ function UniversityMallPage() {
   return (
     <>
       <TopArea>
-        <Header type="MainHome" schoolName="5팀대학교" />
+        <Header
+          type="MainHome"
+          schoolName="5팀대학교"
+          onSearchClick={() =>
+            navigate(
+              getHospitalSearchUrl(treatmentScope, selectedProcedureIds),
+              {
+                state: { homeSearch: searchParams.toString() },
+              },
+            )
+          }
+        />
       </TopArea>
 
       <div className="pb-[calc(56px+env(safe-area-inset-bottom))]">
@@ -111,6 +142,7 @@ function UniversityMallPage() {
           ref={scopeTriggerRef}
           type="button"
           aria-haspopup="dialog"
+          aria-expanded={isCategorySheetOpen}
           onClick={() => setCategorySheetOpen(true)}
           className="mt-padding-l flex h-11 items-center"
         >
@@ -126,7 +158,7 @@ function UniversityMallPage() {
             <FilterChip
               key={treatment.id}
               label={treatment.name}
-              selected={treatment.id === selectedProcedureId}
+              selected={selectedProcedureIds.includes(treatment.id)}
               onClick={() => handleProcedureClick(treatment.id)}
             />
           ))}
@@ -143,7 +175,6 @@ function UniversityMallPage() {
 
         <MallHospitalList
           hospitals={visibleHospitals}
-          selectedProcedureId={selectedProcedureId}
           hasMore={visibleHospitalCount < filteredHospitals.length}
           onMoreClick={() =>
             setVisibleHospitalCount((count) => count + HOSPITAL_PAGE_SIZE)

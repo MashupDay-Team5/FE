@@ -1,64 +1,15 @@
 import ListCard from '@/components/hospital/ListCard';
 import PriceCard from '@/components/hospital/PriceCard';
-import type {
-  HospitalSearchItem,
-  HospitalSearchPriceCard,
-} from '@/types/hospitalSearch';
+import type { HospitalSearchItem } from '@/types/hospitalSearch';
 
 type MallHospitalListProps = {
   hospitals: HospitalSearchItem[];
-  selectedProcedureId: number | null;
   hasMore: boolean;
   onMoreClick: () => void;
 };
 
-function renderPriceCard(
-  priceCard: HospitalSearchPriceCard,
-  width: 'fill' | 'fixed',
-) {
-  if (priceCard.type === 'free') {
-    return (
-      <PriceCard
-        key={priceCard.procedureId}
-        type="free"
-        width={width}
-        procedureName={priceCard.procedureName}
-        originalPrice={priceCard.originalPrice}
-        originalPriceLabel={priceCard.originalPriceLabel}
-      />
-    );
-  }
-
-  if (priceCard.type === 'badge') {
-    return (
-      <PriceCard
-        key={priceCard.procedureId}
-        type="badge"
-        width={width}
-        procedureName={priceCard.procedureName}
-        originalPrice={priceCard.originalPrice}
-        discountedPrice={priceCard.discountedPrice}
-        badgeLabel={priceCard.badgeLabel}
-      />
-    );
-  }
-
-  return (
-    <PriceCard
-      key={priceCard.procedureId}
-      type="default"
-      width={width}
-      procedureName={priceCard.procedureName}
-      originalPrice={priceCard.originalPrice}
-      discountedPrice={priceCard.discountedPrice}
-    />
-  );
-}
-
-// 시술을 선택하지 않으면 병원별 가격 카드를 가로 스크롤로, 선택하면 해당 시술 카드 1개를 전체 너비로 보여준다.
 function MallHospitalList({
   hospitals,
-  selectedProcedureId,
   hasMore,
   onMoreClick,
 }: MallHospitalListProps) {
@@ -76,16 +27,13 @@ function MallHospitalList({
   return (
     <section className="-mx-padding-m flex flex-col">
       {hospitals.map((hospital) => {
-        const priceCards =
-          selectedProcedureId === null
-            ? hospital.priceCards.map((priceCard) =>
-                renderPriceCard(priceCard, 'fixed'),
-              )
-            : hospital.priceCards
-                .filter(
-                  ({ procedureId }) => procedureId === selectedProcedureId,
-                )
-                .map((priceCard) => renderPriceCard(priceCard, 'fill'));
+        const priceCards = hospital.priceCards.map((priceCard) => (
+          <PriceCard
+            key={priceCard.procedureId}
+            {...priceCard}
+            width={hospital.priceCards.length === 1 ? 'fill' : 'fixed'}
+          />
+        ));
 
         return (
           <ListCard
