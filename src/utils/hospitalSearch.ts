@@ -5,7 +5,38 @@ import type {
   HospitalSearchPriceCard,
   HospitalSearchPriceRange,
   HospitalSearchRegion,
+  HospitalSort,
 } from '@/types/hospitalSearch';
+
+export function getSortedHospitals(
+  hospitals: HospitalSearchItem[],
+  sort: HospitalSort,
+) {
+  return hospitals.toSorted((firstHospital, secondHospital) => {
+    switch (sort) {
+      case 'most-visited':
+        return (
+          (secondHospital.visitCount ?? 0) - (firstHospital.visitCount ?? 0)
+        );
+      case 'highest-rating':
+        return Number(secondHospital.rating) - Number(firstHospital.rating);
+      case 'most-reviews':
+        return (
+          Number(secondHospital.reviewCount.replaceAll(',', '')) -
+          Number(firstHospital.reviewCount.replaceAll(',', ''))
+        );
+      case 'lowest-price':
+        return (
+          Math.min(
+            ...firstHospital.priceCards.map(({ priceAmount }) => priceAmount),
+          ) -
+          Math.min(
+            ...secondHospital.priceCards.map(({ priceAmount }) => priceAmount),
+          )
+        );
+    }
+  });
+}
 
 export function matchesHospitalSearchPriceCard(
   priceCard: HospitalSearchPriceCard,
