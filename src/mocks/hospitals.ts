@@ -12,7 +12,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
     reviewCount: '1529',
     address: '서울 서초구 서초4동',
     visitCount: 343,
-    isReservable: true,
+    isPopular: true,
+    availabilityBadges: ['night-clinic', 'same-day-reservation'],
     priceCards: [
       {
         type: 'badge',
@@ -21,7 +22,7 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
         priceAmount: 1240000,
         originalPrice: '2,300,000원',
         discountedPrice: '1,240,000원',
-        badgeLabel: '9월 특가',
+        badgeLabel: '특가 진행',
       },
       {
         type: 'default',
@@ -44,7 +45,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
     reviewCount: '984',
     address: '서울 강남구 역삼동',
     visitCount: 128,
-    isReservable: false,
+    isPopular: true,
+    availabilityBadges: ['open-today'],
     priceCards: [
       {
         type: 'default',
@@ -74,7 +76,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
     reviewCount: '721',
     address: '서울 성북구 안암동',
     visitCount: 216,
-    isReservable: true,
+    isPopular: false,
+    availabilityBadges: ['same-day-reservation'],
     priceCards: [
       {
         type: 'default',
@@ -97,7 +100,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
     reviewCount: '438',
     address: '부산 연제구 연산동',
     visitCount: 157,
-    isReservable: true,
+    isPopular: false,
+    availabilityBadges: ['night-clinic'],
     priceCards: [
       {
         type: 'default',
@@ -120,7 +124,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
     reviewCount: '307',
     address: '경기 성남시 분당구',
     visitCount: 278,
-    isReservable: false,
+    isPopular: true,
+    availabilityBadges: ['night-clinic', 'open-today'],
     priceCards: [
       {
         type: 'badge',
@@ -129,7 +134,7 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
         priceAmount: 3200000,
         originalPrice: '4,200,000원',
         discountedPrice: '3,200,000원',
-        badgeLabel: '10월 특가',
+        badgeLabel: '특가 진행',
       },
     ],
   },
@@ -144,7 +149,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
     reviewCount: '192',
     address: '제주 제주시 연동',
     visitCount: 89,
-    isReservable: true,
+    isPopular: false,
+    availabilityBadges: ['night-clinic', 'same-day-reservation', 'open-today'],
     priceCards: [
       {
         type: 'default',
@@ -172,7 +178,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
     reviewCount: '387',
     address: '인천 연수구 송도동',
     visitCount: 173,
-    isReservable: true,
+    isPopular: true,
+    availabilityBadges: ['night-clinic', 'open-today'],
     priceCards: [
       {
         type: 'default',
@@ -203,7 +210,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
     reviewCount: '246',
     address: '경기 고양시 백석동',
     visitCount: 287,
-    isReservable: true,
+    isPopular: true,
+    availabilityBadges: ['night-clinic', 'same-day-reservation'],
     priceCards: [
       {
         type: 'default',
@@ -234,7 +242,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
     reviewCount: '713',
     address: '부산 해운대구 우동',
     visitCount: 96,
-    isReservable: false,
+    isPopular: false,
+    availabilityBadges: ['open-today'],
     priceCards: [
       {
         type: 'default',
@@ -265,7 +274,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
     reviewCount: '184',
     address: '충남 천안시 불당동',
     visitCount: 121,
-    isReservable: true,
+    isPopular: true,
+    availabilityBadges: [],
     priceCards: [
       {
         type: 'default',
@@ -296,7 +306,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
     reviewCount: '1062',
     address: '강원 원주시 무실동',
     visitCount: 364,
-    isReservable: true,
+    isPopular: false,
+    availabilityBadges: ['open-today'],
     priceCards: [
       {
         type: 'default',
@@ -327,7 +338,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
     reviewCount: '528',
     address: '전북 전주시 효자동',
     visitCount: 219,
-    isReservable: true,
+    isPopular: false,
+    availabilityBadges: ['night-clinic', 'open-today'],
     priceCards: [
       {
         type: 'default',
@@ -358,7 +370,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
     reviewCount: '319',
     address: '경남 창원시 상남동',
     visitCount: 148,
-    isReservable: false,
+    isPopular: false,
+    availabilityBadges: [],
     priceCards: [
       {
         type: 'default',
@@ -389,7 +402,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
     reviewCount: '512',
     address: '서울 강남구 압구정동',
     visitCount: 184,
-    isReservable: true,
+    isPopular: true,
+    availabilityBadges: ['same-day-reservation'],
     priceCards: [
       {
         type: 'default',
@@ -420,7 +434,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
     reviewCount: '468',
     address: '경기 수원시 영통동',
     visitCount: 112,
-    isReservable: false,
+    isPopular: false,
+    availabilityBadges: [],
     priceCards: [
       {
         type: 'default',
@@ -451,7 +466,8 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
     reviewCount: '1204',
     address: '부산 해운대구 좌동',
     visitCount: 305,
-    isReservable: true,
+    isPopular: true,
+    availabilityBadges: ['night-clinic', 'open-today'],
     priceCards: [
       {
         type: 'badge',
@@ -460,7 +476,7 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
         priceAmount: 2500000,
         originalPrice: '3,000,000원',
         discountedPrice: '2,500,000원',
-        badgeLabel: '10월 특가',
+        badgeLabel: '특가 진행',
       },
       {
         type: 'free',

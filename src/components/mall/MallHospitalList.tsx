@@ -43,8 +43,8 @@ function MallHospitalList({
             reviewCount={hospital.reviewCount}
             address={hospital.address}
             thumbnailUrl={hospital.thumbnailUrl}
-            visitCount={hospital.visitCount}
-            isReservable={hospital.isReservable}
+            isPopular={hospital.isPopular}
+            availabilityBadges={hospital.availabilityBadges}
             showDiscountIcon={hospital.hasDiscount}
             priceCards={priceCards}
           />
