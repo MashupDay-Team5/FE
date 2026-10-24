@@ -88,7 +88,6 @@ export type HospitalSearchItem = {
   reviewCount: string;
   address: string;
   visitCount?: number;
-  isReservable: boolean;
   isPopular: boolean;
   availabilityBadges: HospitalAvailabilityBadge[];
   thumbnailUrl?: string;

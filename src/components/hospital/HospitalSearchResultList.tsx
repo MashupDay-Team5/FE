@@ -38,8 +38,8 @@ function HospitalSearchResultList({
           reviewCount={hospital.reviewCount}
           address={hospital.address}
           thumbnailUrl={hospital.thumbnailUrl}
-          visitCount={hospital.visitCount}
-          isReservable={hospital.isReservable}
+          isPopular={hospital.isPopular}
+          availabilityBadges={hospital.availabilityBadges}
           showDiscountIcon={hospital.hasDiscount}
           priceCards={hospital.priceCards.map((priceCard) => (
             <PriceCard
