@@ -13,7 +13,9 @@ import TopArea from '@/components/layout/TopArea';
 import MallBanner from '@/components/mall/MallBanner';
 import MallHospitalList from '@/components/mall/MallHospitalList';
 import { hospitalSearchItems } from '@/mocks/hospitals';
+import type { HospitalSort } from '@/types/hospitalSearch';
 import type { TreatmentScope } from '@/types/treatment';
+import { getSortedHospitals } from '@/utils/hospitalSearch';
 import {
   getHospitalSearchUrl,
   getSelectedProcedureIds,
@@ -22,9 +24,6 @@ import {
 } from '@/utils/hospitalSearchUrl';
 
 const HOSPITAL_PAGE_SIZE = 8;
-
-type HospitalSort =
-  'most-visited' | 'highest-rating' | 'most-reviews' | 'lowest-price';
 
 const defaultHospitalSortOptions: MenuTriggerOption<HospitalSort>[] = [
   { value: 'most-visited', label: '방문 많은 순' },
@@ -116,7 +115,8 @@ function UniversityMallPage() {
       ),
     }))
     .filter(({ priceCards }) => priceCards.length > 0);
-  const visibleHospitals = filteredHospitals.slice(0, visibleHospitalCount);
+  const sortedHospitals = getSortedHospitals(filteredHospitals, selectedSort);
+  const visibleHospitals = sortedHospitals.slice(0, visibleHospitalCount);
 
   return (
     <>
