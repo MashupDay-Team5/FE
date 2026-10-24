@@ -73,6 +73,9 @@ export type HospitalSearchPriceCard =
       originalPriceLabel?: string;
     };
 
+export type HospitalAvailabilityBadge =
+  'night-clinic' | 'same-day-reservation' | 'open-today';
+
 // ListCard에 전달할 병원 기본 정보와 가격 카드 목록 구조
 export type HospitalSearchItem = {
   hospitalId: number;
@@ -86,6 +89,8 @@ export type HospitalSearchItem = {
   address: string;
   visitCount?: number;
   isReservable: boolean;
+  isPopular: boolean;
+  availabilityBadges: HospitalAvailabilityBadge[];
   thumbnailUrl?: string;
   priceCards: HospitalSearchPriceCard[];
 };

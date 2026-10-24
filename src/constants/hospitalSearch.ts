@@ -1,4 +1,16 @@
-import type { HospitalSearchTreatmentCondition } from '@/types/hospitalSearch';
+import type {
+  HospitalAvailabilityBadge,
+  HospitalSearchTreatmentCondition,
+} from '@/types/hospitalSearch';
+
+export const hospitalAvailabilityBadgeLabels: Record<
+  HospitalAvailabilityBadge,
+  string
+> = {
+  'night-clinic': '야간 진료',
+  'same-day-reservation': '당일 예약',
+  'open-today': '오늘 진료',
+};
 
 export const MAX_SELECTED_REGION_COUNT = 5;
 
