@@ -22,7 +22,7 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
         priceAmount: 1240000,
         originalPrice: '2,300,000원',
         discountedPrice: '1,240,000원',
-        badgeLabel: '9월 특가',
+        badgeLabel: '특가 진행',
       },
       {
         type: 'default',
@@ -134,7 +134,7 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
         priceAmount: 3200000,
         originalPrice: '4,200,000원',
         discountedPrice: '3,200,000원',
-        badgeLabel: '10월 특가',
+        badgeLabel: '특가 진행',
       },
     ],
   },
@@ -476,7 +476,7 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
         priceAmount: 2500000,
         originalPrice: '3,000,000원',
         discountedPrice: '2,500,000원',
-        badgeLabel: '10월 특가',
+        badgeLabel: '특가 진행',
       },
       {
         type: 'free',
