@@ -2,6 +2,9 @@
 export type HospitalSearchTab =
   'integrated' | 'hospital' | 'consultation' | 'blog';
 
+export type HospitalSort =
+  'most-visited' | 'highest-rating' | 'most-reviews' | 'lowest-price';
+
 // 통합 필터 시트 카테고리 타입
 export type HospitalSearchIntegratedFilterCategory =
   'region' | 'price' | 'treatment-condition';
