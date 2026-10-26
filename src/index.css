@@ -5,6 +5,14 @@
 @import './styles/tokens.css';
 @import './styles/typography.css';
 
+/* Tailwind v4는 버튼 커서를 기본값(화살표)으로 두므로, 누를 수 있는 버튼에 손가락 커서를 준다. */
+@layer base {
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+}
+
 html,
 body,
 #root {
