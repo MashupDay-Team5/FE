@@ -84,3 +84,7 @@ export function getHospitalSearchUrl(
 
   return `/mall/university/results?${searchParams.toString()}`;
 }
+
+export function getHospitalDetailUrl(hospitalId: number) {
+  return `/mall/university/hospitals/${hospitalId}`;
+}

@@ -1,4 +1,5 @@
 import { Children, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import bookmarkIcon from '@/assets/icons/bookmark28.svg';
 import checkBadgeIcon from '@/assets/icons/checkBadgeIcon.svg';
 import discountIcon from '@/assets/icons/discount.svg';
@@ -18,6 +19,8 @@ type ListCardProps = {
   availabilityBadges?: HospitalAvailabilityBadge[];
   badges?: ReactNode;
   showDiscountIcon?: boolean;
+  // 있으면 병원명을 상세 화면 링크로 표시한다.
+  detailPath?: string;
   onBookmarkClick?: () => void;
 };
 
@@ -32,6 +35,7 @@ function ListCard({
   availabilityBadges = [],
   badges,
   showDiscountIcon = false,
+  detailPath,
   onBookmarkClick,
 }: ListCardProps) {
   const hasBadges = isPopular || availabilityBadges.length > 0 || badges;
@@ -76,7 +80,16 @@ function ListCard({
             <div className="flex min-w-0 flex-col gap-px">
               <div className="flex items-center">
                 <h3 className="truncate typography-headline-bold text-text-strong">
-                  {hospitalName}
+                  {detailPath ? (
+                    <Link
+                      to={detailPath}
+                      className="rounded-[var(--radius-s)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-brand"
+                    >
+                      {hospitalName}
+                    </Link>
+                  ) : (
+                    hospitalName
+                  )}
                 </h3>
                 {showDiscountIcon && (
                   <img src={discountIcon} alt="" width={20} height={20} />
