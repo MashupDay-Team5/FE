@@ -2,9 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import mapIcon from '@/assets/icons/mapIcon.svg';
 import FilterChip from '@/components/common/FilterChip';
-import MenuTrigger, {
-  type MenuTriggerOption,
-} from '@/components/common/MenuTrigger';
+import MenuTrigger from '@/components/common/MenuTrigger';
 import Tab, { type TabItem } from '@/components/common/Tab';
 import TreatmentCategorySheet from '@/components/common/TreatmentCategorySheet';
 import HospitalSearchFilterSheet from '@/components/hospital/HospitalSearchFilterSheet';
@@ -13,10 +11,12 @@ import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import {
   MAX_SELECTED_REGION_COUNT,
+  defaultHospitalSortOptions,
   hospitalSearchPriceRange,
   hospitalSearchPriceStep,
   hospitalSearchPriceUnitInWon,
   hospitalSearchTreatmentConditions,
+  lowestPriceSortOption,
 } from '@/constants/hospitalSearch';
 import { hospitalSearchRegions } from '@/mocks/hospitalSearch';
 import { hospitalSearchItems } from '@/mocks/hospitals';
@@ -273,17 +273,6 @@ const hospitalSearchTabItems: TabItem<HospitalSearchTab>[] = [
   { value: 'consultation', label: '의료상담', disabled: true },
   { value: 'blog', label: '블로그', disabled: true },
 ];
-
-const defaultHospitalSortOptions: MenuTriggerOption<HospitalSort>[] = [
-  { value: 'most-visited', label: '방문 많은 순' },
-  { value: 'highest-rating', label: '평점순' },
-  { value: 'most-reviews', label: '리뷰 많은 순' },
-];
-
-const lowestPriceSortOption: MenuTriggerOption<HospitalSort> = {
-  value: 'lowest-price',
-  label: '낮은 가격 순',
-};
 
 function HospitalSearchResultPage() {
   const navigate = useNavigate();

@@ -11,7 +11,7 @@ function MallBanner({
   onSpecialSaleClick,
 }: MallBannerProps) {
   return (
-    <section className="flex flex-col gap-gap-m">
+    <section className="flex flex-col gap-gap-l">
       <div className="-mx-padding-m h-[232px] bg-surface-weak">
         {imageUrl && (
           <img src={imageUrl} alt="" className="size-full object-cover" />
@@ -22,10 +22,10 @@ function MallBanner({
         onClick={onSpecialSaleClick}
         className="flex h-[52px] w-full items-center justify-between rounded-[var(--radius-s)] bg-accent-background-orange px-padding-m py-padding-xxs"
       >
-        <span className="typography-body-bold text-accent-foreground-orange">
+        <span className="typography-headline-bold text-accent-foreground-orange">
           {specialSaleLabel}
         </span>
-        <span className="typography-caption-regular text-text-tertiary">
+        <span className="typography-label-small-medium leading-[18px] text-text-tertiary">
           보러가기
         </span>
       </button>

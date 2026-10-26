@@ -1,6 +1,8 @@
+import type { MenuTriggerOption } from '@/components/common/MenuTrigger';
 import type {
   HospitalAvailabilityBadge,
   HospitalSearchTreatmentCondition,
+  HospitalSort,
 } from '@/types/hospitalSearch';
 
 export const hospitalAvailabilityBadgeLabels: Record<
@@ -41,3 +43,15 @@ export const hospitalSearchTreatmentConditions: HospitalSearchTreatmentCondition
       description: '일요일, 공휴일 중 하루라도 진료',
     },
   ];
+
+// 홈과 검색 결과에서 함께 쓰는 병원 정렬 옵션. 시술을 선택하면 낮은 가격 순을 추가한다.
+export const defaultHospitalSortOptions: MenuTriggerOption<HospitalSort>[] = [
+  { value: 'most-visited', label: '방문 많은 순' },
+  { value: 'highest-rating', label: '평점순' },
+  { value: 'most-reviews', label: '리뷰 많은 순' },
+];
+
+export const lowestPriceSortOption: MenuTriggerOption<HospitalSort> = {
+  value: 'lowest-price',
+  label: '낮은 가격 순',
+};
