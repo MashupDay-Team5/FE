@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import bookmarkIcon from '@/assets/icons/bookmark28.svg';
 import messageIcon from '@/assets/icons/message.svg';
 import MenuTrigger, {
@@ -79,6 +79,8 @@ const HEADER_HEIGHT = 52;
 
 function HospitalDetailPage() {
   const { hospitalId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const hospital = findHospitalDetail(Number(hospitalId));
   const heroImageRef = useRef<HTMLDivElement>(null);
   const reviewSectionRef = useRef<HTMLElement>(null);
@@ -110,11 +112,21 @@ function HospitalDetailPage() {
     return () => observer.disconnect();
   }, [hospital]);
 
+  // 앱 안에서 들어왔으면 이전 화면으로, 주소로 바로 들어왔으면(이전 기록 없음) 홈으로 이동한다.
+  const handleBackClick = () => {
+    if (location.key === 'default') {
+      navigate('/mall/university', { replace: true });
+      return;
+    }
+
+    navigate(-1);
+  };
+
   if (!hospital) {
     return (
       <>
         <TopArea>
-          <Header type="Detail" title="" />
+          <Header type="Detail" title="" onBackClick={handleBackClick} />
         </TopArea>
         <p className="py-padding-l text-center typography-body-medium text-text-secondary">
           병원 정보를 찾을 수 없어요.
@@ -187,6 +199,7 @@ function HospitalDetailPage() {
           type="Detail"
           title={hospital.hospitalName}
           transparent={isHeroVisible}
+          onBackClick={handleBackClick}
         />
       </TopArea>
 
