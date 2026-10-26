@@ -89,7 +89,7 @@ function MainHomeHeader({
 }: MainHomeHeaderProps) {
   return (
     <header
-      className={`${HEADER_BASE_CLASS} flex justify-between bg-surface-brand px-padding-m`}
+      className={`${HEADER_BASE_CLASS} flex justify-between bg-surface-brand pl-padding-m pr-padding-xs`}
     >
       <DropdownTitle name={schoolName} showMallLabel onClick={onTitleClick} />
 

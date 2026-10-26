@@ -1,17 +1,19 @@
 import { medicalCategories } from '@/mocks/treatment';
 import { useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import arrowDownIcon from '@/assets/icons/arrowDown20.svg';
+import arrowRightIcon from '@/assets/icons/arrowRight.svg';
 import FilterChip from '@/components/common/FilterChip';
-import MenuTrigger, {
-  type MenuTriggerOption,
-} from '@/components/common/MenuTrigger';
+import MenuTrigger from '@/components/common/MenuTrigger';
 import TreatmentCategorySheet from '@/components/common/TreatmentCategorySheet';
 import BottomNav from '@/components/layout/BottomNav';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import MallBanner from '@/components/mall/MallBanner';
 import MallHospitalList from '@/components/mall/MallHospitalList';
+import {
+  defaultHospitalSortOptions,
+  lowestPriceSortOption,
+} from '@/constants/hospitalSearch';
 import { hospitalSearchItems } from '@/mocks/hospitals';
 import type { HospitalSort } from '@/types/hospitalSearch';
 import type { TreatmentScope } from '@/types/treatment';
@@ -24,17 +26,6 @@ import {
 } from '@/utils/hospitalSearchUrl';
 
 const HOSPITAL_PAGE_SIZE = 8;
-
-const defaultHospitalSortOptions: MenuTriggerOption<HospitalSort>[] = [
-  { value: 'most-visited', label: '방문 많은 순' },
-  { value: 'highest-rating', label: '평점순' },
-  { value: 'most-reviews', label: '리뷰 많은 순' },
-];
-
-const lowestPriceSortOption: MenuTriggerOption<HospitalSort> = {
-  value: 'lowest-price',
-  label: '낮은 가격 순',
-};
 
 function UniversityMallPage() {
   const navigate = useNavigate();
@@ -144,12 +135,14 @@ function UniversityMallPage() {
           aria-haspopup="dialog"
           aria-expanded={isCategorySheetOpen}
           onClick={() => setCategorySheetOpen(true)}
-          className="mt-padding-l flex h-11 items-center"
+          className="mt-padding-m mb-gap-xs flex h-9 items-center"
         >
-          <span className="typography-headline-bold text-text-strong">
+          <span className="typography-heading-bold text-text-strong">
             {medicalCategory.name} · {treatmentCategory?.name ?? '전체'}
           </span>
-          <img src={arrowDownIcon} alt="" className="size-5 -rotate-90" />
+          <span className="flex size-6 shrink-0 items-center justify-center">
+            <img src={arrowRightIcon} alt="" />
+          </span>
         </button>
 
         {/* 진료 항목 퀵필터: 스크롤 시 Header 바로 아래에 고정한다. */}
