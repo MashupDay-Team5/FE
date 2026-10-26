@@ -1,7 +1,7 @@
 import { medicalCategories } from '@/mocks/treatment';
 import { useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import arrowDownIcon from '@/assets/icons/arrowDown20.svg';
+import arrowRightIcon from '@/assets/icons/arrowRight.svg';
 import FilterChip from '@/components/common/FilterChip';
 import MenuTrigger, {
   type MenuTriggerOption,
@@ -144,12 +144,14 @@ function UniversityMallPage() {
           aria-haspopup="dialog"
           aria-expanded={isCategorySheetOpen}
           onClick={() => setCategorySheetOpen(true)}
-          className="mt-padding-l flex h-11 items-center"
+          className="mt-padding-m mb-gap-xs flex h-9 items-center"
         >
-          <span className="typography-headline-bold text-text-strong">
+          <span className="typography-heading-bold text-text-strong">
             {medicalCategory.name} · {treatmentCategory?.name ?? '전체'}
           </span>
-          <img src={arrowDownIcon} alt="" className="size-5 -rotate-90" />
+          <span className="flex size-6 shrink-0 items-center justify-center">
+            <img src={arrowRightIcon} alt="" />
+          </span>
         </button>
 
         {/* 진료 항목 퀵필터: 스크롤 시 Header 바로 아래에 고정한다. */}

@@ -52,7 +52,7 @@ function MallHospitalList({
       })}
 
       {hasMore && (
-        <div className="px-padding-m py-padding-l">
+        <div className="px-padding-m pt-padding-xs pb-padding-l">
           <button
             type="button"
             onClick={onMoreClick}
