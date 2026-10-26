@@ -122,11 +122,18 @@ function HospitalDetailPage() {
     navigate(-1);
   };
 
+  const handleHomeClick = () => navigate('/mall/university');
+
   if (!hospital) {
     return (
       <>
         <TopArea>
-          <Header type="Detail" title="" onBackClick={handleBackClick} />
+          <Header
+            type="Detail"
+            title=""
+            onBackClick={handleBackClick}
+            onHomeClick={handleHomeClick}
+          />
         </TopArea>
         <p className="py-padding-l text-center typography-body-medium text-text-secondary">
           병원 정보를 찾을 수 없어요.
@@ -200,6 +207,7 @@ function HospitalDetailPage() {
           title={hospital.hospitalName}
           transparent={isHeroVisible}
           onBackClick={handleBackClick}
+          onHomeClick={handleHomeClick}
         />
       </TopArea>
 
