@@ -1,9 +1,9 @@
 ---
 name: ♻️ Refactor
 about: 구조, 가독성, 성능 개선 작업을 등록합니다.
-title: "[REFACTOR] "
-labels: "refactor"
-assignees: ""
+title: '[REFACTOR] '
+labels: 'refactor'
+assignees: ''
 ---
 
 ## 리팩터링 대상
