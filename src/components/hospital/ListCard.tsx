@@ -38,6 +38,11 @@ function ListCard({
   detailPath,
   onBookmarkClick,
 }: ListCardProps) {
+  const thumbnailClassName =
+    'size-[52px] shrink-0 overflow-hidden rounded-[var(--radius-s)] bg-surface-weak';
+  const thumbnail = thumbnailUrl && (
+    <img src={thumbnailUrl} alt="" className="size-full object-cover" />
+  );
   const hasBadges = isPopular || availabilityBadges.length > 0 || badges;
 
   return (
@@ -67,15 +72,19 @@ function ListCard({
 
         <div className="relative flex items-start">
           <div className="flex min-w-0 items-center gap-gap-m pr-11">
-            <div className="size-[52px] shrink-0 overflow-hidden rounded-[var(--radius-s)] bg-surface-weak">
-              {thumbnailUrl && (
-                <img
-                  src={thumbnailUrl}
-                  alt=""
-                  className="size-full object-cover"
-                />
-              )}
-            </div>
+            {detailPath ? (
+              // 병원명 링크와 같은 곳으로 이동하므로 키보드·스크린리더에서는 중복되지 않게 숨긴다.
+              <Link
+                to={detailPath}
+                tabIndex={-1}
+                aria-hidden="true"
+                className={thumbnailClassName}
+              >
+                {thumbnail}
+              </Link>
+            ) : (
+              <div className={thumbnailClassName}>{thumbnail}</div>
+            )}
 
             <div className="flex min-w-0 flex-col gap-px">
               <div className="flex items-center">
