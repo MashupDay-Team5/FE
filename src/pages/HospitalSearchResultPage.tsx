@@ -22,6 +22,7 @@ import { useHospitalRegions } from '@/hooks/useHospitalRegions';
 import { normalizeRegionSelections } from '@/utils/hospitalRegions';
 import { hospitalSearchItems } from '@/mocks/hospitals';
 import { useTreatmentCategories } from '@/hooks/useTreatmentCategories';
+import { useHospitalListState } from '@/hooks/useHospitalListState';
 import type { TreatmentScope } from '@/types/treatment';
 import type {
   HospitalSearchFilterState,
@@ -296,8 +297,9 @@ function HospitalSearchResultPage() {
     [selectedProcedureIds, treatments],
   );
   const [selectedTab, setSelectedTab] = useState<HospitalSearchTab>('hospital');
-  const [selectedSort, setSelectedSort] =
-    useState<HospitalSort>('most-visited');
+  const { listState, setListState } = useHospitalListState('search');
+  const selectedSort = listState.sort;
+  const handleSortChange = (sort: HospitalSort) => setListState({ sort });
   const [isFilterSheetOpen, setFilterSheetOpen] = useState(false);
   const [filterSheetSession, setFilterSheetSession] = useState(0);
   const filterTriggerRef = useRef<HTMLButtonElement>(null);
@@ -383,8 +385,12 @@ function HospitalSearchResultPage() {
     [filteredHospitals, selectedSort],
   );
 
-  if (selectedProcedureIds.length === 0 && selectedSort === 'lowest-price') {
-    setSelectedSort('most-visited');
+  if (
+    treatmentScope &&
+    selectedProcedureIds.length === 0 &&
+    selectedSort === 'lowest-price'
+  ) {
+    setListState({ sort: 'most-visited' });
   }
 
   const hasAppliedFilter =
@@ -500,7 +506,15 @@ function HospitalSearchResultPage() {
                     ? location.state.homeSearch
                     : '',
               },
-              { replace: true },
+              {
+                replace: true,
+                state: {
+                  restoreListStateKey:
+                    typeof location.state?.homeListStateKey === 'string'
+                      ? location.state.homeListStateKey
+                      : undefined,
+                },
+              },
             );
           }}
           categoryName={
@@ -553,7 +567,7 @@ function HospitalSearchResultPage() {
           options={sortOptions}
           selectedValue={selectedSortOption.value}
           align="end"
-          onValueChange={setSelectedSort}
+          onValueChange={handleSortChange}
         />
       </fieldset>
       {treatmentScope && (

@@ -1,4 +1,5 @@
 import { useTreatmentCategories } from '@/hooks/useTreatmentCategories';
+import { useHospitalListState } from '@/hooks/useHospitalListState';
 import { useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import arrowRightIcon from '@/assets/icons/arrowRight.svg';
@@ -15,6 +16,7 @@ import {
   defaultHospitalSortOptions,
   lowestPriceSortOption,
 } from '@/constants/hospitalSearch';
+import { DEFAULT_VISIBLE_HOSPITAL_COUNT } from '@/constants/hospitalList';
 import { hospitalSearchItems } from '@/mocks/hospitals';
 import type { HospitalSort } from '@/types/hospitalSearch';
 import type { TreatmentScope } from '@/types/treatment';
@@ -26,17 +28,16 @@ import {
   getTreatmentSearchParams,
 } from '@/utils/hospitalSearchUrl';
 
-const HOSPITAL_PAGE_SIZE = 8;
-
 function UniversityMallPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { categories: medicalCategories } = useTreatmentCategories();
   const treatmentScope = getTreatmentScope(searchParams, medicalCategories);
-  const [selectedSort, setSelectedSort] =
-    useState<HospitalSort>('most-visited');
-  const [visibleHospitalCount, setVisibleHospitalCount] =
-    useState(HOSPITAL_PAGE_SIZE);
+  const { listState, setListState, listEntryKey } =
+    useHospitalListState('home');
+  const selectedSort = listState.sort;
+  const visibleHospitalCount =
+    listState.visibleHospitalCount ?? DEFAULT_VISIBLE_HOSPITAL_COUNT;
   const [isCategorySheetOpen, setCategorySheetOpen] = useState(false);
   const scopeTriggerRef = useRef<HTMLButtonElement>(null);
 
@@ -70,7 +71,10 @@ function UniversityMallPage() {
       getTreatmentSearchParams(treatmentScope, nextProcedureIds),
       { replace: true },
     );
-    setVisibleHospitalCount(HOSPITAL_PAGE_SIZE);
+    setListState((current) => ({
+      ...current,
+      visibleHospitalCount: DEFAULT_VISIBLE_HOSPITAL_COUNT,
+    }));
   };
 
   const handleScopeSelect = (scope: TreatmentScope) => {
@@ -82,7 +86,10 @@ function UniversityMallPage() {
     }
 
     setSearchParams(getTreatmentSearchParams(scope), { replace: true });
-    setVisibleHospitalCount(HOSPITAL_PAGE_SIZE);
+    setListState((current) => ({
+      ...current,
+      visibleHospitalCount: DEFAULT_VISIBLE_HOSPITAL_COUNT,
+    }));
   };
 
   const sortOptions =
@@ -93,9 +100,23 @@ function UniversityMallPage() {
     sortOptions.find((option) => option.value === selectedSort) ??
     sortOptions[0];
 
-  if (selectedProcedureIds.length === 0 && selectedSort === 'lowest-price') {
-    setSelectedSort('most-visited');
+  if (
+    treatmentScope &&
+    selectedProcedureIds.length === 0 &&
+    selectedSort === 'lowest-price'
+  ) {
+    setListState({
+      sort: 'most-visited',
+      visibleHospitalCount: DEFAULT_VISIBLE_HOSPITAL_COUNT,
+    });
   }
+
+  const handleSortChange = (sort: HospitalSort) => {
+    setListState({
+      sort,
+      visibleHospitalCount: DEFAULT_VISIBLE_HOSPITAL_COUNT,
+    });
+  };
 
   // API 연동 전 확인용 필터: 선택한 시술(없으면 현재 진료 범위의 시술)에 해당하는 가격 카드만 남기고,
   // 남은 카드가 없는 병원은 목록에서 뺀다. 연동 후에는 서버 응답으로 대체한다.
@@ -130,7 +151,10 @@ function UniversityMallPage() {
                     search: searchParams.toString(),
                   },
               {
-                state: { homeSearch: searchParams.toString() },
+                state: {
+                  homeSearch: searchParams.toString(),
+                  homeListStateKey: listEntryKey,
+                },
               },
             )
           }
@@ -181,7 +205,7 @@ function UniversityMallPage() {
           size="s"
           options={sortOptions}
           selectedValue={selectedSortOption.value}
-          onValueChange={setSelectedSort}
+          onValueChange={handleSortChange}
           disabled={!treatmentScope}
         />
 
@@ -190,7 +214,13 @@ function UniversityMallPage() {
             hospitals={visibleHospitals}
             hasMore={visibleHospitalCount < filteredHospitals.length}
             onMoreClick={() =>
-              setVisibleHospitalCount((count) => count + HOSPITAL_PAGE_SIZE)
+              setListState((current) => ({
+                ...current,
+                visibleHospitalCount:
+                  (current.visibleHospitalCount ??
+                    DEFAULT_VISIBLE_HOSPITAL_COUNT) +
+                  DEFAULT_VISIBLE_HOSPITAL_COUNT,
+              }))
             }
           />
         )}
