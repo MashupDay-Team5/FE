@@ -1,7 +1,10 @@
 import ListCard from '@/components/hospital/ListCard';
 import PriceCard from '@/components/hospital/PriceCard';
 import type { HospitalSearchItem } from '@/types/hospitalSearch';
-import { getHospitalDetailUrl } from '@/utils/hospitalSearchUrl';
+import {
+  getCardDetailPath,
+  getHospitalDetailUrl,
+} from '@/utils/hospitalSearchUrl';
 
 type HospitalSearchResultListProps = {
   hospitals: HospitalSearchItem[];
@@ -42,11 +45,15 @@ function HospitalSearchResultList({
           isPopular={hospital.isPopular}
           availabilityBadges={hospital.availabilityBadges}
           showDiscountIcon={hospital.hasDiscount}
-          detailPath={getHospitalDetailUrl(hospital.hospitalId)}
+          detailPath={getCardDetailPath(hospital)}
           priceCards={hospital.priceCards.map((priceCard) => (
             <PriceCard
               key={priceCard.procedureId}
               {...priceCard}
+              detailPath={getHospitalDetailUrl(
+                hospital.hospitalId,
+                priceCard.procedureId,
+              )}
               width="flex"
             />
           ))}

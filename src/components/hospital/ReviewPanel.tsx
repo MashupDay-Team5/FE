@@ -279,7 +279,7 @@ type ProfileProps = {
 };
 
 // 작성 정보의 아이콘 + 숫자 묶음 (작성한 리뷰 수, 받은 좋아요 수)
-function ProfileStat({ icon, count }: { icon: string; count: number }) {
+function ProfileStat({ icon, count }: { icon: string; count?: number }) {
   return (
     <span className="flex items-center gap-0.5">
       <span
@@ -302,6 +302,9 @@ function Profile({
   isHelpful,
   onHelpfulChange,
 }: ProfileProps) {
+  const hasStats =
+    author.reviewCount !== undefined && author.likeCount !== undefined;
+
   return (
     <div className="flex items-center justify-between px-padding-m py-padding-xs">
       <div className="flex min-w-0 items-center gap-gap-s">
@@ -320,18 +323,26 @@ function Profile({
             {author.nickname}
           </p>
           <div className="flex items-center gap-gap-xs typography-caption-regular text-text-tertiary">
-            <span className="sr-only">
-              작성한 리뷰 {author.reviewCount}개, 받은 좋아요 {author.likeCount}
-              개
-            </span>
-            <span aria-hidden="true" className="flex items-center gap-gap-xs">
-              <ProfileStat icon={pencilIcon} count={author.reviewCount} />
-              <ProfileStat icon={heartIcon} count={author.likeCount} />
-            </span>
-            <span
-              aria-hidden="true"
-              className="h-2.5 border-l border-border-weak"
-            />
+            {/* 작성한 리뷰 수·받은 좋아요 수는 값이 있을 때만 보여준다. */}
+            {hasStats && (
+              <>
+                <span className="sr-only">
+                  작성한 리뷰 {author.reviewCount}개, 받은 좋아요{' '}
+                  {author.likeCount}개
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="flex items-center gap-gap-xs"
+                >
+                  <ProfileStat icon={pencilIcon} count={author.reviewCount} />
+                  <ProfileStat icon={heartIcon} count={author.likeCount} />
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="h-2.5 border-l border-border-weak"
+                />
+              </>
+            )}
             <span className="whitespace-nowrap">{createdAt}리뷰 등록</span>
           </div>
         </div>

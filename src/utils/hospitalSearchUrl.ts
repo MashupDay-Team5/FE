@@ -1,3 +1,4 @@
+import type { HospitalSearchItem } from '@/types/hospitalSearch';
 import type {
   MedicalCategory,
   Treatment,
@@ -103,6 +104,18 @@ export function getHospitalSearchUrl(
   return `/mall/university/results?${searchParams.toString()}`;
 }
 
-export function getHospitalDetailUrl(hospitalId: number) {
-  return `/mall/university/hospitals/${hospitalId}`;
+export function getHospitalDetailUrl(hospitalId: number, treatmentId: number) {
+  return `/mall/university/hospitals/${hospitalId}/treatments/${treatmentId}`;
+}
+
+// 카드의 가격 카드가 아닌 곳을 눌렀을 때 이동할 상세 경로.
+// 목록의 가격 카드는 선택한 시술로 걸러져 있으므로 첫 번째 가격 카드의 시술로 이동한다.
+export function getCardDetailPath({
+  hospitalId,
+  priceCards,
+}: Pick<HospitalSearchItem, 'hospitalId' | 'priceCards'>) {
+  const [firstPriceCard] = priceCards;
+  if (!firstPriceCard) return undefined;
+
+  return getHospitalDetailUrl(hospitalId, firstPriceCard.procedureId);
 }

@@ -29,6 +29,7 @@ type ListCardProps = {
   badges?: ReactNode;
   showDiscountIcon?: boolean;
   // 있으면 카드 전체(병원명·사진·가격 카드 등)를 눌러 상세 화면으로 이동한다.
+  // 가격 카드에 detailPath가 있으면 그 카드를 눌렀을 때는 해당 시술 상세로 이동한다.
   detailPath?: string;
   onBookmarkClick?: () => void;
 };
@@ -78,7 +79,9 @@ function ListCard({
 
     if (window.getSelection()?.toString()) return;
 
-    navigate(detailPath);
+    const priceCardPath =
+      target.closest<HTMLElement>('[data-detail-path]')?.dataset.detailPath;
+    navigate(priceCardPath ?? detailPath);
   };
 
   return (
