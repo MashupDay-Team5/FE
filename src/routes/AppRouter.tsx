@@ -10,11 +10,8 @@ import HospitalDetailPage from '@/pages/HospitalDetailPage';
 import HospitalSearchResultPage from '@/pages/HospitalSearchResultPage';
 import UniversityMallPage from '@/pages/UniversityMallPage';
 import TreatmentCategoriesRoute from './TreatmentCategoriesRoute';
-import { usePageScrollPosition } from '@/hooks/usePageScrollPosition';
 
 function AppLayoutRoute() {
-  usePageScrollPosition();
-
   return (
     <AppLayout>
       <Outlet />

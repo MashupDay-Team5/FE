@@ -1,5 +1,6 @@
 import { useTreatmentCategories } from '@/hooks/useTreatmentCategories';
 import { useHospitalListState } from '@/hooks/useHospitalListState';
+import { usePageScrollPosition } from '@/hooks/usePageScrollPosition';
 import { useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import arrowRightIcon from '@/assets/icons/arrowRight.svg';
@@ -31,7 +32,9 @@ import {
 function UniversityMallPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { categories: medicalCategories } = useTreatmentCategories();
+  const { categories: medicalCategories, status: categoriesStatus } =
+    useTreatmentCategories();
+  usePageScrollPosition(categoriesStatus !== 'loading');
   const treatmentScope = getTreatmentScope(searchParams, medicalCategories);
   const { listState, setListState, listEntryKey } =
     useHospitalListState('home');
