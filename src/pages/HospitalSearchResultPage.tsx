@@ -5,6 +5,7 @@ import FilterChip from '@/components/common/FilterChip';
 import MenuTrigger from '@/components/common/MenuTrigger';
 import Tab, { type TabItem } from '@/components/common/Tab';
 import TreatmentCategorySheet from '@/components/common/TreatmentCategorySheet';
+import TreatmentCategoriesStatus from '@/components/common/TreatmentCategoriesStatus';
 import HospitalSearchFilterSheet from '@/components/hospital/HospitalSearchFilterSheet';
 import HospitalSearchResultList from '@/components/hospital/HospitalSearchResultList';
 import Header from '@/components/layout/Header';
@@ -20,7 +21,7 @@ import {
 } from '@/constants/hospitalSearch';
 import { hospitalSearchRegions } from '@/mocks/hospitalSearch';
 import { hospitalSearchItems } from '@/mocks/hospitals';
-import { medicalCategories } from '@/mocks/treatment';
+import { useTreatmentCategories } from '@/hooks/useTreatmentCategories';
 import type { TreatmentScope } from '@/types/treatment';
 import type {
   HospitalSearchFilterState,
@@ -278,26 +279,27 @@ function HospitalSearchResultPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { categories: medicalCategories } = useTreatmentCategories();
   const treatmentScope = useMemo(
-    () => getTreatmentScope(searchParams),
-    [searchParams],
+    () => getTreatmentScope(searchParams, medicalCategories),
+    [searchParams, medicalCategories],
   );
   const [isCategorySheetOpen, setCategorySheetOpen] = useState(false);
   const categoryTriggerRef = useRef<HTMLElement>(null);
   const medicalCategory =
     medicalCategories.find(
-      ({ id }) => id === treatmentScope.medicalCategoryId,
+      ({ id }) => id === treatmentScope?.medicalCategoryId,
     ) ?? medicalCategories[0];
-  const treatmentCategory = medicalCategory.treatmentCategories.find(
-    ({ id }) => id === treatmentScope.treatmentCategoryId,
+  const treatmentCategory = medicalCategory?.treatmentCategories.find(
+    ({ id }) => id === treatmentScope?.treatmentCategoryId,
   );
   const treatments = useMemo(
     () =>
       treatmentCategory
         ? treatmentCategory.treatments
-        : medicalCategory.treatmentCategories.flatMap(
+        : (medicalCategory?.treatmentCategories.flatMap(
             ({ treatments: categoryTreatments }) => categoryTreatments,
-          ),
+          ) ?? []),
     [medicalCategory, treatmentCategory],
   );
   const selectedProcedureIds = useMemo(
@@ -447,8 +449,8 @@ function HospitalSearchResultPage() {
 
   const handleScopeSelect = (scope: TreatmentScope) => {
     if (
-      scope.medicalCategoryId === treatmentScope.medicalCategoryId &&
-      scope.treatmentCategoryId === treatmentScope.treatmentCategoryId
+      scope.medicalCategoryId === treatmentScope?.medicalCategoryId &&
+      scope.treatmentCategoryId === treatmentScope?.treatmentCategoryId
     ) {
       return;
     }
@@ -494,7 +496,10 @@ function HospitalSearchResultPage() {
               { replace: true },
             );
           }}
-          categoryName={treatmentCategory?.name ?? medicalCategory.name}
+          categoryName={
+            treatmentCategory?.name ?? medicalCategory?.name ?? '병원 검색'
+          }
+          isTitleDisabled={!treatmentScope}
           isTitleOpen={isCategorySheetOpen}
           onTitleClick={handleCategorySheetOpen}
         />
@@ -520,8 +525,10 @@ function HospitalSearchResultPage() {
           layout="fill"
         />
       </div>
-      <div
-        className="sticky z-10 -mx-padding-m flex items-center justify-between bg-surface-default px-padding-m py-padding-s"
+      <TreatmentCategoriesStatus />
+      <fieldset
+        disabled={!treatmentScope}
+        className="sticky z-10 -mx-padding-m flex items-center justify-between bg-surface-default px-padding-m py-padding-s disabled:opacity-50"
         style={{
           top: `calc(env(safe-area-inset-top) + ${treatments.length > 0 ? 100 : 52}px)`,
         }}
@@ -541,8 +548,10 @@ function HospitalSearchResultPage() {
           align="end"
           onValueChange={setSelectedSort}
         />
-      </div>
-      <HospitalSearchResultList hospitals={sortedHospitals} />
+      </fieldset>
+      {treatmentScope && (
+        <HospitalSearchResultList hospitals={sortedHospitals} />
+      )}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+20px)] z-20 mx-auto flex w-full max-w-[480px] justify-end px-padding-m">
         <button
           type="button"
@@ -553,15 +562,17 @@ function HospitalSearchResultPage() {
           지도보기
         </button>
       </div>
-      <TreatmentCategorySheet
-        isOpen={isCategorySheetOpen}
-        categories={medicalCategories}
-        selectedScope={treatmentScope}
-        onSelect={handleScopeSelect}
-        onClose={() => setCategorySheetOpen(false)}
-        triggerRef={categoryTriggerRef}
-        topOffset="calc(env(safe-area-inset-top) + 52px)"
-      />
+      {treatmentScope && (
+        <TreatmentCategorySheet
+          isOpen={isCategorySheetOpen}
+          categories={medicalCategories}
+          selectedScope={treatmentScope}
+          onSelect={handleScopeSelect}
+          onClose={() => setCategorySheetOpen(false)}
+          triggerRef={categoryTriggerRef}
+          topOffset="calc(env(safe-area-inset-top) + 52px)"
+        />
+      )}
       <HospitalSearchFilterSheet
         key={filterSheetSession}
         isOpen={isFilterSheetOpen}

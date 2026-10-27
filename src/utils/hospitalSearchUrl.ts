@@ -1,10 +1,28 @@
-import { defaultTreatmentScope } from '@/constants/treatment';
-import { medicalCategories } from '@/mocks/treatment';
-import type { Treatment, TreatmentScope } from '@/types/treatment';
+import type {
+  MedicalCategory,
+  Treatment,
+  TreatmentScope,
+} from '@/types/treatment';
 
 export function getTreatmentScope(
   searchParams: URLSearchParams,
-): TreatmentScope {
+  medicalCategories: MedicalCategory[],
+): TreatmentScope | null {
+  const defaultMedicalCategory =
+    medicalCategories.find(({ name }) => name === '안과') ??
+    medicalCategories[0];
+
+  if (!defaultMedicalCategory) {
+    return null;
+  }
+
+  const defaultTreatmentScope: TreatmentScope = {
+    medicalCategoryId: defaultMedicalCategory.id,
+    treatmentCategoryId:
+      defaultMedicalCategory.treatmentCategories.find(
+        ({ name }) => name === '시력교정술',
+      )?.id ?? null,
+  };
   const medicalCategoryValue = searchParams.get('medicalCategory');
   const treatmentCategoryValue = searchParams.get('treatmentCategory');
 
