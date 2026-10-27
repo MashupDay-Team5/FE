@@ -9,6 +9,16 @@ npm ci
 npm run dev
 ```
 
+## 환경변수 설정
+
+프로젝트 루트에 `.env.example`을 복사해 `.env`를 만듭니다.
+
+```dotenv
+VITE_API_BASE_URL=https://modoodock.shop
+```
+
+기본 주소에는 `/api`를 붙이지 않습니다. 환경변수를 변경하면 개발 서버를 다시 실행합니다. 실제 `.env` 파일은 커밋하지 않습니다.
+
 ## 커밋 전 검증
 
 ```bash
