@@ -11,7 +11,6 @@ import HospitalSearchResultList from '@/components/hospital/HospitalSearchResult
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import {
-  MAX_SELECTED_REGION_COUNT,
   defaultHospitalSortOptions,
   hospitalSearchPriceRange,
   hospitalSearchPriceStep,
@@ -19,13 +18,15 @@ import {
   hospitalSearchTreatmentConditions,
   lowestPriceSortOption,
 } from '@/constants/hospitalSearch';
-import { hospitalSearchRegions } from '@/mocks/hospitalSearch';
+import { useHospitalRegions } from '@/hooks/useHospitalRegions';
+import { normalizeRegionSelections } from '@/utils/hospitalRegions';
 import { hospitalSearchItems } from '@/mocks/hospitals';
 import { useTreatmentCategories } from '@/hooks/useTreatmentCategories';
 import type { TreatmentScope } from '@/types/treatment';
 import type {
   HospitalSearchFilterState,
   HospitalSearchRegionSelection,
+  HospitalSearchRegion,
   HospitalSearchTab,
   HospitalSearchTreatmentConditionId,
   HospitalSort,
@@ -74,17 +75,14 @@ function parsePriceRangeValue(value: string | null, fallback: number) {
 }
 
 function parseRegionSelection(value: string) {
-  const [regionIdText, districtIdText] = value.split(':');
+  const parts = value.split(':');
+  if (parts.length !== 2 || parts.some((part) => !/^\d+$/.test(part)))
+    return undefined;
+  const [regionIdText, districtIdText] = parts;
   const regionId = Number(regionIdText);
   const districtId = Number(districtIdText);
 
   if (!Number.isInteger(regionId) || !Number.isInteger(districtId)) {
-    return undefined;
-  }
-
-  const region = hospitalSearchRegions.find(({ id }) => id === regionId);
-
-  if (!region?.districts.some(({ id }) => id === districtId)) {
     return undefined;
   }
 
@@ -99,41 +97,11 @@ function parseTreatmentConditionId(value: string) {
   return treatmentCondition?.id;
 }
 
-function normalizeRegionSelections(
-  selections: HospitalSearchRegionSelection[],
-) {
-  const normalizedSelections = selections.reduce<
-    HospitalSearchRegionSelection[]
-  >((currentSelections, selection) => {
-    const region = hospitalSearchRegions.find(
-      ({ id }) => id === selection.regionId,
-    );
-
-    if (
-      !region ||
-      currentSelections.some(
-        ({ districtId }) => districtId === selection.districtId,
-      )
-    ) {
-      return currentSelections;
-    }
-
-    const wholeDistrictId = region.districts[0].id;
-    const isWholeRegion = selection.districtId === wholeDistrictId;
-    const selectionsWithoutConflicts = currentSelections.filter(
-      (currentSelection) =>
-        currentSelection.regionId !== selection.regionId ||
-        (!isWholeRegion && currentSelection.districtId !== wholeDistrictId),
-    );
-
-    return [...selectionsWithoutConflicts, selection];
-  }, []);
-
-  return normalizedSelections.slice(0, MAX_SELECTED_REGION_COUNT);
-}
-
 function getFilterState(
   searchParams: URLSearchParams,
+  regions: HospitalSearchRegion[],
+  loadedRegionIds: number[],
+  regionsReady: boolean,
 ): HospitalSearchFilterState {
   const regionSelections = searchParams
     .getAll(REGION_QUERY_KEY)
@@ -163,7 +131,9 @@ function getFilterState(
   );
 
   return {
-    regionSelections: normalizeRegionSelections(regionSelections),
+    regionSelections: regionsReady
+      ? normalizeRegionSelections(regionSelections, regions, loadedRegionIds)
+      : regionSelections,
     priceRange: {
       min: Math.min(minimumPrice, maximumPrice),
       max: Math.max(minimumPrice, maximumPrice),
@@ -183,30 +153,36 @@ function clearPriceSearchParams(searchParams: URLSearchParams) {
   searchParams.delete(MAX_PRICE_QUERY_KEY);
 }
 
-function getRegionSummaryLabel(selection: HospitalSearchRegionSelection) {
-  const region = hospitalSearchRegions.find(
-    ({ id }) => id === selection.regionId,
-  );
+function getRegionSummaryLabel(
+  selection: HospitalSearchRegionSelection,
+  regions: HospitalSearchRegion[],
+) {
+  const region = regions.find(({ id }) => id === selection.regionId);
   const district = region?.districts.find(
     ({ id }) => id === selection.districtId,
   );
 
-  if (!region || !district) {
+  if (!region) {
     return undefined;
   }
 
   const abbreviatedRegionName = region.name.replace(/특별시$|광역시$/, '');
 
-  return district.name === '전체'
+  return !district || district.id === region.id
     ? abbreviatedRegionName
     : `${abbreviatedRegionName} ${district.name}`;
 }
 
-function getFilterSummaryLabel(filterState: HospitalSearchFilterState) {
+function getFilterSummaryLabel(
+  filterState: HospitalSearchFilterState,
+  regions: HospitalSearchRegion[],
+) {
   let hiddenFilterCount = 0;
-  const regionLabel = filterState.regionSelections
-    .map(getRegionSummaryLabel)
-    .find((label) => label !== undefined);
+  const regionLabel =
+    filterState.regionSelections
+      .map((selection) => getRegionSummaryLabel(selection, regions))
+      .find((label) => label !== undefined) ??
+    (filterState.regionSelections.length > 0 ? '지역' : undefined);
 
   if (regionLabel) {
     hiddenFilterCount += filterState.regionSelections.length - 1;
@@ -276,6 +252,12 @@ const hospitalSearchTabItems: TabItem<HospitalSearchTab>[] = [
 ];
 
 function HospitalSearchResultPage() {
+  const regionOptions = useHospitalRegions();
+  const {
+    regions: hospitalSearchRegions,
+    districtStatuses,
+    loadDistricts,
+  } = regionOptions;
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -320,9 +302,34 @@ function HospitalSearchResultPage() {
   const [filterSheetSession, setFilterSheetSession] = useState(0);
   const filterTriggerRef = useRef<HTMLButtonElement>(null);
   const appliedFilterState = useMemo(
-    () => getFilterState(searchParams),
-    [searchParams],
+    () =>
+      getFilterState(
+        searchParams,
+        hospitalSearchRegions,
+        hospitalSearchRegions
+          .filter(({ id }) => districtStatuses[id] === 'success')
+          .map(({ id }) => id),
+        regionOptions.status === 'success',
+      ),
+    [
+      searchParams,
+      hospitalSearchRegions,
+      districtStatuses,
+      regionOptions.status,
+    ],
   );
+  useEffect(() => {
+    for (const value of searchParams.getAll(REGION_QUERY_KEY)) {
+      const selection = parseRegionSelection(value);
+      if (
+        selection &&
+        selection.regionId !== selection.districtId &&
+        hospitalSearchRegions.some(({ id }) => id === selection.regionId) &&
+        districtStatuses[selection.regionId] === undefined
+      )
+        loadDistricts(selection.regionId);
+    }
+  }, [searchParams, hospitalSearchRegions, districtStatuses, loadDistricts]);
   useEffect(() => {
     const nextSearchParams = new URLSearchParams(searchParams);
     const priceEntries = [
@@ -369,7 +376,7 @@ function HospitalSearchResultPage() {
             ),
           ),
         })),
-    [appliedFilterState, activeProcedureIds],
+    [appliedFilterState, activeProcedureIds, hospitalSearchRegions],
   );
   const sortedHospitals = useMemo(
     () => getSortedHospitals(filteredHospitals, selectedSort),
@@ -386,7 +393,7 @@ function HospitalSearchResultPage() {
     appliedFilterState.priceRange.max !== PRICE_MAXIMUM ||
     appliedFilterState.treatmentConditionIds.length > 0;
   const filterChipLabel = hasAppliedFilter
-    ? getFilterSummaryLabel(appliedFilterState)
+    ? getFilterSummaryLabel(appliedFilterState, hospitalSearchRegions)
     : '필터';
 
   const handleProcedureClick = (procedureId: number) => {
@@ -574,6 +581,7 @@ function HospitalSearchResultPage() {
         />
       )}
       <HospitalSearchFilterSheet
+        regionOptions={regionOptions}
         key={filterSheetSession}
         isOpen={isFilterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
