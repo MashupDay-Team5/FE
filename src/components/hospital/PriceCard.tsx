@@ -7,6 +7,8 @@ type PriceCardBaseProps = {
   originalPrice: string;
   originalPriceLabel?: string;
   className?: string;
+  // ListCard 안에서 이 카드를 누르면 카드 기본 경로 대신 이 시술의 상세 경로로 이동한다.
+  detailPath?: string;
 };
 
 type PriceCardProps =
@@ -35,6 +37,7 @@ function PriceCard({
   originalPriceLabel,
   badgeLabel,
   className,
+  detailPath,
 }: PriceCardProps) {
   const cardHeightClassName = type === 'free' ? 'h-[84px]' : 'h-[120px]';
   const cardWidthClassName =
@@ -46,6 +49,7 @@ function PriceCard({
 
   return (
     <article
+      data-detail-path={detailPath}
       className={`flex ${cardHeightClassName} min-w-[220px] flex-col overflow-hidden rounded-[var(--radius-s)] border-[0.5px] border-border-brand ${cardWidthClassName} ${className ?? ''}`}
     >
       <div className="flex h-10 items-center justify-between bg-surface-brand-weak px-padding-s py-padding-xs">
