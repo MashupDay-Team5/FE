@@ -500,7 +500,15 @@ function HospitalSearchResultPage() {
                     ? location.state.homeSearch
                     : '',
               },
-              { replace: true },
+              {
+                replace: true,
+                state: {
+                  restoreListStateKey:
+                    typeof location.state?.homeListStateKey === 'string'
+                      ? location.state.homeListStateKey
+                      : undefined,
+                },
+              },
             );
           }}
           categoryName={
