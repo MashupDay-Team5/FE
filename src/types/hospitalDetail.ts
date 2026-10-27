@@ -15,19 +15,17 @@ export type HospitalReviewPayment = {
   description?: string;
 };
 
+// 작성한 리뷰 수·받은 좋아요 수·프로필 사진은 API에서 내려주지 않아 값이 없으면 숨긴다.
 export type HospitalReviewAuthor = {
   nickname: string;
   profileImageUrl?: string;
-  reviewCount: number;
-  likeCount: number;
+  reviewCount?: number;
+  likeCount?: number;
 };
 
 // ReviewPanel에 전달할 리뷰 한 건의 구조
 export type HospitalReview = {
   reviewId: number;
-  segment: HospitalReviewSegment;
-  // 기본순 정렬에서 같은 치료 항목 리뷰를 우선 노출하기 위한 값
-  isSameTreatment: boolean;
   isReceiptVerified: boolean;
   isVisitedViaModoodoc: boolean;
   treatmentNames: string[];
@@ -37,7 +35,7 @@ export type HospitalReview = {
   payments: HospitalReviewPayment[];
   body: string;
   author: HospitalReviewAuthor;
-  // YYYY.MM.DD 형식
+  // YYYY.MM.DD 형식 (한국 시간 기준)
   createdAt: string;
   helpfulCount: number;
   isReservationVisit: boolean;
@@ -46,11 +44,11 @@ export type HospitalReview = {
 
 // 상세페이지 진료 항목 영역 정보
 export type HospitalDetailTreatment = {
+  treatmentId: number;
   name: string;
-  promotionCaption: string;
 };
 
-// 병원 상세페이지 전체 데이터 구조
+// 병원 상세페이지 상단 데이터 구조
 export type HospitalDetail = {
   hospitalId: number;
   hospitalName: string;
@@ -58,12 +56,82 @@ export type HospitalDetail = {
   rating: string;
   reviewCount: string;
   address: string;
-  imageUrl?: string;
   treatment: HospitalDetailTreatment;
-  // 관련 리뷰에서 추출한 키워드 (0~6개)
-  keywords: string[];
   relatedReviewCount: number;
   otherReviewCount: number;
-  qnaCount: number;
-  reviews: HospitalReview[];
+};
+
+// --- API 응답 ---
+
+export type HospitalDetailRegionResponse = {
+  sidoId: number | null;
+  sidoName: string | null;
+  sigunguId: number | null;
+  sigunguName: string | null;
+  dongId: number | null;
+  dongName: string | null;
+};
+
+export type HospitalDetailTreatmentResponse = {
+  treatmentId: number;
+  treatmentName: string;
+  regularPrice: number | null;
+  discountPrice: number | null;
+};
+
+export type HospitalDetailResponse = {
+  hospitalId: number;
+  hospitalName: string;
+  region: HospitalDetailRegionResponse | null;
+  rating: number | null;
+  totalReviewCount: number;
+  relatedReviewCount: number;
+  otherReviewCount: number;
+  treatment: HospitalDetailTreatmentResponse;
+};
+
+export type ReviewScopeRequest = 'RELATED' | 'OTHER';
+
+export type ReviewSortRequest =
+  'DEFAULT' | 'LATEST' | 'HIGHEST_RATING' | 'LOWEST_RATING' | 'MOST_HELPFUL';
+
+export type ReviewReceivedTreatmentResponse = {
+  treatmentId: number;
+  name: string;
+  paidPrice: number | null;
+};
+
+export type ReviewItemResponse = {
+  reviewId: number;
+  authorDisplayName: string;
+  rating: number;
+  content: string;
+  receivedTreatments: ReviewReceivedTreatmentResponse[];
+  // 리뷰 전체 결제 금액. 시술별 금액(receivedTreatments[].paidPrice)은 현재 항상 null이다.
+  paidPrice: number | null;
+  doctorName: string | null;
+  willRevisit: boolean;
+  receiptVerified: boolean;
+  modoodocVisit: boolean;
+  reservationVisit: boolean;
+  helpfulCount: number;
+  // UTC 시각 (ISO 8601)
+  createdAt: string;
+};
+
+export type ReviewListResponse = {
+  hospitalId: number;
+  treatmentId: number;
+  scope: ReviewScopeRequest;
+  items: ReviewItemResponse[];
+  totalCount: number;
+  page: number;
+  size: number;
+  hasNext: boolean;
+};
+
+export type ReviewKeywordResponse = {
+  hospitalId: number;
+  treatmentId: number;
+  keywords: string[];
 };

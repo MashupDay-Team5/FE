@@ -16,10 +16,10 @@ import ScrollToTopButton from '@/components/hospital/ScrollToTopButton';
 import ReviewPanel from '@/components/hospital/ReviewPanel';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
-import { findHospitalDetail } from '@/mocks/hospitalDetail';
+import { useHospitalDetail } from '@/hooks/useHospitalDetail';
+import { useHospitalReviews } from '@/hooks/useHospitalReviews';
 import type {
   HospitalDetailTab,
-  HospitalReview,
   HospitalReviewSegment,
   HospitalReviewSort,
 } from '@/types/hospitalDetail';
@@ -32,56 +32,49 @@ const reviewSortOptions: MenuTriggerOption<HospitalReviewSort>[] = [
   { value: 'most-helpful', label: '도움많은순' },
 ];
 
-// 작성일(YYYY.MM.DD)이 최근인 리뷰가 앞에 오도록 비교한다.
-function compareLatest(a: HospitalReview, b: HospitalReview) {
-  return b.createdAt.localeCompare(a.createdAt);
-}
-
-// 목데이터 도움 수에 화면에서 누른 '도움이 돼요'를 더한 값
-function getHelpfulCount(
-  review: HospitalReview,
-  helpfulReviewIds: Set<number>,
-) {
-  return review.helpfulCount + (helpfulReviewIds.has(review.reviewId) ? 1 : 0);
-}
-
-// API 연동 전 확인용 정렬. 기준 값이 같으면 최신순으로 정렬한다.
-// 연동 후에는 서버 정렬 결과로 대체한다.
-function sortReviews(
-  reviews: HospitalReview[],
-  sort: HospitalReviewSort,
-  helpfulReviewIds: Set<number>,
-) {
-  const compare: Record<
-    HospitalReviewSort,
-    (a: HospitalReview, b: HospitalReview) => number
-  > = {
-    // 기본순: 같은 치료 항목 리뷰를 우선 노출한다.
-    default: (a, b) => Number(b.isSameTreatment) - Number(a.isSameTreatment),
-    latest: () => 0,
-    'highest-rating': (a, b) => b.rating - a.rating,
-    'lowest-rating': (a, b) => a.rating - b.rating,
-    'most-helpful': (a, b) =>
-      getHelpfulCount(b, helpfulReviewIds) -
-      getHelpfulCount(a, helpfulReviewIds),
-  };
-
-  return [...reviews].sort(
-    (a, b) => compare[sort](a, b) || compareLatest(a, b),
-  );
-}
-
 // 관련 리뷰가 이 수보다 적으면 키워드를 공개하지 않고 관련된 리뷰 바도 숨긴다.
 const MIN_RELATED_REVIEW_COUNT = 10;
 
 // Detail Header 높이. 대표 이미지가 이만큼 Header 뒤로 지나가면 Header 배경을 보여준다.
 const HEADER_HEIGHT = 52;
 
+const STATUS_TEXT_CLASS =
+  'py-padding-l text-center typography-body-medium text-text-secondary';
+const OUTLINE_BUTTON_CLASS =
+  'flex h-11 w-full items-center justify-center rounded-[var(--radius-s)] border border-border-neutral bg-surface-default typography-body-medium text-text-primary';
+
+type RetryMessageProps = {
+  message: string;
+  onRetry: () => void;
+};
+
+// 불러오기 실패 안내와 다시 시도 버튼
+function RetryMessage({ message, onRetry }: RetryMessageProps) {
+  return (
+    <div className="flex flex-col items-center gap-gap-s px-padding-m py-padding-l">
+      <p role="alert" className="typography-body-medium text-text-secondary">
+        {message}
+      </p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="rounded-[var(--radius-s)] border border-border-neutral px-padding-m py-padding-xs typography-label-small-medium text-text-primary"
+      >
+        다시 시도
+      </button>
+    </div>
+  );
+}
+
 function HospitalDetailPage() {
-  const { hospitalId } = useParams();
+  const params = useParams();
+  const hospitalId = Number(params.hospitalId);
+  const treatmentId = Number(params.treatmentId);
   const navigate = useNavigate();
   const location = useLocation();
-  const hospital = findHospitalDetail(Number(hospitalId));
+  const detail = useHospitalDetail(hospitalId, treatmentId);
+  const hospital = detail.status === 'success' ? detail.hospital : null;
+  const isHospitalLoaded = hospital !== null;
   const heroImageRef = useRef<HTMLDivElement>(null);
   const reviewSectionRef = useRef<HTMLElement>(null);
   const [isHeroVisible, setHeroVisible] = useState(true);
@@ -90,13 +83,17 @@ function HospitalDetailPage() {
     useState<HospitalReviewSegment>('related');
   const [selectedSort, setSelectedSort] =
     useState<HospitalReviewSort>('default');
-  // API 연동 전까지 '도움이 돼요'를 누른 리뷰 ID를 화면에서만 관리한다.
+  // '도움이 돼요' API가 없어 누른 리뷰 ID를 화면에서만 관리한다.
   const [helpfulReviewIds, setHelpfulReviewIds] = useState<Set<number>>(
     () => new Set(),
   );
-  // 누르자마자 카드 순서가 바뀌지 않도록, 정렬은 정렬 기준을 고른 시점의 값으로 계산한다.
-  const [sortedHelpfulReviewIds, setSortedHelpfulReviewIds] =
-    useState(helpfulReviewIds);
+  const reviewList = useHospitalReviews({
+    hospitalId,
+    treatmentId,
+    segment: selectedSegment,
+    sort: selectedSort,
+    enabled: isHospitalLoaded,
+  });
 
   // 대표 이미지가 Header 뒤로 완전히 지나가면 Header 배경과 타이틀을 보여준다.
   useEffect(() => {
@@ -110,7 +107,7 @@ function HospitalDetailPage() {
     observer.observe(heroImage);
 
     return () => observer.disconnect();
-  }, [hospital]);
+  }, [isHospitalLoaded]);
 
   // 앱 안에서 들어왔으면 이전 화면으로, 주소로 바로 들어왔으면(이전 기록 없음) 홈으로 이동한다.
   const handleBackClick = () => {
@@ -135,21 +132,32 @@ function HospitalDetailPage() {
             onHomeClick={handleHomeClick}
           />
         </TopArea>
-        <p className="py-padding-l text-center typography-body-medium text-text-secondary">
-          병원 정보를 찾을 수 없어요.
-        </p>
+        {detail.status === 'loading' && (
+          <p role="status" className={STATUS_TEXT_CLASS}>
+            병원 정보를 불러오는 중이에요.
+          </p>
+        )}
+        {detail.status === 'not-found' && (
+          <p className={STATUS_TEXT_CLASS}>병원 정보를 찾을 수 없어요.</p>
+        )}
+        {detail.status === 'error' && (
+          <RetryMessage
+            message="병원 정보를 불러오지 못했어요."
+            onRetry={detail.retry}
+          />
+        )}
       </>
     );
   }
 
-  // 가격·Q&A 탭은 디자인 확정 전까지 비활성화한다.
+  // 가격·Q&A 탭은 디자인 확정 전까지 비활성화한다. Q&A 수는 API에 없어 표시하지 않는다.
   const tabItems: TabItem<HospitalDetailTab>[] = [
     { value: 'price', label: '가격', disabled: true },
     {
       value: 'review',
       label: `리뷰(${hospital.relatedReviewCount + hospital.otherReviewCount})`,
     },
-    { value: 'qna', label: `Q&A(${hospital.qnaCount})`, disabled: true },
+    { value: 'qna', label: 'Q&A', disabled: true },
   ];
   const segmentItems: SegmentControlItem<HospitalReviewSegment>[] = [
     { value: 'related', label: `관련 리뷰 (${hospital.relatedReviewCount})` },
@@ -164,11 +172,6 @@ function HospitalDetailPage() {
   const selectedSortOption =
     reviewSortOptions.find(({ value }) => value === selectedSort) ??
     reviewSortOptions[0];
-  const segmentReviews = sortReviews(
-    hospital.reviews.filter(({ segment }) => segment === selectedSegment),
-    selectedSort,
-    sortedHelpfulReviewIds,
-  );
   const selectedSegmentReviewCount =
     selectedSegment === 'related'
       ? hospital.relatedReviewCount
@@ -179,12 +182,6 @@ function HospitalDetailPage() {
     setSelectedTab('review');
     setSelectedSegment('related');
     reviewSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  // 같은 정렬 기준을 다시 골라도 그 시점의 도움 수로 다시 정렬한다.
-  const handleSortChange = (sort: HospitalReviewSort) => {
-    setSelectedSort(sort);
-    setSortedHelpfulReviewIds(helpfulReviewIds);
   };
 
   const handleHelpfulChange = (reviewId: number, isHelpful: boolean) => {
@@ -218,13 +215,7 @@ function HospitalDetailPage() {
           ref={heroImageRef}
           className="-mt-[calc(52px+env(safe-area-inset-top))] aspect-[375/216] w-full bg-surface-weak"
         >
-          {hospital.imageUrl && (
-            <img
-              src={hospital.imageUrl}
-              alt=""
-              className="size-full object-cover"
-            />
-          )}
+          {/* 대표 이미지는 API에 아직 없어 placeholder만 보여준다. */}
         </div>
 
         <HospitalDetailTitle
@@ -249,20 +240,9 @@ function HospitalDetailPage() {
               <img src={bookmarkIcon} alt="" width={28} height={28} />
             </button>
           </div>
-          {/* 캡션 줄: 높이 44 안에서 글자를 세로 가운데 정렬한다. 더보기는 동작 없이 UI만 둔다. */}
-          <div className="flex h-11 min-w-0 items-center gap-gap-xs typography-label-small-regular leading-[18px] font-medium">
-            <p className="truncate text-text-primary">
-              {hospital.treatment.promotionCaption}
-            </p>
-            <button
-              type="button"
-              className="shrink-0 text-text-tertiary underline"
-            >
-              더보기
-            </button>
-          </div>
+          {/* 프로모션 캡션 줄은 API에 문구가 생기면 다시 추가한다. */}
           <ReviewKeywords
-            keywords={hospital.keywords}
+            keywords={detail.keywords}
             isLocked={!hasEnoughRelatedReviews}
           />
         </section>
@@ -311,22 +291,62 @@ function HospitalDetailPage() {
               options={reviewSortOptions}
               selectedValue={selectedSort}
               align="end"
-              onValueChange={handleSortChange}
+              onValueChange={setSelectedSort}
             />
           </div>
+          {reviewList.status === 'loading' && (
+            <p role="status" className={STATUS_TEXT_CLASS}>
+              리뷰를 불러오는 중이에요.
+            </p>
+          )}
+          {reviewList.status === 'error' && (
+            <RetryMessage
+              message="리뷰를 불러오지 못했어요."
+              onRetry={reviewList.retry}
+            />
+          )}
+          {reviewList.status === 'success' &&
+            reviewList.reviews.length === 0 && (
+              <p className={STATUS_TEXT_CLASS}>아직 리뷰가 없어요.</p>
+            )}
           {/* 리뷰 카드 사이 16px은 Figma 시안 간격을 재서 맞춘 값이다. */}
-          <div className="flex flex-col gap-gap-l">
-            {segmentReviews.map((review) => (
-              <ReviewPanel
-                key={review.reviewId}
-                review={review}
-                isHelpful={helpfulReviewIds.has(review.reviewId)}
-                onHelpfulChange={(isHelpful) =>
-                  handleHelpfulChange(review.reviewId, isHelpful)
-                }
-              />
-            ))}
-          </div>
+          {reviewList.status === 'success' && reviewList.reviews.length > 0 && (
+            <div className="flex flex-col gap-gap-l">
+              {reviewList.reviews.map((review) => (
+                <ReviewPanel
+                  key={review.reviewId}
+                  review={review}
+                  isHelpful={helpfulReviewIds.has(review.reviewId)}
+                  onHelpfulChange={(isHelpful) =>
+                    handleHelpfulChange(review.reviewId, isHelpful)
+                  }
+                />
+              ))}
+            </div>
+          )}
+          {reviewList.status === 'success' && reviewList.hasNext && (
+            <div className="px-padding-m pt-padding-l">
+              {reviewList.loadMoreStatus === 'error' && (
+                <p
+                  role="alert"
+                  className="pb-padding-xs text-center typography-label-small-medium text-text-secondary"
+                >
+                  리뷰를 더 불러오지 못했어요. 다시 눌러 주세요.
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={reviewList.loadMore}
+                disabled={reviewList.loadMoreStatus === 'loading'}
+                aria-busy={reviewList.loadMoreStatus === 'loading'}
+                className={OUTLINE_BUTTON_CLASS}
+              >
+                {reviewList.loadMoreStatus === 'loading'
+                  ? '불러오는 중'
+                  : '더보기'}
+              </button>
+            </div>
+          )}
         </section>
       </div>
 
