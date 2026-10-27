@@ -17,6 +17,7 @@ import ReviewPanel from '@/components/hospital/ReviewPanel';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import { findHospitalDetail } from '@/mocks/hospitalDetail';
+import { usePageScrollPosition } from '@/hooks/usePageScrollPosition';
 import type {
   HospitalDetailTab,
   HospitalReview,
@@ -78,6 +79,7 @@ const MIN_RELATED_REVIEW_COUNT = 10;
 const HEADER_HEIGHT = 52;
 
 function HospitalDetailPage() {
+  usePageScrollPosition();
   const { hospitalId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();

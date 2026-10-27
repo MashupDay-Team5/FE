@@ -23,6 +23,7 @@ import { normalizeRegionSelections } from '@/utils/hospitalRegions';
 import { hospitalSearchItems } from '@/mocks/hospitals';
 import { useTreatmentCategories } from '@/hooks/useTreatmentCategories';
 import { useHospitalListState } from '@/hooks/useHospitalListState';
+import { usePageScrollPosition } from '@/hooks/usePageScrollPosition';
 import type { TreatmentScope } from '@/types/treatment';
 import type {
   HospitalSearchFilterState,
@@ -262,7 +263,8 @@ function HospitalSearchResultPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { categories: medicalCategories } = useTreatmentCategories();
+  const { categories: medicalCategories, status: categoriesStatus } =
+    useTreatmentCategories();
   const treatmentScope = useMemo(
     () => getTreatmentScope(searchParams, medicalCategories),
     [searchParams, medicalCategories],
@@ -319,6 +321,16 @@ function HospitalSearchResultPage() {
       districtStatuses,
       regionOptions.status,
     ],
+  );
+  const areSelectedRegionsReady =
+    !searchParams.has(REGION_QUERY_KEY) ||
+    (regionOptions.status === 'success' &&
+      appliedFilterState.regionSelections.every(
+        ({ regionId, districtId }) =>
+          regionId === districtId || districtStatuses[regionId] === 'success',
+      ));
+  usePageScrollPosition(
+    categoriesStatus === 'success' && areSelectedRegionsReady,
   );
   useEffect(() => {
     for (const value of searchParams.getAll(REGION_QUERY_KEY)) {
