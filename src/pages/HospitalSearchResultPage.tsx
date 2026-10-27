@@ -324,16 +324,13 @@ function HospitalSearchResultPage() {
   );
   const areSelectedRegionsReady =
     !searchParams.has(REGION_QUERY_KEY) ||
-    regionOptions.status === 'error' ||
     (regionOptions.status === 'success' &&
       appliedFilterState.regionSelections.every(
         ({ regionId, districtId }) =>
-          regionId === districtId ||
-          districtStatuses[regionId] === 'success' ||
-          districtStatuses[regionId] === 'error',
+          regionId === districtId || districtStatuses[regionId] === 'success',
       ));
   usePageScrollPosition(
-    categoriesStatus !== 'loading' && areSelectedRegionsReady,
+    categoriesStatus === 'success' && areSelectedRegionsReady,
   );
   useEffect(() => {
     for (const value of searchParams.getAll(REGION_QUERY_KEY)) {

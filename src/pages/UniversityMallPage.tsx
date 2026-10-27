@@ -34,7 +34,7 @@ function UniversityMallPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { categories: medicalCategories, status: categoriesStatus } =
     useTreatmentCategories();
-  usePageScrollPosition(categoriesStatus !== 'loading');
+  usePageScrollPosition(categoriesStatus === 'success');
   const treatmentScope = getTreatmentScope(searchParams, medicalCategories);
   const { listState, setListState, listEntryKey } =
     useHospitalListState('home');
