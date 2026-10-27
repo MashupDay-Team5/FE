@@ -204,7 +204,10 @@ function RegionLoading() {
   }, []);
 
   return (
-    <div role="status" aria-label="지역 선택지 로딩 중" className="w-full">
+    <div role="status" aria-atomic="true" className="w-full">
+      {showPlaceholder && (
+        <span className="sr-only">지역 선택지를 불러오는 중이에요.</span>
+      )}
       {showPlaceholder && (
         <div aria-hidden="true">
           {[0, 1, 2, 3].map((index) => (

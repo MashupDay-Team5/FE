@@ -10,7 +10,10 @@ function TreatmentCategoriesLoading() {
   }, []);
 
   return (
-    <div role="status" aria-label="진료 선택지 로딩 중">
+    <div role="status" aria-atomic="true">
+      {showPlaceholder && (
+        <span className="sr-only">진료 선택지를 불러오는 중이에요.</span>
+      )}
       {showPlaceholder && (
         <div
           aria-hidden="true"
