@@ -160,17 +160,19 @@ function UniversityMallPage() {
         </button>
 
         {/* 진료 항목 퀵필터: 스크롤 시 Header 바로 아래에 고정한다. */}
-        <div className="scrollbar-hidden sticky top-[calc(env(safe-area-inset-top)+52px)] z-[5] -mx-padding-m flex gap-gap-xs overflow-x-auto bg-surface-default py-padding-xs pl-padding-m">
-          {treatments.map((treatment) => (
-            <FilterChip
-              key={treatment.id}
-              label={treatment.name}
-              selected={selectedProcedureIds.includes(treatment.id)}
-              onClick={() => handleProcedureClick(treatment.id)}
-            />
-          ))}
-          <div aria-hidden="true" className="h-8 w-4 shrink-0" />
-        </div>
+        {treatments.length > 0 && (
+          <div className="scrollbar-hidden sticky top-[calc(env(safe-area-inset-top)+52px)] z-[5] -mx-padding-m flex gap-gap-xs overflow-x-auto bg-surface-default py-padding-xs pl-padding-m">
+            {treatments.map((treatment) => (
+              <FilterChip
+                key={treatment.id}
+                label={treatment.name}
+                selected={selectedProcedureIds.includes(treatment.id)}
+                onClick={() => handleProcedureClick(treatment.id)}
+              />
+            ))}
+            <div aria-hidden="true" className="h-8 w-4 shrink-0" />
+          </div>
+        )}
 
         <TreatmentCategoriesStatus />
 
