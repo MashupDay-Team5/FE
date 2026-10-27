@@ -13,13 +13,9 @@ import TopArea from '@/components/layout/TopArea';
 import {
   defaultHospitalSortOptions,
   hospitalSearchPriceRange,
-  hospitalSearchPriceStep,
-  hospitalSearchPriceUnitInWon,
-  hospitalSearchTreatmentConditions,
   lowestPriceSortOption,
 } from '@/constants/hospitalSearch';
 import { useHospitalRegions } from '@/hooks/useHospitalRegions';
-import { normalizeRegionSelections } from '@/utils/hospitalRegions';
 import { hospitalSearchItems } from '@/mocks/hospitals';
 import { useTreatmentCategories } from '@/hooks/useTreatmentCategories';
 import { useHospitalListState } from '@/hooks/useHospitalListState';
@@ -27,10 +23,7 @@ import { usePageScrollPosition } from '@/hooks/usePageScrollPosition';
 import type { TreatmentScope } from '@/types/treatment';
 import type {
   HospitalSearchFilterState,
-  HospitalSearchRegionSelection,
-  HospitalSearchRegion,
   HospitalSearchTab,
-  HospitalSearchTreatmentConditionId,
   HospitalSort,
 } from '@/types/hospitalSearch';
 import {
@@ -40,211 +33,19 @@ import {
 } from '@/utils/hospitalSearch';
 import {
   getSelectedProcedureIds,
+  REGION_QUERY_KEY,
+  parseRegionSelection,
+  getFilterState,
+  getFilterSearchParams,
+  getScopeSearchParams,
+  getProcedureSearchParams,
+  getNormalizedPriceSearchParams,
   getTreatmentScope,
 } from '@/utils/hospitalSearchUrl';
+import { getFilterSummaryLabel } from '@/utils/hospitalFilterSummary';
 
 const PRICE_MINIMUM = hospitalSearchPriceRange.min;
 const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
-const PRICE_UNIT_IN_WON = hospitalSearchPriceUnitInWon;
-const MEDICAL_CATEGORY_QUERY_KEY = 'medicalCategory';
-const TREATMENT_CATEGORY_QUERY_KEY = 'treatmentCategory';
-const PROCEDURE_QUERY_KEY = 'procedure';
-const REGION_QUERY_KEY = 'region';
-const MIN_PRICE_QUERY_KEY = 'minPrice';
-const MAX_PRICE_QUERY_KEY = 'maxPrice';
-const TREATMENT_CONDITION_QUERY_KEY = 'treatmentCondition';
-const MAX_FILTER_SUMMARY_LENGTH = 20;
-
-function parsePriceRangeValue(value: string | null, fallback: number) {
-  if (!value) {
-    return fallback;
-  }
-
-  const priceInWon = Number(value);
-
-  if (!Number.isFinite(priceInWon)) {
-    return fallback;
-  }
-
-  return Math.min(
-    PRICE_MAXIMUM,
-    Math.max(
-      PRICE_MINIMUM,
-      Math.round(priceInWon / PRICE_UNIT_IN_WON / hospitalSearchPriceStep) *
-        hospitalSearchPriceStep,
-    ),
-  );
-}
-
-function parseRegionSelection(value: string) {
-  const parts = value.split(':');
-  if (parts.length !== 2 || parts.some((part) => !/^\d+$/.test(part)))
-    return undefined;
-  const [regionIdText, districtIdText] = parts;
-  const regionId = Number(regionIdText);
-  const districtId = Number(districtIdText);
-
-  if (!Number.isInteger(regionId) || !Number.isInteger(districtId)) {
-    return undefined;
-  }
-
-  return { regionId, districtId };
-}
-
-function parseTreatmentConditionId(value: string) {
-  const treatmentCondition = hospitalSearchTreatmentConditions.find(
-    ({ id }) => id === value,
-  );
-
-  return treatmentCondition?.id;
-}
-
-function getFilterState(
-  searchParams: URLSearchParams,
-  regions: HospitalSearchRegion[],
-  loadedRegionIds: number[],
-  regionsReady: boolean,
-): HospitalSearchFilterState {
-  const regionSelections = searchParams
-    .getAll(REGION_QUERY_KEY)
-    .map(parseRegionSelection)
-    .filter(
-      (selection): selection is HospitalSearchRegionSelection =>
-        selection !== undefined,
-    );
-  const minimumPrice = parsePriceRangeValue(
-    searchParams.get(MIN_PRICE_QUERY_KEY),
-    PRICE_MINIMUM,
-  );
-  const maximumPrice = parsePriceRangeValue(
-    searchParams.get(MAX_PRICE_QUERY_KEY),
-    PRICE_MAXIMUM,
-  );
-  const treatmentConditionIds = Array.from(
-    new Set(
-      searchParams
-        .getAll(TREATMENT_CONDITION_QUERY_KEY)
-        .map(parseTreatmentConditionId)
-        .filter(
-          (conditionId): conditionId is HospitalSearchTreatmentConditionId =>
-            conditionId !== undefined,
-        ),
-    ),
-  );
-
-  return {
-    regionSelections: regionsReady
-      ? normalizeRegionSelections(regionSelections, regions, loadedRegionIds)
-      : regionSelections,
-    priceRange: {
-      min: Math.min(minimumPrice, maximumPrice),
-      max: Math.max(minimumPrice, maximumPrice),
-    },
-    treatmentConditionIds,
-  };
-}
-
-function clearFilterSearchParams(searchParams: URLSearchParams) {
-  searchParams.delete(REGION_QUERY_KEY);
-  clearPriceSearchParams(searchParams);
-  searchParams.delete(TREATMENT_CONDITION_QUERY_KEY);
-}
-
-function clearPriceSearchParams(searchParams: URLSearchParams) {
-  searchParams.delete(MIN_PRICE_QUERY_KEY);
-  searchParams.delete(MAX_PRICE_QUERY_KEY);
-}
-
-function getRegionSummaryLabel(
-  selection: HospitalSearchRegionSelection,
-  regions: HospitalSearchRegion[],
-) {
-  const region = regions.find(({ id }) => id === selection.regionId);
-  const district = region?.districts.find(
-    ({ id }) => id === selection.districtId,
-  );
-
-  if (!region) {
-    return undefined;
-  }
-
-  const abbreviatedRegionName = region.name.replace(/특별시$|광역시$/, '');
-
-  return !district || district.id === region.id
-    ? abbreviatedRegionName
-    : `${abbreviatedRegionName} ${district.name}`;
-}
-
-function getFilterSummaryLabel(
-  filterState: HospitalSearchFilterState,
-  regions: HospitalSearchRegion[],
-) {
-  let hiddenFilterCount = 0;
-  const regionLabel =
-    filterState.regionSelections
-      .map((selection) => getRegionSummaryLabel(selection, regions))
-      .find((label) => label !== undefined) ??
-    (filterState.regionSelections.length > 0 ? '지역' : undefined);
-
-  if (regionLabel) {
-    hiddenFilterCount += filterState.regionSelections.length - 1;
-  }
-
-  const hasPriceFilter =
-    filterState.priceRange.min !== PRICE_MINIMUM ||
-    filterState.priceRange.max !== PRICE_MAXIMUM;
-
-  let priceLabel = hasPriceFilter
-    ? `${filterState.priceRange.min}만원~${filterState.priceRange.max}만원`
-    : undefined;
-
-  const treatmentCondition = hospitalSearchTreatmentConditions.find(({ id }) =>
-    filterState.treatmentConditionIds.includes(id),
-  );
-
-  let treatmentConditionLabel = treatmentCondition?.label;
-
-  if (treatmentConditionLabel) {
-    hiddenFilterCount += filterState.treatmentConditionIds.length - 1;
-  }
-
-  const getSummaryLabel = () => {
-    const summaryLabels = [regionLabel, priceLabel, treatmentConditionLabel];
-    const suffix = hiddenFilterCount > 0 ? ` 외 ${hiddenFilterCount}` : '';
-
-    return `${summaryLabels.filter(Boolean).join(', ')}${suffix}`;
-  };
-  let summaryLabel = getSummaryLabel();
-
-  if (
-    Array.from(summaryLabel).length > MAX_FILTER_SUMMARY_LENGTH &&
-    priceLabel &&
-    (regionLabel || treatmentConditionLabel)
-  ) {
-    priceLabel = undefined;
-    hiddenFilterCount += 1;
-    summaryLabel = getSummaryLabel();
-  }
-
-  const overflowLength =
-    Array.from(summaryLabel).length - MAX_FILTER_SUMMARY_LENGTH;
-
-  if (overflowLength > 0 && treatmentConditionLabel) {
-    const conditionCharacters = Array.from(treatmentConditionLabel);
-    const ellipsis = '...';
-    const visibleCharacterCount = Math.max(
-      0,
-      conditionCharacters.length - overflowLength - ellipsis.length,
-    );
-
-    treatmentConditionLabel = `${conditionCharacters
-      .slice(0, visibleCharacterCount)
-      .join('')}${ellipsis}`;
-    summaryLabel = getSummaryLabel();
-  }
-
-  return summaryLabel;
-}
 
 const hospitalSearchTabItems: TabItem<HospitalSearchTab>[] = [
   { value: 'integrated', label: '통합', disabled: true },
@@ -345,17 +146,10 @@ function HospitalSearchResultPage() {
     }
   }, [searchParams, hospitalSearchRegions, districtStatuses, loadDistricts]);
   useEffect(() => {
-    const nextSearchParams = new URLSearchParams(searchParams);
-    const priceEntries = [
-      [MIN_PRICE_QUERY_KEY, appliedFilterState.priceRange.min],
-      [MAX_PRICE_QUERY_KEY, appliedFilterState.priceRange.max],
-    ] as const;
-
-    for (const [queryKey, price] of priceEntries) {
-      if (searchParams.has(queryKey)) {
-        nextSearchParams.set(queryKey, String(price * PRICE_UNIT_IN_WON));
-      }
-    }
+    const nextSearchParams = getNormalizedPriceSearchParams(
+      searchParams,
+      appliedFilterState.priceRange,
+    );
 
     if (nextSearchParams.toString() !== searchParams.toString()) {
       setSearchParams(nextSearchParams, {
@@ -418,42 +212,16 @@ function HospitalSearchResultPage() {
     const nextProcedureIds = selectedProcedureIds.includes(procedureId)
       ? selectedProcedureIds.filter((id) => id !== procedureId)
       : [...selectedProcedureIds, procedureId];
-    const nextSearchParams = new URLSearchParams(searchParams);
-
-    nextSearchParams.delete(PROCEDURE_QUERY_KEY);
-    nextProcedureIds.forEach((id) => {
-      nextSearchParams.append(PROCEDURE_QUERY_KEY, String(id));
-    });
+    const nextSearchParams = getProcedureSearchParams(
+      searchParams,
+      nextProcedureIds,
+    );
 
     setSearchParams(nextSearchParams, { state: location.state });
   };
 
   const handleFilterApply = (filterState: HospitalSearchFilterState) => {
-    const nextSearchParams = new URLSearchParams(searchParams);
-
-    clearFilterSearchParams(nextSearchParams);
-
-    filterState.regionSelections.forEach(({ regionId, districtId }) => {
-      nextSearchParams.append(REGION_QUERY_KEY, `${regionId}:${districtId}`);
-    });
-
-    if (filterState.priceRange.min !== PRICE_MINIMUM) {
-      nextSearchParams.set(
-        MIN_PRICE_QUERY_KEY,
-        String(filterState.priceRange.min * PRICE_UNIT_IN_WON),
-      );
-    }
-
-    if (filterState.priceRange.max !== PRICE_MAXIMUM) {
-      nextSearchParams.set(
-        MAX_PRICE_QUERY_KEY,
-        String(filterState.priceRange.max * PRICE_UNIT_IN_WON),
-      );
-    }
-
-    filterState.treatmentConditionIds.forEach((conditionId) => {
-      nextSearchParams.append(TREATMENT_CONDITION_QUERY_KEY, conditionId);
-    });
+    const nextSearchParams = getFilterSearchParams(searchParams, filterState);
 
     setSearchParams(nextSearchParams, { state: location.state });
     setFilterSheetOpen(false);
@@ -480,19 +248,8 @@ function HospitalSearchResultPage() {
       return;
     }
 
-    const nextSearchParams = new URLSearchParams(searchParams);
+    const nextSearchParams = getScopeSearchParams(searchParams, scope);
 
-    nextSearchParams.set(
-      MEDICAL_CATEGORY_QUERY_KEY,
-      String(scope.medicalCategoryId),
-    );
-    nextSearchParams.set(
-      TREATMENT_CATEGORY_QUERY_KEY,
-      scope.treatmentCategoryId === null
-        ? 'all'
-        : String(scope.treatmentCategoryId),
-    );
-    nextSearchParams.delete(PROCEDURE_QUERY_KEY);
     setSearchParams(nextSearchParams, { state: location.state });
   };
 
