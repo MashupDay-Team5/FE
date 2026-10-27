@@ -1,10 +1,11 @@
-import { medicalCategories } from '@/mocks/treatment';
+import { useTreatmentCategories } from '@/hooks/useTreatmentCategories';
 import { useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import arrowRightIcon from '@/assets/icons/arrowRight.svg';
 import FilterChip from '@/components/common/FilterChip';
 import MenuTrigger from '@/components/common/MenuTrigger';
 import TreatmentCategorySheet from '@/components/common/TreatmentCategorySheet';
+import TreatmentCategoriesStatus from '@/components/common/TreatmentCategoriesStatus';
 import BottomNav from '@/components/layout/BottomNav';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
@@ -30,7 +31,8 @@ const HOSPITAL_PAGE_SIZE = 8;
 function UniversityMallPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const treatmentScope = getTreatmentScope(searchParams);
+  const { categories: medicalCategories } = useTreatmentCategories();
+  const treatmentScope = getTreatmentScope(searchParams, medicalCategories);
   const [selectedSort, setSelectedSort] =
     useState<HospitalSort>('most-visited');
   const [visibleHospitalCount, setVisibleHospitalCount] =
@@ -40,23 +42,27 @@ function UniversityMallPage() {
 
   const medicalCategory =
     medicalCategories.find(
-      ({ id }) => id === treatmentScope.medicalCategoryId,
+      ({ id }) => id === treatmentScope?.medicalCategoryId,
     ) ?? medicalCategories[0];
-  const treatmentCategory = medicalCategory.treatmentCategories.find(
-    ({ id }) => id === treatmentScope.treatmentCategoryId,
+  const treatmentCategory = medicalCategory?.treatmentCategories.find(
+    ({ id }) => id === treatmentScope?.treatmentCategoryId,
   );
   // '전체'를 고르면 진료과의 모든 시술을 퀵필터로 보여준다.
   const treatments = treatmentCategory
     ? treatmentCategory.treatments
-    : medicalCategory.treatmentCategories.flatMap(
+    : (medicalCategory?.treatmentCategories.flatMap(
         ({ treatments: categoryTreatments }) => categoryTreatments,
-      );
+      ) ?? []);
   const selectedProcedureIds = getSelectedProcedureIds(
     searchParams,
     treatments,
   );
 
   const handleProcedureClick = (procedureId: number) => {
+    if (!treatmentScope) {
+      return;
+    }
+
     const nextProcedureIds = selectedProcedureIds.includes(procedureId)
       ? selectedProcedureIds.filter((id) => id !== procedureId)
       : [...selectedProcedureIds, procedureId];
@@ -69,8 +75,8 @@ function UniversityMallPage() {
 
   const handleScopeSelect = (scope: TreatmentScope) => {
     if (
-      scope.medicalCategoryId === treatmentScope.medicalCategoryId &&
-      scope.treatmentCategoryId === treatmentScope.treatmentCategoryId
+      scope.medicalCategoryId === treatmentScope?.medicalCategoryId &&
+      scope.treatmentCategoryId === treatmentScope?.treatmentCategoryId
     ) {
       return;
     }
@@ -117,7 +123,12 @@ function UniversityMallPage() {
           schoolName="5팀대학교"
           onSearchClick={() =>
             navigate(
-              getHospitalSearchUrl(treatmentScope, selectedProcedureIds),
+              treatmentScope
+                ? getHospitalSearchUrl(treatmentScope, selectedProcedureIds)
+                : {
+                    pathname: '/mall/university/results',
+                    search: searchParams.toString(),
+                  },
               {
                 state: { homeSearch: searchParams.toString() },
               },
@@ -134,11 +145,14 @@ function UniversityMallPage() {
           type="button"
           aria-haspopup="dialog"
           aria-expanded={isCategorySheetOpen}
+          disabled={!treatmentScope}
           onClick={() => setCategorySheetOpen(true)}
-          className="mt-padding-m mb-gap-xs flex h-9 items-center"
+          className="mt-padding-m mb-gap-xs flex h-9 items-center disabled:opacity-50"
         >
           <span className="typography-heading-bold text-text-strong">
-            {medicalCategory.name} · {treatmentCategory?.name ?? '전체'}
+            {medicalCategory
+              ? `${medicalCategory.name} · ${treatmentCategory?.name ?? '전체'}`
+              : '진료 선택'}
           </span>
           <span className="flex size-6 shrink-0 items-center justify-center">
             <img src={arrowRightIcon} alt="" />
@@ -158,31 +172,38 @@ function UniversityMallPage() {
           <div aria-hidden="true" className="h-8 w-4 shrink-0" />
         </div>
 
+        <TreatmentCategoriesStatus />
+
         <MenuTrigger<HospitalSort>
           label={selectedSortOption.label}
           size="s"
           options={sortOptions}
           selectedValue={selectedSortOption.value}
           onValueChange={setSelectedSort}
+          disabled={!treatmentScope}
         />
 
-        <MallHospitalList
-          hospitals={visibleHospitals}
-          hasMore={visibleHospitalCount < filteredHospitals.length}
-          onMoreClick={() =>
-            setVisibleHospitalCount((count) => count + HOSPITAL_PAGE_SIZE)
-          }
-        />
+        {treatmentScope && (
+          <MallHospitalList
+            hospitals={visibleHospitals}
+            hasMore={visibleHospitalCount < filteredHospitals.length}
+            onMoreClick={() =>
+              setVisibleHospitalCount((count) => count + HOSPITAL_PAGE_SIZE)
+            }
+          />
+        )}
       </div>
 
-      <TreatmentCategorySheet
-        isOpen={isCategorySheetOpen}
-        categories={medicalCategories}
-        selectedScope={treatmentScope}
-        onSelect={handleScopeSelect}
-        onClose={() => setCategorySheetOpen(false)}
-        triggerRef={scopeTriggerRef}
-      />
+      {treatmentScope && (
+        <TreatmentCategorySheet
+          isOpen={isCategorySheetOpen}
+          categories={medicalCategories}
+          selectedScope={treatmentScope}
+          onSelect={handleScopeSelect}
+          onClose={() => setCategorySheetOpen(false)}
+          triggerRef={scopeTriggerRef}
+        />
+      )}
       <BottomNav selected="home" />
     </>
   );

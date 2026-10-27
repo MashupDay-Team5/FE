@@ -28,6 +28,7 @@ type MenuTriggerProps<T extends string> = {
   onClick?: () => void;
   onOpenChange?: (open: boolean) => void;
   onValueChange?: (value: T) => void;
+  disabled?: boolean;
 };
 
 function MenuTrigger<T extends string>({
@@ -41,6 +42,7 @@ function MenuTrigger<T extends string>({
   onClick,
   onOpenChange,
   onValueChange,
+  disabled = false,
 }: MenuTriggerProps<T>) {
   const [isUncontrolledOpen, setIsUncontrolledOpen] = useState(false);
   const menuTriggerRef = useRef<HTMLDivElement>(null);
@@ -188,13 +190,14 @@ function MenuTrigger<T extends string>({
       <button
         ref={triggerButtonRef}
         type="button"
+        disabled={disabled}
         aria-expanded={hasOptions || isSheetTrigger ? isOpen : undefined}
         aria-haspopup={
           hasOptions ? 'menu' : isSheetTrigger ? 'dialog' : undefined
         }
         onClick={handleTriggerClick}
         onKeyDown={handleTriggerKeyDown}
-        className={`flex items-center ${size === 'm' ? 'h-11 gap-gap-xs' : 'h-[34px]'}`}
+        className={`flex items-center disabled:opacity-50 ${size === 'm' ? 'h-11 gap-gap-xs' : 'h-[34px]'}`}
       >
         {size === 'm' ? (
           <span className="whitespace-nowrap text-text-primary">
