@@ -146,7 +146,7 @@ function UniversityMallPage() {
       <TopArea>
         <Header
           type="MainHome"
-          schoolName="5팀대학교"
+          schoolName="세오스대학교"
           onBookmarkClick={() => showToast(UNSUPPORTED_FEATURE_MESSAGE)}
           onSearchClick={() =>
             navigate(
