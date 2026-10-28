@@ -1,6 +1,3 @@
-import badgeDiscountIcon from '@/assets/icons/badgeDiscount.svg';
-import Badge from '@/components/common/Badge';
-
 type PriceCardBaseProps = {
   width?: 'fill' | 'fixed' | 'flex';
   procedureName: string;
@@ -11,19 +8,12 @@ type PriceCardBaseProps = {
 
 type PriceCardProps =
   | (PriceCardBaseProps & {
-      type: 'badge';
-      discountedPrice: string;
-      badgeLabel: string;
-    })
-  | (PriceCardBaseProps & {
       type: 'default';
       discountedPrice: string;
-      badgeLabel?: never;
     })
   | (PriceCardBaseProps & {
       type: 'single';
       discountedPrice?: never;
-      badgeLabel?: never;
     });
 
 function PriceCard({
@@ -33,7 +23,6 @@ function PriceCard({
   originalPrice,
   discountedPrice,
   originalPriceLabel,
-  badgeLabel,
   className,
 }: PriceCardProps) {
   const cardHeightClassName = type === 'single' ? 'h-[84px]' : 'h-[120px]';
@@ -52,15 +41,6 @@ function PriceCard({
         <h3 className="typography-body-medium text-text-primary">
           {procedureName}
         </h3>
-        {type === 'badge' && (
-          <Badge
-            size="S"
-            color="secondary"
-            icon={<img src={badgeDiscountIcon} alt="" />}
-          >
-            {badgeLabel}
-          </Badge>
-        )}
       </div>
 
       <div
