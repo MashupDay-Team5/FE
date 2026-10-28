@@ -43,6 +43,7 @@ import {
   getTreatmentScope,
 } from '@/utils/hospitalSearchUrl';
 import { getFilterSummaryLabel } from '@/utils/hospitalFilterSummary';
+import { UNSUPPORTED_FEATURE_MESSAGE, useToast } from '@/hooks/useToast';
 
 const PRICE_MINIMUM = hospitalSearchPriceRange.min;
 const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
@@ -55,6 +56,7 @@ const hospitalSearchTabItems: TabItem<HospitalSearchTab>[] = [
 ];
 
 function HospitalSearchResultPage() {
+  const showToast = useToast();
   const regionOptions = useHospitalRegions();
   const {
     regions: hospitalSearchRegions,
@@ -345,7 +347,7 @@ function HospitalSearchResultPage() {
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+20px)] z-20 mx-auto flex w-full max-w-[480px] justify-end px-padding-m">
         <button
           type="button"
-          disabled
+          onClick={() => showToast(UNSUPPORTED_FEATURE_MESSAGE)}
           className="pointer-events-auto inline-flex h-10 w-[105px] items-center justify-center gap-gap-xs rounded-[var(--radius-full)] border border-border-weak bg-interaction-neutral-inverse px-padding-s typography-label-large-medium text-text-brand shadow-[0_0_4px_rgb(0_0_0/12%)]"
         >
           <img src={mapIcon} alt="" className="size-5 shrink-0" />
