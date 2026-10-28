@@ -8,6 +8,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import HospitalBookmarkButton from '@/components/hospital/HospitalBookmarkButton';
 import checkBadgeIcon from '@/assets/icons/checkBadgeIcon.svg';
+import badgeDiscountIcon from '@/assets/icons/badgeDiscount.svg';
 import discountIcon from '@/assets/icons/discount.svg';
 import ratingStarIcon from '@/assets/icons/ratingStar.svg';
 import Badge, { BadgeIcon } from '@/components/common/Badge';
@@ -95,9 +96,11 @@ function ListCard({
                 key={badge}
                 size="S"
                 color={badge === 'POPULAR' ? 'sub' : 'secondary'}
-                shape="square"
+                shape={badge === 'SPECIAL_OFFER' ? 'pill' : 'square'}
                 icon={
-                  badge !== 'POPULAR' && badge !== 'SPECIAL_OFFER' ? (
+                  badge === 'SPECIAL_OFFER' ? (
+                    <img src={badgeDiscountIcon} alt="" />
+                  ) : badge !== 'POPULAR' ? (
                     <BadgeIcon src={checkBadgeIcon} />
                   ) : undefined
                 }
