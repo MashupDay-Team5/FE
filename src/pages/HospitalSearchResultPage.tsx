@@ -8,6 +8,7 @@ import TreatmentCategorySheet from '@/components/common/TreatmentCategorySheet';
 import TreatmentCategoriesStatus from '@/components/common/TreatmentCategoriesStatus';
 import HospitalSearchFilterSheet from '@/components/hospital/HospitalSearchFilterSheet';
 import HospitalSearchResultList from '@/components/hospital/HospitalSearchResultList';
+import HospitalListFeedback from '@/components/hospital/HospitalListFeedback';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import {
@@ -16,7 +17,7 @@ import {
   lowestPriceSortOption,
 } from '@/constants/hospitalSearch';
 import { useHospitalRegions } from '@/hooks/useHospitalRegions';
-import { hospitalSearchItems } from '@/mocks/hospitals';
+import { useHospitalList } from '@/hooks/useHospitalList';
 import { useTreatmentCategories } from '@/hooks/useTreatmentCategories';
 import { useHospitalListState } from '@/hooks/useHospitalListState';
 import { usePageScrollPosition } from '@/hooks/usePageScrollPosition';
@@ -26,11 +27,7 @@ import type {
   HospitalSearchTab,
   HospitalSort,
 } from '@/types/hospitalSearch';
-import {
-  getSortedHospitals,
-  matchesHospitalSearchFilters,
-  matchesHospitalSearchPriceCard,
-} from '@/utils/hospitalSearch';
+import { getHospitalListParams } from '@/utils/hospitalList';
 import {
   getSelectedProcedureIds,
   REGION_QUERY_KEY,
@@ -131,8 +128,20 @@ function HospitalSearchResultPage() {
         ({ regionId, districtId }) =>
           regionId === districtId || districtStatuses[regionId] === 'success',
       ));
+  const hospitalList = useHospitalList(
+    categoriesStatus === 'success' && treatmentScope && areSelectedRegionsReady
+      ? getHospitalListParams({
+          scope: treatmentScope,
+          procedureIds: selectedProcedureIds,
+          sort: selectedSort,
+          filters: appliedFilterState,
+        })
+      : null,
+  );
   usePageScrollPosition(
-    categoriesStatus === 'success' && areSelectedRegionsReady,
+    categoriesStatus === 'success' &&
+      areSelectedRegionsReady &&
+      hospitalList.status === 'success',
   );
   useEffect(() => {
     for (const value of searchParams.getAll(REGION_QUERY_KEY)) {
@@ -164,34 +173,6 @@ function HospitalSearchResultPage() {
     searchParams,
     setSearchParams,
   ]);
-  const filteredHospitals = useMemo(
-    () =>
-      hospitalSearchItems
-        .filter((hospital) =>
-          matchesHospitalSearchFilters(
-            hospital,
-            appliedFilterState,
-            activeProcedureIds,
-            hospitalSearchRegions,
-          ),
-        )
-        .map((hospital) => ({
-          ...hospital,
-          priceCards: hospital.priceCards.filter((priceCard) =>
-            matchesHospitalSearchPriceCard(
-              priceCard,
-              appliedFilterState.priceRange,
-              activeProcedureIds,
-            ),
-          ),
-        })),
-    [appliedFilterState, activeProcedureIds, hospitalSearchRegions],
-  );
-  const sortedHospitals = useMemo(
-    () => getSortedHospitals(filteredHospitals, selectedSort),
-    [filteredHospitals, selectedSort],
-  );
-
   if (
     treatmentScope &&
     selectedProcedureIds.length === 0 &&
@@ -261,6 +242,11 @@ function HospitalSearchResultPage() {
   const selectedSortOption =
     sortOptions.find((option) => option.value === selectedSort) ??
     sortOptions[0];
+  const hasRegionError =
+    regionOptions.status === 'error' ||
+    appliedFilterState.regionSelections.some(
+      ({ regionId }) => districtStatuses[regionId] === 'error',
+    );
 
   return (
     <>
@@ -343,8 +329,49 @@ function HospitalSearchResultPage() {
           onValueChange={handleSortChange}
         />
       </fieldset>
-      {treatmentScope && (
-        <HospitalSearchResultList hospitals={sortedHospitals} />
+      {treatmentScope && !areSelectedRegionsReady && (
+        <div className="flex flex-col items-center gap-gap-s py-padding-l text-center typography-body-regular text-text-secondary">
+          <p role={hasRegionError ? 'alert' : 'status'}>
+            {hasRegionError
+              ? '지역 조건을 불러오지 못했어요.'
+              : '지역 조건을 불러오는 중이에요.'}
+          </p>
+          {hasRegionError && (
+            <button
+              type="button"
+              className="min-h-11 px-padding-m text-text-brand"
+              onClick={() => {
+                if (regionOptions.status === 'error') {
+                  regionOptions.retryRegions();
+                } else {
+                  for (const {
+                    regionId,
+                  } of appliedFilterState.regionSelections) {
+                    if (districtStatuses[regionId] === 'error')
+                      loadDistricts(regionId, true);
+                  }
+                }
+              }}
+            >
+              다시 시도
+            </button>
+          )}
+        </div>
+      )}
+      {treatmentScope && areSelectedRegionsReady && (
+        <>
+          {(hospitalList.hospitals.length > 0 ||
+            hospitalList.status === 'success') && (
+            <HospitalSearchResultList hospitals={hospitalList.hospitals} />
+          )}
+          <HospitalListFeedback
+            status={hospitalList.status}
+            hasHospitals={hospitalList.hospitals.length > 0}
+            hasNext={hospitalList.hasNext}
+            onRetry={hospitalList.retry}
+            onMoreClick={hospitalList.loadMore}
+          />
+        </>
       )}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+20px)] z-20 mx-auto flex w-full max-w-[480px] justify-end px-padding-m">
         <button
