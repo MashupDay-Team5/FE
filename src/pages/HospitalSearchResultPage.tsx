@@ -346,7 +346,7 @@ function HospitalSearchResultPage() {
         <button
           type="button"
           disabled
-          className="inline-flex h-10 w-[105px] items-center justify-center gap-gap-xs rounded-[var(--radius-full)] border border-border-weak bg-interaction-neutral-inverse px-padding-s typography-label-large-medium text-text-brand shadow-[0_0_4px_rgb(0_0_0/12%)]"
+          className="pointer-events-auto inline-flex h-10 w-[105px] items-center justify-center gap-gap-xs rounded-[var(--radius-full)] border border-border-weak bg-interaction-neutral-inverse px-padding-s typography-label-large-medium text-text-brand shadow-[0_0_4px_rgb(0_0_0/12%)]"
         >
           <img src={mapIcon} alt="" className="size-5 shrink-0" />
           지도보기
