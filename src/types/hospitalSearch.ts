@@ -48,7 +48,7 @@ export type HospitalSearchRegionSelection = {
   districtId: number;
 };
 
-// 가격 카드 타입 (배지, 기본, 무료) 구분
+// 가격 카드 타입 (배지, 기본, 단일 가격) 구분
 export type HospitalSearchPriceCard =
   | {
       type: 'badge';
@@ -68,7 +68,7 @@ export type HospitalSearchPriceCard =
       discountedPrice: string;
     }
   | {
-      type: 'free';
+      type: 'single';
       procedureId: number;
       procedureName: string;
       priceAmount: number;

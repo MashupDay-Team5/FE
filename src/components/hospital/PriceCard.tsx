@@ -21,7 +21,7 @@ type PriceCardProps =
       badgeLabel?: never;
     })
   | (PriceCardBaseProps & {
-      type: 'free';
+      type: 'single';
       discountedPrice?: never;
       badgeLabel?: never;
     });
@@ -36,7 +36,7 @@ function PriceCard({
   badgeLabel,
   className,
 }: PriceCardProps) {
-  const cardHeightClassName = type === 'free' ? 'h-[84px]' : 'h-[120px]';
+  const cardHeightClassName = type === 'single' ? 'h-[84px]' : 'h-[120px]';
   const cardWidthClassName =
     width === 'fill'
       ? 'w-full'
@@ -65,22 +65,22 @@ function PriceCard({
 
       <div
         className={`flex flex-1 p-padding-s ${
-          type !== 'free' ? 'flex-col gap-gap-s' : 'items-center'
+          type !== 'single' ? 'flex-col gap-gap-s' : 'items-center'
         }`}
       >
         <div className="flex w-full items-center justify-between">
           <span
             className={
-              type === 'free'
+              type === 'single'
                 ? 'typography-label-small-regular font-medium text-text-secondary'
                 : 'typography-label-small-medium text-text-tertiary'
             }
           >
-            {originalPriceLabel ?? (type === 'free' ? '정상가격' : '정상가')}
+            {originalPriceLabel ?? (type === 'single' ? '정상가격' : '정상가')}
           </span>
           <span
             className={
-              type === 'free'
+              type === 'single'
                 ? 'typography-label-large-medium text-text-primary'
                 : 'typography-label-small-regular text-text-tertiary'
             }
@@ -88,7 +88,7 @@ function PriceCard({
             {originalPrice}
           </span>
         </div>
-        {type !== 'free' && (
+        {type !== 'single' && (
           <>
             <div className="border-t border-border-neutral" />
             <div className="flex items-center justify-between text-text-primary">
