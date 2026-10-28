@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import bookmarkIcon from '@/assets/icons/bookmark28.svg';
+import HospitalBookmarkButton from '@/components/hospital/HospitalBookmarkButton';
 import messageIcon from '@/assets/icons/message.svg';
 import MenuTrigger, {
   type MenuTriggerOption,
@@ -241,14 +241,10 @@ function HospitalDetailPage() {
             <h2 className="typography-heading-bold text-text-primary">
               {hospital.treatment.name}
             </h2>
-            {/* 채워진 북마크 시안이 확정되면 저장 상태 토글을 연결한다. */}
-            <button
-              type="button"
-              aria-label={`${hospital.treatment.name} 저장`}
-              className="flex size-11 shrink-0 items-center justify-center"
-            >
-              <img src={bookmarkIcon} alt="" width={28} height={28} />
-            </button>
+            <HospitalBookmarkButton
+              hospitalId={hospital.hospitalId}
+              hospitalName={hospital.hospitalName}
+            />
           </div>
           {/* 캡션 줄: 높이 44 안에서 글자를 세로 가운데 정렬한다. 더보기는 동작 없이 UI만 둔다. */}
           <div className="flex h-11 min-w-0 items-center gap-gap-xs typography-label-small-regular leading-[18px] font-medium">

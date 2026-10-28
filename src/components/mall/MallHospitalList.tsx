@@ -39,6 +39,7 @@ function MallHospitalList({
         return (
           <ListCard
             key={hospital.hospitalId}
+            hospitalId={hospital.hospitalId}
             hospitalName={hospital.hospitalName}
             rating={hospital.rating}
             reviewCount={hospital.reviewCount}

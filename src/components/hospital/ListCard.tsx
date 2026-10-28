@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import bookmarkIcon from '@/assets/icons/bookmark28.svg';
+import HospitalBookmarkButton from '@/components/hospital/HospitalBookmarkButton';
 import checkBadgeIcon from '@/assets/icons/checkBadgeIcon.svg';
 import discountIcon from '@/assets/icons/discount.svg';
 import ratingStarIcon from '@/assets/icons/ratingStar.svg';
@@ -18,6 +18,7 @@ import type { HospitalAvailabilityBadge } from '@/types/hospitalSearch';
 const CARD_DRAG_THRESHOLD = 8;
 
 type ListCardProps = {
+  hospitalId: number;
   hospitalName: string;
   rating: string;
   reviewCount: string;
@@ -30,10 +31,10 @@ type ListCardProps = {
   showDiscountIcon?: boolean;
   // 있으면 카드 전체(병원명·사진·가격 카드 등)를 눌러 상세 화면으로 이동한다.
   detailPath?: string;
-  onBookmarkClick?: () => void;
 };
 
 function ListCard({
+  hospitalId,
   hospitalName,
   rating,
   reviewCount,
@@ -45,7 +46,6 @@ function ListCard({
   badges,
   showDiscountIcon = false,
   detailPath,
-  onBookmarkClick,
 }: ListCardProps) {
   const thumbnailClassName =
     'size-[52px] shrink-0 overflow-hidden rounded-[var(--radius-s)] bg-surface-weak';
@@ -165,24 +165,11 @@ function ListCard({
             </div>
           </div>
 
-          {onBookmarkClick ? (
-            <button
-              type="button"
-              aria-label={`${hospitalName} 저장`}
-              onClick={onBookmarkClick}
-              className="absolute -top-padding-xs -right-padding-xs flex size-11 items-center justify-center"
-            >
-              <img src={bookmarkIcon} alt="" />
-            </button>
-          ) : (
-            <span
-              aria-hidden="true"
-              data-card-click-ignore
-              className="absolute -top-padding-xs -right-padding-xs flex size-11 items-center justify-center"
-            >
-              <img src={bookmarkIcon} alt="" />
-            </span>
-          )}
+          <HospitalBookmarkButton
+            hospitalId={hospitalId}
+            hospitalName={hospitalName}
+            className="absolute -top-padding-xs -right-padding-xs"
+          />
         </div>
       </div>
 

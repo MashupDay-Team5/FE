@@ -1,10 +1,13 @@
 import AppRouter from '@/routes/AppRouter';
 import ToastProvider from '@/components/common/ToastProvider';
+import HospitalBookmarksProvider from '@/components/hospital/HospitalBookmarksProvider';
 
 function App() {
   return (
     <ToastProvider>
-      <AppRouter />
+      <HospitalBookmarksProvider>
+        <AppRouter />
+      </HospitalBookmarksProvider>
     </ToastProvider>
   );
 }
