@@ -49,10 +49,10 @@ const PRICE_MINIMUM = hospitalSearchPriceRange.min;
 const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
 
 const hospitalSearchTabItems: TabItem<HospitalSearchTab>[] = [
-  { value: 'integrated', label: '통합', disabled: true },
+  { value: 'integrated', label: '통합' },
   { value: 'hospital', label: '병원' },
-  { value: 'consultation', label: '의료상담', disabled: true },
-  { value: 'blog', label: '블로그', disabled: true },
+  { value: 'consultation', label: '의료상담' },
+  { value: 'blog', label: '블로그' },
 ];
 
 function HospitalSearchResultPage() {
@@ -101,7 +101,6 @@ function HospitalSearchResultPage() {
         : treatments.map(({ id }) => id),
     [selectedProcedureIds, treatments],
   );
-  const [selectedTab, setSelectedTab] = useState<HospitalSearchTab>('hospital');
   const { listState, setListState } = useHospitalListState('search');
   const selectedSort = listState.sort;
   const handleSortChange = (sort: HospitalSort) => setListState({ sort });
@@ -294,6 +293,7 @@ function HospitalSearchResultPage() {
           isTitleDisabled={!treatmentScope}
           isTitleOpen={isCategorySheetOpen}
           onTitleClick={handleCategorySheetOpen}
+          onSearchClick={() => showToast(UNSUPPORTED_FEATURE_MESSAGE)}
         />
         {treatments.length > 0 && (
           <div className="flex gap-gap-xs overflow-x-auto bg-surface-default pl-padding-m py-padding-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -312,8 +312,10 @@ function HospitalSearchResultPage() {
       <div className="-mx-padding-m bg-surface-default pt-padding-xs">
         <Tab
           items={hospitalSearchTabItems}
-          selectedValue={selectedTab}
-          onValueChange={setSelectedTab}
+          selectedValue="hospital"
+          onValueChange={(tab) => {
+            if (tab !== 'hospital') showToast(UNSUPPORTED_FEATURE_MESSAGE);
+          }}
           layout="fill"
         />
       </div>
