@@ -57,7 +57,7 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
         discountedPrice: '2,100,000원',
       },
       {
-        type: 'free',
+        type: 'single',
         procedureId: 1,
         procedureName: '시력교정술 검진',
         priceAmount: 0,
@@ -479,7 +479,7 @@ export const hospitalSearchItems: HospitalSearchItem[] = [
         badgeLabel: '특가 진행',
       },
       {
-        type: 'free',
+        type: 'single',
         procedureId: 1,
         procedureName: '시력교정술 검진',
         priceAmount: 0,
