@@ -20,7 +20,6 @@ import {
   defaultHospitalSortOptions,
   lowestPriceSortOption,
 } from '@/constants/hospitalSearch';
-import { DEFAULT_VISIBLE_HOSPITAL_COUNT } from '@/constants/hospitalList';
 import type { HospitalSort } from '@/types/hospitalSearch';
 import type { TreatmentScope } from '@/types/treatment';
 import { getHospitalListParams } from '@/utils/hospitalList';
@@ -62,6 +61,7 @@ function UniversityMallPage() {
     treatments,
   );
   const hospitalList = useHospitalList(
+    'home',
     categoriesStatus === 'success' && treatmentScope
       ? getHospitalListParams({
           scope: treatmentScope,
@@ -86,10 +86,6 @@ function UniversityMallPage() {
       getTreatmentSearchParams(treatmentScope, nextProcedureIds),
       { replace: true },
     );
-    setListState((current) => ({
-      ...current,
-      visibleHospitalCount: DEFAULT_VISIBLE_HOSPITAL_COUNT,
-    }));
   };
 
   const handleScopeSelect = (scope: TreatmentScope) => {
@@ -101,10 +97,6 @@ function UniversityMallPage() {
     }
 
     setSearchParams(getTreatmentSearchParams(scope), { replace: true });
-    setListState((current) => ({
-      ...current,
-      visibleHospitalCount: DEFAULT_VISIBLE_HOSPITAL_COUNT,
-    }));
   };
 
   const sortOptions =
@@ -120,17 +112,11 @@ function UniversityMallPage() {
     selectedProcedureIds.length === 0 &&
     selectedSort === 'lowest-price'
   ) {
-    setListState({
-      sort: 'most-visited',
-      visibleHospitalCount: DEFAULT_VISIBLE_HOSPITAL_COUNT,
-    });
+    setListState({ sort: 'most-visited' });
   }
 
   const handleSortChange = (sort: HospitalSort) => {
-    setListState({
-      sort,
-      visibleHospitalCount: DEFAULT_VISIBLE_HOSPITAL_COUNT,
-    });
+    setListState({ sort });
   };
 
   return (

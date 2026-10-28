@@ -129,6 +129,7 @@ function HospitalSearchResultPage() {
           regionId === districtId || districtStatuses[regionId] === 'success',
       ));
   const hospitalList = useHospitalList(
+    'search',
     categoriesStatus === 'success' && treatmentScope && areSelectedRegionsReady
       ? getHospitalListParams({
           scope: treatmentScope,

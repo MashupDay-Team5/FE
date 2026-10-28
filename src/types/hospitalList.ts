@@ -4,5 +4,4 @@ export type HospitalListPage = 'home' | 'search';
 
 export type HospitalListState = {
   sort: HospitalSort;
-  visibleHospitalCount?: number;
 };
