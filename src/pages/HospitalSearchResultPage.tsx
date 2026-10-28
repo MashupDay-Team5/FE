@@ -43,18 +43,20 @@ import {
   getTreatmentScope,
 } from '@/utils/hospitalSearchUrl';
 import { getFilterSummaryLabel } from '@/utils/hospitalFilterSummary';
+import { UNSUPPORTED_FEATURE_MESSAGE, useToast } from '@/hooks/useToast';
 
 const PRICE_MINIMUM = hospitalSearchPriceRange.min;
 const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
 
 const hospitalSearchTabItems: TabItem<HospitalSearchTab>[] = [
-  { value: 'integrated', label: '통합', disabled: true },
+  { value: 'integrated', label: '통합' },
   { value: 'hospital', label: '병원' },
-  { value: 'consultation', label: '의료상담', disabled: true },
-  { value: 'blog', label: '블로그', disabled: true },
+  { value: 'consultation', label: '의료상담' },
+  { value: 'blog', label: '블로그' },
 ];
 
 function HospitalSearchResultPage() {
+  const showToast = useToast();
   const regionOptions = useHospitalRegions();
   const {
     regions: hospitalSearchRegions,
@@ -99,7 +101,6 @@ function HospitalSearchResultPage() {
         : treatments.map(({ id }) => id),
     [selectedProcedureIds, treatments],
   );
-  const [selectedTab, setSelectedTab] = useState<HospitalSearchTab>('hospital');
   const { listState, setListState } = useHospitalListState('search');
   const selectedSort = listState.sort;
   const handleSortChange = (sort: HospitalSort) => setListState({ sort });
@@ -292,6 +293,7 @@ function HospitalSearchResultPage() {
           isTitleDisabled={!treatmentScope}
           isTitleOpen={isCategorySheetOpen}
           onTitleClick={handleCategorySheetOpen}
+          onSearchClick={() => showToast(UNSUPPORTED_FEATURE_MESSAGE)}
         />
         {treatments.length > 0 && (
           <div className="flex gap-gap-xs overflow-x-auto bg-surface-default pl-padding-m py-padding-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -310,8 +312,10 @@ function HospitalSearchResultPage() {
       <div className="-mx-padding-m bg-surface-default pt-padding-xs">
         <Tab
           items={hospitalSearchTabItems}
-          selectedValue={selectedTab}
-          onValueChange={setSelectedTab}
+          selectedValue="hospital"
+          onValueChange={(tab) => {
+            if (tab !== 'hospital') showToast(UNSUPPORTED_FEATURE_MESSAGE);
+          }}
           layout="fill"
         />
       </div>
@@ -345,8 +349,8 @@ function HospitalSearchResultPage() {
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+20px)] z-20 mx-auto flex w-full max-w-[480px] justify-end px-padding-m">
         <button
           type="button"
-          disabled
-          className="inline-flex h-10 w-[105px] items-center justify-center gap-gap-xs rounded-[var(--radius-full)] border border-border-weak bg-interaction-neutral-inverse px-padding-s typography-label-large-medium text-text-brand shadow-[0_0_4px_rgb(0_0_0/12%)]"
+          onClick={() => showToast(UNSUPPORTED_FEATURE_MESSAGE)}
+          className="pointer-events-auto inline-flex h-10 w-[105px] items-center justify-center gap-gap-xs rounded-[var(--radius-full)] border border-border-weak bg-interaction-neutral-inverse px-padding-s typography-label-large-medium text-text-brand shadow-[0_0_4px_rgb(0_0_0/12%)]"
         >
           <img src={mapIcon} alt="" className="size-5 shrink-0" />
           지도보기

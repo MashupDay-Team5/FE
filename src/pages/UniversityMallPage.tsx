@@ -1,6 +1,7 @@
 import { useTreatmentCategories } from '@/hooks/useTreatmentCategories';
 import { useHospitalListState } from '@/hooks/useHospitalListState';
 import { usePageScrollPosition } from '@/hooks/usePageScrollPosition';
+import { UNSUPPORTED_FEATURE_MESSAGE, useToast } from '@/hooks/useToast';
 import { useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import arrowRightIcon from '@/assets/icons/arrowRight.svg';
@@ -30,6 +31,7 @@ import {
 } from '@/utils/hospitalSearchUrl';
 
 function UniversityMallPage() {
+  const showToast = useToast();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { categories: medicalCategories, status: categoriesStatus } =
@@ -144,7 +146,8 @@ function UniversityMallPage() {
       <TopArea>
         <Header
           type="MainHome"
-          schoolName="5팀대학교"
+          schoolName="세오스대학교"
+          onBookmarkClick={() => showToast(UNSUPPORTED_FEATURE_MESSAGE)}
           onSearchClick={() =>
             navigate(
               treatmentScope
@@ -165,7 +168,10 @@ function UniversityMallPage() {
       </TopArea>
 
       <div className="pb-[calc(56px+env(safe-area-inset-bottom))]">
-        <MallBanner specialSaleLabel="안과 특가전" />
+        <MallBanner
+          specialSaleLabel="안과 특가전"
+          onSpecialSaleClick={() => showToast(UNSUPPORTED_FEATURE_MESSAGE)}
+        />
 
         <button
           ref={scopeTriggerRef}
@@ -239,7 +245,12 @@ function UniversityMallPage() {
           triggerRef={scopeTriggerRef}
         />
       )}
-      <BottomNav selected="home" />
+      <BottomNav
+        selected="home"
+        onTabClick={(tab) => {
+          if (tab !== 'home') showToast(UNSUPPORTED_FEATURE_MESSAGE);
+        }}
+      />
     </>
   );
 }
