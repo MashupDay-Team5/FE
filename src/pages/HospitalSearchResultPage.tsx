@@ -91,13 +91,6 @@ function HospitalSearchResultPage() {
     () => getSelectedProcedureIds(searchParams, treatments),
     [searchParams, treatments],
   );
-  const activeProcedureIds = useMemo(
-    () =>
-      selectedProcedureIds.length > 0
-        ? selectedProcedureIds
-        : treatments.map(({ id }) => id),
-    [selectedProcedureIds, treatments],
-  );
   const { listState, setListState } = useHospitalListState('search');
   const selectedSort = listState.sort;
   const handleSortChange = (sort: HospitalSort) => setListState({ sort });
@@ -401,7 +394,8 @@ function HospitalSearchResultPage() {
         isOpen={isFilterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
         initialFilterState={appliedFilterState}
-        procedureIds={activeProcedureIds}
+        scope={treatmentScope}
+        procedureIds={selectedProcedureIds}
         onApply={handleFilterApply}
         triggerRef={filterTriggerRef}
       />
