@@ -1,7 +1,7 @@
 export type HospitalListSort =
   'VISIT' | 'RATING' | 'REVIEW_COUNT' | 'LOW_PRICE';
 
-export type HospitalListParams = {
+export type HospitalFilterParams = {
   medicalCategoryId?: number;
   treatmentCategoryId?: number;
   treatmentIds?: readonly number[];
@@ -13,6 +13,9 @@ export type HospitalListParams = {
   hasNightClinic?: boolean;
   hasHolidayClinic?: boolean;
   mallId?: number;
+};
+
+export type HospitalListParams = HospitalFilterParams & {
   sort?: HospitalListSort;
   page?: number;
   size?: number;
