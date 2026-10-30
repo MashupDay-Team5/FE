@@ -6,6 +6,7 @@ import { UNSUPPORTED_FEATURE_MESSAGE, useToast } from '@/hooks/useToast';
 import { useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import arrowRightIcon from '@/assets/icons/arrowRight.svg';
+import universityMallBanner from '@/assets/images/university-mall-banner.png';
 import FilterChip from '@/components/common/FilterChip';
 import MenuTrigger from '@/components/common/MenuTrigger';
 import TreatmentCategorySheet from '@/components/common/TreatmentCategorySheet';
@@ -25,6 +26,7 @@ import type { TreatmentScope } from '@/types/treatment';
 import { getHospitalListParams } from '@/utils/hospitalList';
 import {
   getHospitalSearchUrl,
+  getProcedureSearchParams,
   getSelectedProcedureIds,
   getTreatmentScope,
   getTreatmentSearchParams,
@@ -60,6 +62,8 @@ function UniversityMallPage() {
     searchParams,
     treatments,
   );
+  const showAllTreatmentChip = treatmentCategory !== undefined;
+  const hasTreatmentChips = showAllTreatmentChip || treatments.length > 0;
   const hospitalList = useHospitalList(
     'home',
     categoriesStatus === 'success' && treatmentScope
@@ -86,6 +90,14 @@ function UniversityMallPage() {
       getTreatmentSearchParams(treatmentScope, nextProcedureIds),
       { replace: true },
     );
+  };
+
+  const handleAllProceduresClick = () => {
+    if (selectedProcedureIds.length === 0) return;
+
+    setSearchParams(getProcedureSearchParams(searchParams, []), {
+      replace: true,
+    });
   };
 
   const handleScopeSelect = (scope: TreatmentScope) => {
@@ -147,6 +159,8 @@ function UniversityMallPage() {
 
       <div className="pb-[calc(56px+env(safe-area-inset-bottom))]">
         <MallBanner
+          imageUrl={universityMallBanner}
+          imageAlt="세오스대 할인몰: 대학생 및 가족(부모·자녀·배우자) 할인 안내. 할인은 의료법에 따른 비급여 진료비에 한함."
           specialSaleLabel="안과 특가전"
           onSpecialSaleClick={() => showToast(UNSUPPORTED_FEATURE_MESSAGE)}
         />
@@ -171,8 +185,18 @@ function UniversityMallPage() {
         </button>
 
         {/* 진료 항목 퀵필터: 스크롤 시 Header 바로 아래에 고정한다. */}
-        {treatments.length > 0 && (
-          <div className="scrollbar-hidden sticky top-[calc(env(safe-area-inset-top)+52px)] z-[5] -mx-padding-m flex gap-gap-xs overflow-x-auto bg-surface-default py-padding-xs pl-padding-m">
+        {hasTreatmentChips && (
+          <div
+            key={`${treatmentScope?.medicalCategoryId}-${treatmentScope?.treatmentCategoryId ?? 'all'}`}
+            className="scrollbar-hidden sticky top-[calc(env(safe-area-inset-top)+52px)] z-[5] -mx-padding-m flex gap-gap-xs overflow-x-auto bg-surface-default py-padding-xs pl-padding-m"
+          >
+            {showAllTreatmentChip && (
+              <FilterChip
+                label="전체"
+                selected={selectedProcedureIds.length === 0}
+                onClick={handleAllProceduresClick}
+              />
+            )}
             {treatments.map((treatment) => (
               <FilterChip
                 key={treatment.id}
