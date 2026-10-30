@@ -1,5 +1,9 @@
 import { useEffect, useState, type RefObject } from 'react';
 import { useSheetDialog } from '@/hooks/useSheetDialog';
+import {
+  useHospitalCount,
+  type HospitalCountStatus,
+} from '@/hooks/useHospitalCount';
 import closeIcon from '@/assets/icons/close.svg';
 import closeSmallIcon from '@/assets/icons/close-small.svg';
 import checkboxCheckedIcon from '@/assets/icons/checkboxChecked.svg';
@@ -16,7 +20,7 @@ import {
 } from '@/constants/hospitalSearch';
 import type { HospitalRegionOptions } from '@/hooks/useHospitalRegions';
 import { normalizeRegionSelections } from '@/utils/hospitalRegions';
-import { hospitalSearchItems } from '@/mocks/hospitals';
+import type { TreatmentScope } from '@/types/treatment';
 import type {
   HospitalSearchIntegratedFilterCategory,
   HospitalSearchFilterState,
@@ -24,7 +28,7 @@ import type {
   HospitalSearchRegion,
   HospitalSearchTreatmentConditionId,
 } from '@/types/hospitalSearch';
-import { matchesHospitalSearchFilters } from '@/utils/hospitalSearch';
+import { getHospitalFilterParams } from '@/utils/hospitalList';
 
 const REGION_LOADING_DELAY = 200;
 const PRICE_MINIMUM = hospitalSearchPriceRange.min;
@@ -404,7 +408,9 @@ function FilterSelectedRegionList({
 
 type FilterSheetBottomCtaProps = {
   isRegionReady: boolean;
-  hospitalCount: number;
+  hospitalCount: number | null;
+  countStatus: HospitalCountStatus;
+  onRetry: () => void;
   onReset: () => void;
   onView: () => void;
 };
@@ -412,13 +418,38 @@ type FilterSheetBottomCtaProps = {
 function FilterSheetBottomCta({
   isRegionReady,
   hospitalCount,
+  countStatus,
+  onRetry,
   onReset,
   onView,
 }: FilterSheetBottomCtaProps) {
-  const isViewButtonEnabled = hospitalCount > 0 && isRegionReady;
+  const isViewButtonEnabled =
+    countStatus === 'success' &&
+    hospitalCount !== null &&
+    hospitalCount > 0 &&
+    isRegionReady;
+  const buttonLabel = !isRegionReady
+    ? '지역 확인 필요'
+    : countStatus === 'success'
+      ? `${hospitalCount}개의 병원보기`
+      : countStatus === 'error'
+        ? '결과 수 확인 실패'
+        : '결과 수 확인 중…';
 
   return (
     <div className="mt-auto shrink-0 bg-surface-default">
+      {countStatus === 'error' && (
+        <div className="flex items-center justify-center gap-gap-s px-padding-m typography-label-small-regular text-text-secondary">
+          <p role="alert">병원 수를 불러오지 못했어요.</p>
+          <button
+            type="button"
+            onClick={onRetry}
+            className="min-h-11 px-padding-s text-text-brand"
+          >
+            다시 시도
+          </button>
+        </div>
+      )}
       <div className="mx-auto flex w-full max-w-[375px] items-center gap-gap-s px-padding-m py-padding-xs min-[376px]:max-w-none">
         <button
           type="button"
@@ -430,10 +461,12 @@ function FilterSheetBottomCta({
         <button
           type="button"
           disabled={!isViewButtonEnabled}
+          aria-busy={countStatus === 'loading'}
+          aria-live="polite"
           onClick={onView}
           className="flex h-[52px] w-[216px] min-w-[120px] flex-col items-center justify-center gap-gap-xs rounded-[var(--radius-s)] bg-interaction-brand px-padding-m py-padding-s text-center typography-label-large-medium text-text-inverse disabled:bg-interaction-disabled disabled:text-text-disabled min-[376px]:w-auto min-[376px]:flex-[216_0_0]"
         >
-          {isRegionReady ? `${hospitalCount}개의 병원보기` : '지역 확인 필요'}
+          {buttonLabel}
         </button>
       </div>
       <div className="h-[34px] self-stretch bg-surface-default p-[10px]" />
@@ -446,6 +479,7 @@ type HospitalSearchFilterSheetProps = {
   isOpen: boolean;
   onClose: () => void;
   initialFilterState: HospitalSearchFilterState;
+  scope: TreatmentScope | null;
   procedureIds: number[];
   onApply: (filterState: HospitalSearchFilterState) => void;
   triggerRef: RefObject<HTMLButtonElement | null>;
@@ -456,6 +490,7 @@ function HospitalSearchFilterSheet({
   isOpen,
   onClose,
   initialFilterState,
+  scope,
   procedureIds,
   onApply,
   triggerRef,
@@ -576,24 +611,33 @@ function HospitalSearchFilterSheet({
     selectedRegionSelections.length > 0 ||
     hasSelectedPriceRange ||
     selectedTreatmentConditionIds.length > 0;
-  const hospitalCount = hospitalSearchItems.filter((hospital) =>
-    matchesHospitalSearchFilters(
-      hospital,
-      {
-        regionSelections: selectedRegionSelections,
-        priceRange,
-        treatmentConditionIds: selectedTreatmentConditionIds,
-      },
-      procedureIds,
-      hospitalSearchRegions,
-    ),
-  ).length;
+  const hospitalCount = useHospitalCount(
+    isOpen && scope && isRegionReady
+      ? getHospitalFilterParams({
+          scope,
+          procedureIds,
+          filters: {
+            regionSelections: selectedRegionSelections,
+            priceRange,
+            treatmentConditionIds: selectedTreatmentConditionIds,
+          },
+        })
+      : null,
+  );
   const filterCounts = {
     region: selectedRegionSelections.length,
     price: hasSelectedPriceRange ? 1 : undefined,
     'treatment-condition': selectedTreatmentConditionIds.length,
   };
   const handleApply = () => {
+    if (
+      hospitalCount.status !== 'success' ||
+      !hospitalCount.count ||
+      !isRegionReady
+    ) {
+      return;
+    }
+
     const hasAppliedFilter =
       initialFilterState.regionSelections.length > 0 ||
       initialFilterState.priceRange.min !== PRICE_MINIMUM ||
@@ -602,10 +646,6 @@ function HospitalSearchFilterSheet({
 
     if (!hasSelectedFilter && !hasAppliedFilter) {
       onClose();
-      return;
-    }
-
-    if (hospitalCount === 0 || !isRegionReady) {
       return;
     }
 
@@ -708,7 +748,9 @@ function HospitalSearchFilterSheet({
         )}
         <FilterSheetBottomCta
           isRegionReady={isRegionReady}
-          hospitalCount={hospitalCount}
+          hospitalCount={hospitalCount.count}
+          countStatus={hospitalCount.status}
+          onRetry={hospitalCount.retry}
           onReset={handleReset}
           onView={handleApply}
         />

@@ -3,6 +3,7 @@ import {
   hospitalSearchPriceUnitInWon,
 } from '@/constants/hospitalSearch';
 import type {
+  HospitalFilterParams,
   HospitalListParams,
   HospitalListSort,
   HospitalResponse,
@@ -24,19 +25,17 @@ const hospitalListSortValues: Record<HospitalSort, HospitalListSort> = {
   'lowest-price': 'LOW_PRICE',
 };
 
-type HospitalListSelection = {
+type HospitalFilterSelection = {
   scope: TreatmentScope;
   procedureIds: readonly number[];
-  sort: HospitalSort;
   filters?: HospitalSearchFilterState;
 };
 
-export function getHospitalListParams({
+export function getHospitalFilterParams({
   scope,
   procedureIds,
-  sort,
   filters,
-}: HospitalListSelection): HospitalListParams {
+}: HospitalFilterSelection): HospitalFilterParams {
   const treatmentIds = [...new Set(procedureIds)];
   const regionIds = filters
     ? [...new Set(filters.regionSelections.map(({ districtId }) => districtId))]
@@ -61,8 +60,23 @@ export function getHospitalListParams({
     hasPublicPrice: conditions.includes('public-price') ? true : undefined,
     hasNightClinic: conditions.includes('night-clinic') ? true : undefined,
     hasHolidayClinic: conditions.includes('holiday-clinic') ? true : undefined,
+  };
+}
+
+type HospitalListSelection = HospitalFilterSelection & {
+  sort: HospitalSort;
+};
+
+export function getHospitalListParams({
+  sort,
+  ...selection
+}: HospitalListSelection): HospitalListParams {
+  const params = getHospitalFilterParams(selection);
+
+  return {
+    ...params,
     sort:
-      sort === 'lowest-price' && treatmentIds.length === 0
+      sort === 'lowest-price' && !params.treatmentIds?.length
         ? 'VISIT'
         : hospitalListSortValues[sort],
   };
