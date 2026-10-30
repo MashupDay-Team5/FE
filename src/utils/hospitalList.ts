@@ -1,3 +1,4 @@
+import { getHospitalImages } from '@/constants/hospitalImages';
 import {
   hospitalSearchPriceRange,
   hospitalSearchPriceUnitInWon,
@@ -129,6 +130,7 @@ export function toHospitalSearchItem(
     reviewCount: String(hospital.reviewCount),
     address: hospital.address,
     badgeTypes: hospital.badgeTypes,
+    thumbnailUrl: getHospitalImages(hospital.hospitalId)?.thumbnailUrl,
     priceCards: hospital.treatments.map(toHospitalPriceCard),
   };
 }
