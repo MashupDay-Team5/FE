@@ -1,5 +1,6 @@
 import { useTreatmentCategories } from '@/hooks/useTreatmentCategories';
 import { useHospitalListState } from '@/hooks/useHospitalListState';
+import { useHospitalList } from '@/hooks/useHospitalList';
 import { usePageScrollPosition } from '@/hooks/usePageScrollPosition';
 import { UNSUPPORTED_FEATURE_MESSAGE, useToast } from '@/hooks/useToast';
 import { useRef, useState } from 'react';
@@ -14,15 +15,14 @@ import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import MallBanner from '@/components/mall/MallBanner';
 import MallHospitalList from '@/components/mall/MallHospitalList';
+import HospitalListFeedback from '@/components/hospital/HospitalListFeedback';
 import {
   defaultHospitalSortOptions,
   lowestPriceSortOption,
 } from '@/constants/hospitalSearch';
-import { DEFAULT_VISIBLE_HOSPITAL_COUNT } from '@/constants/hospitalList';
-import { hospitalSearchItems } from '@/mocks/hospitals';
 import type { HospitalSort } from '@/types/hospitalSearch';
 import type { TreatmentScope } from '@/types/treatment';
-import { getSortedHospitals } from '@/utils/hospitalSearch';
+import { getHospitalListParams } from '@/utils/hospitalList';
 import {
   getHospitalSearchUrl,
   getSelectedProcedureIds,
@@ -36,13 +36,10 @@ function UniversityMallPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { categories: medicalCategories, status: categoriesStatus } =
     useTreatmentCategories();
-  usePageScrollPosition(categoriesStatus === 'success');
   const treatmentScope = getTreatmentScope(searchParams, medicalCategories);
   const { listState, setListState, listEntryKey } =
     useHospitalListState('home');
   const selectedSort = listState.sort;
-  const visibleHospitalCount =
-    listState.visibleHospitalCount ?? DEFAULT_VISIBLE_HOSPITAL_COUNT;
   const [isCategorySheetOpen, setCategorySheetOpen] = useState(false);
   const scopeTriggerRef = useRef<HTMLButtonElement>(null);
 
@@ -63,6 +60,19 @@ function UniversityMallPage() {
     searchParams,
     treatments,
   );
+  const hospitalList = useHospitalList(
+    'home',
+    categoriesStatus === 'success' && treatmentScope
+      ? getHospitalListParams({
+          scope: treatmentScope,
+          procedureIds: selectedProcedureIds,
+          sort: selectedSort,
+        })
+      : null,
+  );
+  usePageScrollPosition(
+    categoriesStatus === 'success' && hospitalList.status === 'success',
+  );
 
   const handleProcedureClick = (procedureId: number) => {
     if (!treatmentScope) {
@@ -76,10 +86,6 @@ function UniversityMallPage() {
       getTreatmentSearchParams(treatmentScope, nextProcedureIds),
       { replace: true },
     );
-    setListState((current) => ({
-      ...current,
-      visibleHospitalCount: DEFAULT_VISIBLE_HOSPITAL_COUNT,
-    }));
   };
 
   const handleScopeSelect = (scope: TreatmentScope) => {
@@ -91,10 +97,6 @@ function UniversityMallPage() {
     }
 
     setSearchParams(getTreatmentSearchParams(scope), { replace: true });
-    setListState((current) => ({
-      ...current,
-      visibleHospitalCount: DEFAULT_VISIBLE_HOSPITAL_COUNT,
-    }));
   };
 
   const sortOptions =
@@ -110,36 +112,12 @@ function UniversityMallPage() {
     selectedProcedureIds.length === 0 &&
     selectedSort === 'lowest-price'
   ) {
-    setListState({
-      sort: 'most-visited',
-      visibleHospitalCount: DEFAULT_VISIBLE_HOSPITAL_COUNT,
-    });
+    setListState({ sort: 'most-visited' });
   }
 
   const handleSortChange = (sort: HospitalSort) => {
-    setListState({
-      sort,
-      visibleHospitalCount: DEFAULT_VISIBLE_HOSPITAL_COUNT,
-    });
+    setListState({ sort });
   };
-
-  // API 연동 전 확인용 필터: 선택한 시술(없으면 현재 진료 범위의 시술)에 해당하는 가격 카드만 남기고,
-  // 남은 카드가 없는 병원은 목록에서 뺀다. 연동 후에는 서버 응답으로 대체한다.
-  const visibleProcedureIds = new Set(
-    selectedProcedureIds.length === 0
-      ? treatments.map(({ id }) => id)
-      : selectedProcedureIds,
-  );
-  const filteredHospitals = hospitalSearchItems
-    .map((hospital) => ({
-      ...hospital,
-      priceCards: hospital.priceCards.filter(({ procedureId }) =>
-        visibleProcedureIds.has(procedureId),
-      ),
-    }))
-    .filter(({ priceCards }) => priceCards.length > 0);
-  const sortedHospitals = getSortedHospitals(filteredHospitals, selectedSort);
-  const visibleHospitals = sortedHospitals.slice(0, visibleHospitalCount);
 
   return (
     <>
@@ -219,19 +197,19 @@ function UniversityMallPage() {
         />
 
         {treatmentScope && (
-          <MallHospitalList
-            hospitals={visibleHospitals}
-            hasMore={visibleHospitalCount < filteredHospitals.length}
-            onMoreClick={() =>
-              setListState((current) => ({
-                ...current,
-                visibleHospitalCount:
-                  (current.visibleHospitalCount ??
-                    DEFAULT_VISIBLE_HOSPITAL_COUNT) +
-                  DEFAULT_VISIBLE_HOSPITAL_COUNT,
-              }))
-            }
-          />
+          <>
+            {(hospitalList.hospitals.length > 0 ||
+              hospitalList.status === 'success') && (
+              <MallHospitalList hospitals={hospitalList.hospitals} />
+            )}
+            <HospitalListFeedback
+              status={hospitalList.status}
+              hasHospitals={hospitalList.hospitals.length > 0}
+              hasNext={hospitalList.hasNext}
+              onRetry={hospitalList.retry}
+              onMoreClick={hospitalList.loadMore}
+            />
+          </>
         )}
       </div>
 

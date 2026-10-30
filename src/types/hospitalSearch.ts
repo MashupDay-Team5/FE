@@ -1,3 +1,5 @@
+import type { HospitalBadgeType } from '@/types/hospital';
+
 // 통합, 병원, 의료상담, 블로그 탭 값 타입
 export type HospitalSearchTab =
   'integrated' | 'hospital' | 'consultation' | 'blog';
@@ -48,17 +50,8 @@ export type HospitalSearchRegionSelection = {
   districtId: number;
 };
 
-// 가격 카드 타입 (배지, 기본, 단일 가격) 구분
+// 가격 카드 타입 (기본, 단일 가격) 구분
 export type HospitalSearchPriceCard =
-  | {
-      type: 'badge';
-      procedureId: number;
-      procedureName: string;
-      priceAmount: number;
-      originalPrice: string;
-      discountedPrice: string;
-      badgeLabel: string;
-    }
   | {
       type: 'default';
       procedureId: number;
@@ -76,9 +69,6 @@ export type HospitalSearchPriceCard =
       originalPriceLabel?: string;
     };
 
-export type HospitalAvailabilityBadge =
-  'night-clinic' | 'same-day-reservation' | 'open-today';
-
 // ListCard에 전달할 병원 기본 정보와 가격 카드 목록 구조
 export type HospitalSearchItem = {
   hospitalId: number;
@@ -91,8 +81,7 @@ export type HospitalSearchItem = {
   reviewCount: string;
   address: string;
   visitCount?: number;
-  isPopular: boolean;
-  availabilityBadges: HospitalAvailabilityBadge[];
+  badgeTypes: HospitalBadgeType[];
   thumbnailUrl?: string;
   priceCards: HospitalSearchPriceCard[];
 };

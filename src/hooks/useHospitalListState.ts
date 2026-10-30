@@ -27,7 +27,7 @@ export function useHospitalListState(page: HospitalListPage) {
   const sourceKey = navigationType === 'POP' ? location.key : restoreKey;
   const [entry, setEntry] = useState(() => ({
     key: entryKey,
-    state: getRestoredState(page, sourceKey, getDefaultHospitalListState(page)),
+    state: getRestoredState(page, sourceKey, getDefaultHospitalListState()),
   }));
 
   if (entry.key !== entryKey) {
@@ -36,9 +36,7 @@ export function useHospitalListState(page: HospitalListPage) {
       state: getRestoredState(
         page,
         sourceKey,
-        navigationType === 'POP'
-          ? getDefaultHospitalListState(page)
-          : entry.state,
+        navigationType === 'POP' ? getDefaultHospitalListState() : entry.state,
       ),
     });
   }

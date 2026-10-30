@@ -8,11 +8,12 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import HospitalBookmarkButton from '@/components/hospital/HospitalBookmarkButton';
 import checkBadgeIcon from '@/assets/icons/checkBadgeIcon.svg';
+import badgeDiscountIcon from '@/assets/icons/badgeDiscount.svg';
 import discountIcon from '@/assets/icons/discount.svg';
 import ratingStarIcon from '@/assets/icons/ratingStar.svg';
 import Badge, { BadgeIcon } from '@/components/common/Badge';
-import { hospitalAvailabilityBadgeLabels } from '@/constants/hospitalSearch';
-import type { HospitalAvailabilityBadge } from '@/types/hospitalSearch';
+import { hospitalBadgeLabels } from '@/constants/hospitalSearch';
+import type { HospitalBadgeType } from '@/types/hospital';
 
 // 이만큼 이상 움직였다가 뗀 경우는 드래그(스크롤)로 보고 상세로 이동하지 않는다.
 const CARD_DRAG_THRESHOLD = 8;
@@ -25,8 +26,7 @@ type ListCardProps = {
   address: string;
   priceCards: ReactNode;
   thumbnailUrl?: string;
-  isPopular?: boolean;
-  availabilityBadges?: HospitalAvailabilityBadge[];
+  badgeTypes?: HospitalBadgeType[];
   badges?: ReactNode;
   showDiscountIcon?: boolean;
   // 있으면 카드 전체(병원명·사진·가격 카드 등)를 눌러 상세 화면으로 이동한다.
@@ -41,8 +41,7 @@ function ListCard({
   address,
   priceCards,
   thumbnailUrl,
-  isPopular = false,
-  availabilityBadges = [],
+  badgeTypes = [],
   badges,
   showDiscountIcon = false,
   detailPath,
@@ -52,7 +51,7 @@ function ListCard({
   const thumbnail = thumbnailUrl && (
     <img src={thumbnailUrl} alt="" className="size-full object-cover" />
   );
-  const hasBadges = isPopular || availabilityBadges.length > 0 || badges;
+  const hasBadges = badgeTypes.length > 0 || badges;
   const navigate = useNavigate();
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -92,20 +91,21 @@ function ListCard({
       <div className="flex flex-col gap-gap-s px-padding-m">
         {hasBadges && (
           <div className="flex flex-wrap gap-gap-xs">
-            {isPopular && (
-              <Badge size="S" color="sub" shape="square">
-                인기 병원
-              </Badge>
-            )}
-            {availabilityBadges.map((badge) => (
+            {badgeTypes.map((badge) => (
               <Badge
                 key={badge}
                 size="S"
-                color="secondary"
-                shape="square"
-                icon={<BadgeIcon src={checkBadgeIcon} />}
+                color={badge === 'POPULAR' ? 'sub' : 'secondary'}
+                shape={badge === 'SPECIAL_OFFER' ? 'pill' : 'square'}
+                icon={
+                  badge === 'SPECIAL_OFFER' ? (
+                    <img src={badgeDiscountIcon} alt="" />
+                  ) : badge !== 'POPULAR' ? (
+                    <BadgeIcon src={checkBadgeIcon} />
+                  ) : undefined
+                }
               >
-                {hospitalAvailabilityBadgeLabels[badge]}
+                {hospitalBadgeLabels[badge]}
               </Badge>
             ))}
             {badges}
