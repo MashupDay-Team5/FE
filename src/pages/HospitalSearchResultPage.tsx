@@ -286,7 +286,10 @@ function HospitalSearchResultPage() {
           onSearchClick={() => showToast(UNSUPPORTED_FEATURE_MESSAGE)}
         />
         {hasTreatmentChips && (
-          <div className="flex gap-gap-xs overflow-x-auto bg-surface-default pl-padding-m py-padding-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div
+            key={`${treatmentScope?.medicalCategoryId}-${treatmentScope?.treatmentCategoryId ?? 'all'}`}
+            className="flex gap-gap-xs overflow-x-auto bg-surface-default pl-padding-m py-padding-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
             {showAllTreatmentChip && (
               <FilterChip
                 label="전체"

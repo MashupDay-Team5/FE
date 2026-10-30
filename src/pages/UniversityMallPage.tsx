@@ -183,7 +183,10 @@ function UniversityMallPage() {
 
         {/* 진료 항목 퀵필터: 스크롤 시 Header 바로 아래에 고정한다. */}
         {hasTreatmentChips && (
-          <div className="scrollbar-hidden sticky top-[calc(env(safe-area-inset-top)+52px)] z-[5] -mx-padding-m flex gap-gap-xs overflow-x-auto bg-surface-default py-padding-xs pl-padding-m">
+          <div
+            key={`${treatmentScope?.medicalCategoryId}-${treatmentScope?.treatmentCategoryId ?? 'all'}`}
+            className="scrollbar-hidden sticky top-[calc(env(safe-area-inset-top)+52px)] z-[5] -mx-padding-m flex gap-gap-xs overflow-x-auto bg-surface-default py-padding-xs pl-padding-m"
+          >
             {showAllTreatmentChip && (
               <FilterChip
                 label="전체"
