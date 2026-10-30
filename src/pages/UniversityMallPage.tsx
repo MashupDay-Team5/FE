@@ -25,6 +25,7 @@ import type { TreatmentScope } from '@/types/treatment';
 import { getHospitalListParams } from '@/utils/hospitalList';
 import {
   getHospitalSearchUrl,
+  getProcedureSearchParams,
   getSelectedProcedureIds,
   getTreatmentScope,
   getTreatmentSearchParams,
@@ -60,6 +61,8 @@ function UniversityMallPage() {
     searchParams,
     treatments,
   );
+  const showAllTreatmentChip = treatmentCategory !== undefined;
+  const hasTreatmentChips = showAllTreatmentChip || treatments.length > 0;
   const hospitalList = useHospitalList(
     'home',
     categoriesStatus === 'success' && treatmentScope
@@ -86,6 +89,14 @@ function UniversityMallPage() {
       getTreatmentSearchParams(treatmentScope, nextProcedureIds),
       { replace: true },
     );
+  };
+
+  const handleAllProceduresClick = () => {
+    if (selectedProcedureIds.length === 0) return;
+
+    setSearchParams(getProcedureSearchParams(searchParams, []), {
+      replace: true,
+    });
   };
 
   const handleScopeSelect = (scope: TreatmentScope) => {
@@ -171,8 +182,15 @@ function UniversityMallPage() {
         </button>
 
         {/* 진료 항목 퀵필터: 스크롤 시 Header 바로 아래에 고정한다. */}
-        {treatments.length > 0 && (
+        {hasTreatmentChips && (
           <div className="scrollbar-hidden sticky top-[calc(env(safe-area-inset-top)+52px)] z-[5] -mx-padding-m flex gap-gap-xs overflow-x-auto bg-surface-default py-padding-xs pl-padding-m">
+            {showAllTreatmentChip && (
+              <FilterChip
+                label="전체"
+                selected={selectedProcedureIds.length === 0}
+                onClick={handleAllProceduresClick}
+              />
+            )}
             {treatments.map((treatment) => (
               <FilterChip
                 key={treatment.id}

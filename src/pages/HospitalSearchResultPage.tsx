@@ -91,6 +91,8 @@ function HospitalSearchResultPage() {
     () => getSelectedProcedureIds(searchParams, treatments),
     [searchParams, treatments],
   );
+  const showAllTreatmentChip = treatmentCategory !== undefined;
+  const hasTreatmentChips = showAllTreatmentChip || treatments.length > 0;
   const { listState, setListState } = useHospitalListState('search');
   const selectedSort = listState.sort;
   const handleSortChange = (sort: HospitalSort) => setListState({ sort });
@@ -196,6 +198,14 @@ function HospitalSearchResultPage() {
     setSearchParams(nextSearchParams, { state: location.state });
   };
 
+  const handleAllProceduresClick = () => {
+    if (selectedProcedureIds.length === 0) return;
+
+    setSearchParams(getProcedureSearchParams(searchParams, []), {
+      state: location.state,
+    });
+  };
+
   const handleFilterApply = (filterState: HospitalSearchFilterState) => {
     const nextSearchParams = getFilterSearchParams(searchParams, filterState);
 
@@ -275,8 +285,15 @@ function HospitalSearchResultPage() {
           onTitleClick={handleCategorySheetOpen}
           onSearchClick={() => showToast(UNSUPPORTED_FEATURE_MESSAGE)}
         />
-        {treatments.length > 0 && (
+        {hasTreatmentChips && (
           <div className="flex gap-gap-xs overflow-x-auto bg-surface-default pl-padding-m py-padding-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {showAllTreatmentChip && (
+              <FilterChip
+                label="전체"
+                selected={selectedProcedureIds.length === 0}
+                onClick={handleAllProceduresClick}
+              />
+            )}
             {treatments.map((procedure) => (
               <FilterChip
                 key={procedure.id}
@@ -304,7 +321,7 @@ function HospitalSearchResultPage() {
         disabled={!treatmentScope}
         className="sticky z-10 -mx-padding-m flex items-center justify-between bg-surface-default px-padding-m py-padding-s disabled:opacity-50"
         style={{
-          top: `calc(env(safe-area-inset-top) + ${treatments.length > 0 ? 100 : 52}px)`,
+          top: `calc(env(safe-area-inset-top) + ${hasTreatmentChips ? 100 : 52}px)`,
         }}
       >
         <FilterChip
