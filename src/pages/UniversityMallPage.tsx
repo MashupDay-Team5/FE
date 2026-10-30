@@ -6,6 +6,7 @@ import { UNSUPPORTED_FEATURE_MESSAGE, useToast } from '@/hooks/useToast';
 import { useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import arrowRightIcon from '@/assets/icons/arrowRight.svg';
+import universityMallBanner from '@/assets/images/university-mall-banner.png';
 import FilterChip from '@/components/common/FilterChip';
 import MenuTrigger from '@/components/common/MenuTrigger';
 import TreatmentCategorySheet from '@/components/common/TreatmentCategorySheet';
@@ -158,6 +159,8 @@ function UniversityMallPage() {
 
       <div className="pb-[calc(56px+env(safe-area-inset-bottom))]">
         <MallBanner
+          imageUrl={universityMallBanner}
+          imageAlt="세오스대 할인몰: 대학생 및 가족(부모·자녀·배우자) 할인 안내. 할인은 의료법에 따른 비급여 진료비에 한함."
           specialSaleLabel="안과 특가전"
           onSpecialSaleClick={() => showToast(UNSUPPORTED_FEATURE_MESSAGE)}
         />

@@ -1,5 +1,6 @@
 type MallBannerProps = {
   imageUrl?: string;
+  imageAlt?: string;
   specialSaleLabel: string;
   onSpecialSaleClick?: () => void;
 };
@@ -7,14 +8,19 @@ type MallBannerProps = {
 // 375×232 메인 배너와 특가전 배너 버튼. 이미지가 없으면 회색 placeholder를 보여준다.
 function MallBanner({
   imageUrl,
+  imageAlt = '',
   specialSaleLabel,
   onSpecialSaleClick,
 }: MallBannerProps) {
   return (
     <section className="flex flex-col gap-gap-l">
-      <div className="-mx-padding-m h-[232px] bg-surface-weak">
+      <div className="-mx-padding-m aspect-[375/232] bg-surface-weak">
         {imageUrl && (
-          <img src={imageUrl} alt="" className="size-full object-cover" />
+          <img
+            src={imageUrl}
+            alt={imageAlt}
+            className="size-full object-contain"
+          />
         )}
       </div>
       <button
