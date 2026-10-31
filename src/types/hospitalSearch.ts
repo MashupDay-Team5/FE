@@ -80,7 +80,6 @@ export type HospitalSearchItem = {
   rating: string;
   reviewCount: string;
   address: string;
-  visitCount?: number;
   badgeTypes: HospitalBadgeType[];
   thumbnailUrl?: string;
   priceCards: HospitalSearchPriceCard[];

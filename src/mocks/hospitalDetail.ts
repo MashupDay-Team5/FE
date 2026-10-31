@@ -138,7 +138,7 @@ const fewReviewHospitalReviews: HospitalReview[] = [
 ];
 
 // 병원 상세 목록 : API 연동 시 병원 상세·리뷰 조회 API 응답으로 교체
-// hospitalId는 hospitalSearchItems와 맞춰 목록에서 진입했을 때 같은 병원이 보이도록 한다.
+// 상세 API 연동 전까지 사용하는 예시 데이터이며, 실제 병원 목록 응답과는 다르다.
 export const hospitalDetails: HospitalDetail[] = [
   {
     hospitalId: 1,
