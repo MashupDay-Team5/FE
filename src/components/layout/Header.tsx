@@ -16,6 +16,7 @@ type DetailSearchHeaderProps = {
   type: 'DetailSearch';
   categoryName: string;
   isTitleOpen?: boolean;
+  isTitleDisabled?: boolean;
   onBackClick?: () => void;
   onTitleClick?: () => void;
   onSearchClick?: () => void;
@@ -58,6 +59,7 @@ function IconButton({ icon, label, onClick }: IconButtonProps) {
 
 type DropdownTitleProps = {
   name: string;
+  disabled?: boolean;
   showMallLabel?: boolean;
   open?: boolean;
   onClick?: () => void;
@@ -69,6 +71,7 @@ function DropdownTitle({
   showMallLabel = false,
   open,
   onClick,
+  disabled = false,
 }: DropdownTitleProps) {
   return (
     <MenuTrigger
@@ -77,6 +80,7 @@ function DropdownTitle({
       size="m"
       open={open}
       onClick={onClick}
+      disabled={disabled}
     />
   );
 }
@@ -89,7 +93,7 @@ function MainHomeHeader({
 }: MainHomeHeaderProps) {
   return (
     <header
-      className={`${HEADER_BASE_CLASS} flex justify-between bg-surface-brand px-padding-m`}
+      className={`${HEADER_BASE_CLASS} flex justify-between bg-surface-brand pl-padding-m pr-padding-xs`}
     >
       <DropdownTitle name={schoolName} showMallLabel onClick={onTitleClick} />
 
@@ -113,6 +117,7 @@ function MainHomeHeader({
 function DetailSearchHeader({
   categoryName,
   isTitleOpen,
+  isTitleDisabled,
   onBackClick,
   onTitleClick,
   onSearchClick,
@@ -129,6 +134,7 @@ function DetailSearchHeader({
       <DropdownTitle
         name={categoryName}
         open={isTitleOpen}
+        disabled={isTitleDisabled}
         onClick={onTitleClick}
       />
 

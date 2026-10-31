@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import bookmarkIcon from '@/assets/icons/bookmark28.svg';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import HospitalBookmarkButton from '@/components/hospital/HospitalBookmarkButton';
 import messageIcon from '@/assets/icons/message.svg';
 import MenuTrigger, {
   type MenuTriggerOption,
@@ -17,6 +17,8 @@ import ReviewPanel from '@/components/hospital/ReviewPanel';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import { findHospitalDetail } from '@/mocks/hospitalDetail';
+import { usePageScrollPosition } from '@/hooks/usePageScrollPosition';
+import { UNSUPPORTED_FEATURE_MESSAGE, useToast } from '@/hooks/useToast';
 import type {
   HospitalDetailTab,
   HospitalReview,
@@ -78,12 +80,15 @@ const MIN_RELATED_REVIEW_COUNT = 10;
 const HEADER_HEIGHT = 52;
 
 function HospitalDetailPage() {
+  const showToast = useToast();
+  usePageScrollPosition();
   const { hospitalId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const hospital = findHospitalDetail(Number(hospitalId));
   const heroImageRef = useRef<HTMLDivElement>(null);
   const reviewSectionRef = useRef<HTMLElement>(null);
   const [isHeroVisible, setHeroVisible] = useState(true);
-  const [selectedTab, setSelectedTab] = useState<HospitalDetailTab>('review');
   const [selectedSegment, setSelectedSegment] =
     useState<HospitalReviewSegment>('related');
   const [selectedSort, setSelectedSort] =
@@ -110,11 +115,28 @@ function HospitalDetailPage() {
     return () => observer.disconnect();
   }, [hospital]);
 
+  // 앱 안에서 들어왔으면 이전 화면으로, 주소로 바로 들어왔으면(이전 기록 없음) 홈으로 이동한다.
+  const handleBackClick = () => {
+    if (location.key === 'default') {
+      navigate('/mall/university', { replace: true });
+      return;
+    }
+
+    navigate(-1);
+  };
+
+  const handleHomeClick = () => navigate('/mall/university');
+
   if (!hospital) {
     return (
       <>
         <TopArea>
-          <Header type="Detail" title="" />
+          <Header
+            type="Detail"
+            title=""
+            onBackClick={handleBackClick}
+            onHomeClick={handleHomeClick}
+          />
         </TopArea>
         <p className="py-padding-l text-center typography-body-medium text-text-secondary">
           병원 정보를 찾을 수 없어요.
@@ -123,14 +145,13 @@ function HospitalDetailPage() {
     );
   }
 
-  // 가격·Q&A 탭은 디자인 확정 전까지 비활성화한다.
   const tabItems: TabItem<HospitalDetailTab>[] = [
-    { value: 'price', label: '가격', disabled: true },
+    { value: 'price', label: '가격' },
     {
       value: 'review',
       label: `리뷰(${hospital.relatedReviewCount + hospital.otherReviewCount})`,
     },
-    { value: 'qna', label: `Q&A(${hospital.qnaCount})`, disabled: true },
+    { value: 'qna', label: `Q&A(${hospital.qnaCount})` },
   ];
   const segmentItems: SegmentControlItem<HospitalReviewSegment>[] = [
     { value: 'related', label: `관련 리뷰 (${hospital.relatedReviewCount})` },
@@ -157,7 +178,6 @@ function HospitalDetailPage() {
 
   // 관련된 리뷰 바: 리뷰 탭·관련 리뷰를 선택하고 탭이 Header 아래에 붙는 위치로 스크롤한다.
   const handleRelatedReviewClick = () => {
-    setSelectedTab('review');
     setSelectedSegment('related');
     reviewSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -187,6 +207,8 @@ function HospitalDetailPage() {
           type="Detail"
           title={hospital.hospitalName}
           transparent={isHeroVisible}
+          onBackClick={handleBackClick}
+          onHomeClick={handleHomeClick}
         />
       </TopArea>
 
@@ -219,14 +241,10 @@ function HospitalDetailPage() {
             <h2 className="typography-heading-bold text-text-primary">
               {hospital.treatment.name}
             </h2>
-            {/* 채워진 북마크 시안이 확정되면 저장 상태 토글을 연결한다. */}
-            <button
-              type="button"
-              aria-label={`${hospital.treatment.name} 저장`}
-              className="flex size-11 shrink-0 items-center justify-center"
-            >
-              <img src={bookmarkIcon} alt="" width={28} height={28} />
-            </button>
+            <HospitalBookmarkButton
+              hospitalId={hospital.hospitalId}
+              hospitalName={hospital.hospitalName}
+            />
           </div>
           {/* 캡션 줄: 높이 44 안에서 글자를 세로 가운데 정렬한다. 더보기는 동작 없이 UI만 둔다. */}
           <div className="flex h-11 min-w-0 items-center gap-gap-xs typography-label-small-regular leading-[18px] font-medium">
@@ -262,8 +280,10 @@ function HospitalDetailPage() {
           <div className="sticky top-[calc(env(safe-area-inset-top)+52px)] z-[5] bg-surface-default pt-padding-xs">
             <Tab
               items={tabItems}
-              selectedValue={selectedTab}
-              onValueChange={setSelectedTab}
+              selectedValue="review"
+              onValueChange={(tab) => {
+                if (tab !== 'review') showToast(UNSUPPORTED_FEATURE_MESSAGE);
+              }}
               layout="fill"
             />
           </div>
@@ -319,12 +339,14 @@ function HospitalDetailPage() {
       <div className="fixed inset-x-0 bottom-0 z-10 mx-auto grid w-full max-w-[480px] grid-cols-2 gap-gap-s bg-surface-default px-padding-m pt-padding-xxs pb-[max(14px,calc(var(--spacing-padding-xxs)+env(safe-area-inset-bottom)))]">
         <button
           type="button"
+          onClick={() => showToast(UNSUPPORTED_FEATURE_MESSAGE)}
           className="h-[52px] rounded-[var(--radius-s)] border border-border-brand typography-body-bold text-text-brand"
         >
           상담 신청
         </button>
         <button
           type="button"
+          onClick={() => showToast(UNSUPPORTED_FEATURE_MESSAGE)}
           className="flex h-[52px] items-center justify-center gap-0.5 rounded-[var(--radius-s)] bg-interaction-brand typography-body-bold text-text-inverse"
         >
           <img src={messageIcon} alt="" />

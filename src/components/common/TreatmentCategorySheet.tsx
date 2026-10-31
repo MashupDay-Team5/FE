@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useState, type RefObject } from 'react';
+import { useSheetDialog } from '@/hooks/useSheetDialog';
 import closeIcon from '@/assets/icons/close.svg';
 import CategoryPicker from '@/components/common/CategoryPicker';
 import type { MedicalCategory, TreatmentScope } from '@/types/treatment';
-
-const SHEET_TRANSITION_DURATION = 400;
 
 type TreatmentCategoryRowProps = {
   name: string;
@@ -68,133 +67,15 @@ function TreatmentCategorySheet({
   const [browsingCategoryId, setBrowsingCategoryId] = useState(
     selectedScope.medicalCategoryId,
   );
-  const [isRendered, setIsRendered] = useState(isOpen);
-  const [isVisible, setIsVisible] = useState(false);
-  const sheetRef = useRef<HTMLElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const hasBeenOpenedRef = useRef(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      hasBeenOpenedRef.current = true;
-    }
-  }, [isOpen]);
-
-  // 열릴 때 마운트 후 다음 프레임에 보이게 하고, 닫힐 때 트랜지션이 끝난 뒤 언마운트한다.
-  useEffect(() => {
-    let animationFrameId: number | undefined;
-    let unmountTimeoutId: number | undefined;
-
-    if (isOpen) {
-      animationFrameId = requestAnimationFrame(() => {
-        setBrowsingCategoryId(selectedScope.medicalCategoryId);
-        setIsRendered(true);
-        animationFrameId = requestAnimationFrame(() => {
-          setIsVisible(true);
-        });
-      });
-    } else {
-      animationFrameId = requestAnimationFrame(() => {
-        setIsVisible(false);
-        unmountTimeoutId = window.setTimeout(() => {
-          setIsRendered(false);
-        }, SHEET_TRANSITION_DURATION);
-      });
-    }
-
-    return () => {
-      if (animationFrameId !== undefined) {
-        cancelAnimationFrame(animationFrameId);
-      }
-
-      if (unmountTimeoutId !== undefined) {
-        window.clearTimeout(unmountTimeoutId);
-      }
-    };
-  }, [isOpen, selectedScope.medicalCategoryId]);
-
-  // 시트가 떠 있는 동안 배경 스크롤을 막고, Esc 닫기와 Tab 포커스 순환을 처리한다.
-  useEffect(() => {
-    if (!isRendered) {
-      return;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-        return;
-      }
-
-      if (event.key !== 'Tab' || !sheetRef.current) {
-        return;
-      }
-
-      const focusableElements = Array.from(
-        sheetRef.current.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
-        ),
-      );
-
-      if (focusableElements.length === 0) {
-        return;
-      }
-
-      const firstFocusableElement = focusableElements[0];
-      const lastFocusableElement = focusableElements.at(-1);
-      const isFocusOutsideSheet = !sheetRef.current.contains(
-        document.activeElement,
-      );
-
-      if (
-        event.shiftKey &&
-        (isFocusOutsideSheet ||
-          document.activeElement === firstFocusableElement)
-      ) {
-        event.preventDefault();
-        lastFocusableElement?.focus();
-      } else if (
-        !event.shiftKey &&
-        (isFocusOutsideSheet || document.activeElement === lastFocusableElement)
-      ) {
-        event.preventDefault();
-        firstFocusableElement.focus();
-      }
-    };
-
-    // 실제 스크롤 컨테이너는 #root라서 함께 막는다.
-    const rootElement = document.getElementById('root');
-    const previousRootOverflow = rootElement?.style.overflow;
-    if (rootElement) {
-      rootElement.style.overflow = 'hidden';
-    }
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      if (rootElement) {
-        rootElement.style.overflow = previousRootOverflow ?? '';
-      }
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isRendered, onClose]);
-
-  // 열리면 닫기 버튼으로, 닫히면 시트를 연 버튼으로 포커스를 옮긴다.
-  useEffect(() => {
-    if (isRendered && isOpen) {
-      const animationFrameId = requestAnimationFrame(() => {
-        closeButtonRef.current?.focus();
-      });
-
-      return () => cancelAnimationFrame(animationFrameId);
-    }
-
-    if (!isRendered && hasBeenOpenedRef.current) {
-      const previouslyFocusedElement = triggerRef.current;
-
-      if (previouslyFocusedElement?.isConnected) {
-        previouslyFocusedElement.focus();
-      }
-    }
-  }, [isOpen, isRendered, triggerRef]);
+  const resetBrowsingCategory = useCallback(() => {
+    setBrowsingCategoryId(selectedScope.medicalCategoryId);
+  }, [selectedScope.medicalCategoryId]);
+  const { isRendered, isVisible, sheetRef, closeButtonRef } = useSheetDialog({
+    isOpen,
+    onClose,
+    triggerRef,
+    onOpen: resetBrowsingCategory,
+  });
 
   if (!isRendered) {
     return null;

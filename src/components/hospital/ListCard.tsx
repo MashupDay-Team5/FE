@@ -1,60 +1,111 @@
-import { Children, type ReactNode } from 'react';
-import bookmarkIcon from '@/assets/icons/bookmark28.svg';
+import {
+  Children,
+  useRef,
+  type MouseEvent,
+  type PointerEvent,
+  type ReactNode,
+} from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import HospitalBookmarkButton from '@/components/hospital/HospitalBookmarkButton';
 import checkBadgeIcon from '@/assets/icons/checkBadgeIcon.svg';
+import badgeDiscountIcon from '@/assets/icons/badgeDiscount.svg';
 import discountIcon from '@/assets/icons/discount.svg';
 import ratingStarIcon from '@/assets/icons/ratingStar.svg';
 import Badge, { BadgeIcon } from '@/components/common/Badge';
-import { hospitalAvailabilityBadgeLabels } from '@/constants/hospitalSearch';
-import type { HospitalAvailabilityBadge } from '@/types/hospitalSearch';
+import { hospitalBadgeLabels } from '@/constants/hospitalSearch';
+import type { HospitalBadgeType } from '@/types/hospital';
+
+// 이만큼 이상 움직였다가 뗀 경우는 드래그(스크롤)로 보고 상세로 이동하지 않는다.
+const CARD_DRAG_THRESHOLD = 8;
 
 type ListCardProps = {
+  hospitalId: number;
   hospitalName: string;
   rating: string;
   reviewCount: string;
   address: string;
   priceCards: ReactNode;
   thumbnailUrl?: string;
-  isPopular?: boolean;
-  availabilityBadges?: HospitalAvailabilityBadge[];
+  badgeTypes?: HospitalBadgeType[];
   badges?: ReactNode;
   showDiscountIcon?: boolean;
-  onBookmarkClick?: () => void;
+  // 있으면 카드 전체(병원명·사진·가격 카드 등)를 눌러 상세 화면으로 이동한다.
+  detailPath?: string;
 };
 
 function ListCard({
+  hospitalId,
   hospitalName,
   rating,
   reviewCount,
   address,
   priceCards,
   thumbnailUrl,
-  isPopular = false,
-  availabilityBadges = [],
+  badgeTypes = [],
   badges,
   showDiscountIcon = false,
-  onBookmarkClick,
+  detailPath,
 }: ListCardProps) {
-  const hasBadges = isPopular || availabilityBadges.length > 0 || badges;
+  const thumbnailClassName =
+    'size-[52px] shrink-0 overflow-hidden rounded-[var(--radius-s)] bg-surface-weak';
+  const thumbnail = thumbnailUrl && (
+    <img src={thumbnailUrl} alt="" className="size-full object-cover" />
+  );
+  const hasBadges = badgeTypes.length > 0 || badges;
+  const navigate = useNavigate();
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
+    pointerStartRef.current = { x: event.clientX, y: event.clientY };
+  };
+
+  // 링크·버튼(북마크)을 누른 경우, 가격 카드를 끌어서 넘긴 경우, 글자를 선택한 경우는 이동하지 않는다.
+  const handleCardClick = (event: MouseEvent<HTMLElement>) => {
+    if (!detailPath) return;
+
+    const target = event.target as HTMLElement;
+    if (target.closest('a, button, [data-card-click-ignore]')) return;
+
+    const start = pointerStartRef.current;
+    if (
+      start &&
+      Math.hypot(event.clientX - start.x, event.clientY - start.y) >
+        CARD_DRAG_THRESHOLD
+    ) {
+      return;
+    }
+
+    if (window.getSelection()?.toString()) return;
+
+    navigate(detailPath);
+  };
 
   return (
-    <article className="flex w-full flex-col gap-gap-l overflow-hidden border-b border-border-weak bg-surface-default py-padding-l">
+    <article
+      onPointerDown={detailPath ? handlePointerDown : undefined}
+      onClick={detailPath ? handleCardClick : undefined}
+      className={`flex w-full flex-col gap-gap-l overflow-hidden border-b border-border-weak bg-surface-default py-padding-l ${
+        detailPath ? 'cursor-pointer' : ''
+      }`}
+    >
       <div className="flex flex-col gap-gap-s px-padding-m">
         {hasBadges && (
           <div className="flex flex-wrap gap-gap-xs">
-            {isPopular && (
-              <Badge size="S" color="sub" shape="square">
-                인기 병원
-              </Badge>
-            )}
-            {availabilityBadges.map((badge) => (
+            {badgeTypes.map((badge) => (
               <Badge
                 key={badge}
                 size="S"
-                color="secondary"
-                shape="square"
-                icon={<BadgeIcon src={checkBadgeIcon} />}
+                color={badge === 'POPULAR' ? 'sub' : 'secondary'}
+                shape={badge === 'SPECIAL_OFFER' ? 'pill' : 'square'}
+                icon={
+                  badge === 'SPECIAL_OFFER' ? (
+                    <img src={badgeDiscountIcon} alt="" />
+                  ) : badge !== 'POPULAR' ? (
+                    <BadgeIcon src={checkBadgeIcon} />
+                  ) : undefined
+                }
               >
-                {hospitalAvailabilityBadgeLabels[badge]}
+                {hospitalBadgeLabels[badge]}
               </Badge>
             ))}
             {badges}
@@ -63,20 +114,33 @@ function ListCard({
 
         <div className="relative flex items-start">
           <div className="flex min-w-0 items-center gap-gap-m pr-11">
-            <div className="size-[52px] shrink-0 overflow-hidden rounded-[var(--radius-s)] bg-surface-weak">
-              {thumbnailUrl && (
-                <img
-                  src={thumbnailUrl}
-                  alt=""
-                  className="size-full object-cover"
-                />
-              )}
-            </div>
+            {detailPath ? (
+              // 병원명 링크와 같은 곳으로 이동하므로 키보드·스크린리더에서는 중복되지 않게 숨긴다.
+              <Link
+                to={detailPath}
+                tabIndex={-1}
+                aria-hidden="true"
+                className={thumbnailClassName}
+              >
+                {thumbnail}
+              </Link>
+            ) : (
+              <div className={thumbnailClassName}>{thumbnail}</div>
+            )}
 
             <div className="flex min-w-0 flex-col gap-px">
               <div className="flex items-center">
                 <h3 className="truncate typography-headline-bold text-text-strong">
-                  {hospitalName}
+                  {detailPath ? (
+                    <Link
+                      to={detailPath}
+                      className="rounded-[var(--radius-s)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-brand"
+                    >
+                      {hospitalName}
+                    </Link>
+                  ) : (
+                    hospitalName
+                  )}
                 </h3>
                 {showDiscountIcon && (
                   <img src={discountIcon} alt="" width={20} height={20} />
@@ -101,23 +165,11 @@ function ListCard({
             </div>
           </div>
 
-          {onBookmarkClick ? (
-            <button
-              type="button"
-              aria-label={`${hospitalName} 저장`}
-              onClick={onBookmarkClick}
-              className="absolute -top-padding-xs -right-padding-xs flex size-11 items-center justify-center"
-            >
-              <img src={bookmarkIcon} alt="" />
-            </button>
-          ) : (
-            <span
-              aria-hidden="true"
-              className="absolute -top-padding-xs -right-padding-xs flex size-11 items-center justify-center"
-            >
-              <img src={bookmarkIcon} alt="" />
-            </span>
-          )}
+          <HospitalBookmarkButton
+            hospitalId={hospitalId}
+            hospitalName={hospitalName}
+            className="absolute -top-padding-xs -right-padding-xs"
+          />
         </div>
       </div>
 
