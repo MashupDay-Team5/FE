@@ -20,6 +20,9 @@ type GetHospitalReviewsParams = HospitalTreatmentParams & {
   size: number;
 };
 
+// 대학생 할인몰 ID. 상세 조회에 전달해야 할인 가격(discountPrice)이 내려온다.
+const UNIVERSITY_MALL_ID = 1;
+
 function getHospitalTreatmentPath(hospitalId: number, treatmentId: number) {
   return `/api/hospitals/${hospitalId}/treatments/${treatmentId}`;
 }
@@ -31,7 +34,7 @@ export function getHospitalDetail({
 }: HospitalTreatmentParams) {
   return apiGet<HospitalDetailResponse>(
     getHospitalTreatmentPath(hospitalId, treatmentId),
-    { signal },
+    { params: { mallId: UNIVERSITY_MALL_ID }, signal },
   );
 }
 
