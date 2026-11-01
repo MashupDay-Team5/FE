@@ -33,7 +33,7 @@ function AppRouter() {
             />
           </Route>
           <Route
-            path="/mall/university/hospitals/:hospitalId"
+            path="/mall/university/hospitals/:hospitalId/treatments/:treatmentId"
             element={<HospitalDetailPage />}
           />
         </Route>
