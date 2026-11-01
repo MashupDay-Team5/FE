@@ -1,7 +1,12 @@
 import { useTreatmentCategories } from '@/hooks/useTreatmentCategories';
+import { useHospitalListState } from '@/hooks/useHospitalListState';
+import { useHospitalList } from '@/hooks/useHospitalList';
+import { usePageScrollPosition } from '@/hooks/usePageScrollPosition';
+import { UNSUPPORTED_FEATURE_MESSAGE, useToast } from '@/hooks/useToast';
 import { useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import arrowRightIcon from '@/assets/icons/arrowRight.svg';
+import universityMallBanner from '@/assets/images/university-mall-banner.png';
 import FilterChip from '@/components/common/FilterChip';
 import MenuTrigger from '@/components/common/MenuTrigger';
 import TreatmentCategorySheet from '@/components/common/TreatmentCategorySheet';
@@ -11,32 +16,32 @@ import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import MallBanner from '@/components/mall/MallBanner';
 import MallHospitalList from '@/components/mall/MallHospitalList';
+import HospitalListFeedback from '@/components/hospital/HospitalListFeedback';
 import {
   defaultHospitalSortOptions,
   lowestPriceSortOption,
 } from '@/constants/hospitalSearch';
-import { hospitalSearchItems } from '@/mocks/hospitals';
 import type { HospitalSort } from '@/types/hospitalSearch';
 import type { TreatmentScope } from '@/types/treatment';
-import { getSortedHospitals } from '@/utils/hospitalSearch';
+import { getHospitalListParams } from '@/utils/hospitalList';
 import {
   getHospitalSearchUrl,
+  getProcedureSearchParams,
   getSelectedProcedureIds,
   getTreatmentScope,
   getTreatmentSearchParams,
 } from '@/utils/hospitalSearchUrl';
 
-const HOSPITAL_PAGE_SIZE = 8;
-
 function UniversityMallPage() {
+  const showToast = useToast();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { categories: medicalCategories } = useTreatmentCategories();
+  const { categories: medicalCategories, status: categoriesStatus } =
+    useTreatmentCategories();
   const treatmentScope = getTreatmentScope(searchParams, medicalCategories);
-  const [selectedSort, setSelectedSort] =
-    useState<HospitalSort>('most-visited');
-  const [visibleHospitalCount, setVisibleHospitalCount] =
-    useState(HOSPITAL_PAGE_SIZE);
+  const { listState, setListState, listEntryKey } =
+    useHospitalListState('home');
+  const selectedSort = listState.sort;
   const [isCategorySheetOpen, setCategorySheetOpen] = useState(false);
   const scopeTriggerRef = useRef<HTMLButtonElement>(null);
 
@@ -57,6 +62,21 @@ function UniversityMallPage() {
     searchParams,
     treatments,
   );
+  const showAllTreatmentChip = treatmentCategory !== undefined;
+  const hasTreatmentChips = showAllTreatmentChip || treatments.length > 0;
+  const hospitalList = useHospitalList(
+    'home',
+    categoriesStatus === 'success' && treatmentScope
+      ? getHospitalListParams({
+          scope: treatmentScope,
+          procedureIds: selectedProcedureIds,
+          sort: selectedSort,
+        })
+      : null,
+  );
+  usePageScrollPosition(
+    categoriesStatus === 'success' && hospitalList.status === 'success',
+  );
 
   const handleProcedureClick = (procedureId: number) => {
     if (!treatmentScope) {
@@ -70,7 +90,14 @@ function UniversityMallPage() {
       getTreatmentSearchParams(treatmentScope, nextProcedureIds),
       { replace: true },
     );
-    setVisibleHospitalCount(HOSPITAL_PAGE_SIZE);
+  };
+
+  const handleAllProceduresClick = () => {
+    if (selectedProcedureIds.length === 0) return;
+
+    setSearchParams(getProcedureSearchParams(searchParams, []), {
+      replace: true,
+    });
   };
 
   const handleScopeSelect = (scope: TreatmentScope) => {
@@ -82,7 +109,6 @@ function UniversityMallPage() {
     }
 
     setSearchParams(getTreatmentSearchParams(scope), { replace: true });
-    setVisibleHospitalCount(HOSPITAL_PAGE_SIZE);
   };
 
   const sortOptions =
@@ -93,34 +119,25 @@ function UniversityMallPage() {
     sortOptions.find((option) => option.value === selectedSort) ??
     sortOptions[0];
 
-  if (selectedProcedureIds.length === 0 && selectedSort === 'lowest-price') {
-    setSelectedSort('most-visited');
+  if (
+    treatmentScope &&
+    selectedProcedureIds.length === 0 &&
+    selectedSort === 'lowest-price'
+  ) {
+    setListState({ sort: 'most-visited' });
   }
 
-  // API 연동 전 확인용 필터: 선택한 시술(없으면 현재 진료 범위의 시술)에 해당하는 가격 카드만 남기고,
-  // 남은 카드가 없는 병원은 목록에서 뺀다. 연동 후에는 서버 응답으로 대체한다.
-  const visibleProcedureIds = new Set(
-    selectedProcedureIds.length === 0
-      ? treatments.map(({ id }) => id)
-      : selectedProcedureIds,
-  );
-  const filteredHospitals = hospitalSearchItems
-    .map((hospital) => ({
-      ...hospital,
-      priceCards: hospital.priceCards.filter(({ procedureId }) =>
-        visibleProcedureIds.has(procedureId),
-      ),
-    }))
-    .filter(({ priceCards }) => priceCards.length > 0);
-  const sortedHospitals = getSortedHospitals(filteredHospitals, selectedSort);
-  const visibleHospitals = sortedHospitals.slice(0, visibleHospitalCount);
+  const handleSortChange = (sort: HospitalSort) => {
+    setListState({ sort });
+  };
 
   return (
     <>
       <TopArea>
         <Header
           type="MainHome"
-          schoolName="5팀대학교"
+          schoolName="세오스대학교"
+          onBookmarkClick={() => showToast(UNSUPPORTED_FEATURE_MESSAGE)}
           onSearchClick={() =>
             navigate(
               treatmentScope
@@ -130,7 +147,10 @@ function UniversityMallPage() {
                     search: searchParams.toString(),
                   },
               {
-                state: { homeSearch: searchParams.toString() },
+                state: {
+                  homeSearch: searchParams.toString(),
+                  homeListStateKey: listEntryKey,
+                },
               },
             )
           }
@@ -138,7 +158,12 @@ function UniversityMallPage() {
       </TopArea>
 
       <div className="pb-[calc(56px+env(safe-area-inset-bottom))]">
-        <MallBanner specialSaleLabel="안과 특가전" />
+        <MallBanner
+          imageUrl={universityMallBanner}
+          imageAlt="세오스대 할인몰: 대학생 및 가족(부모·자녀·배우자) 할인 안내. 할인은 의료법에 따른 비급여 진료비에 한함."
+          specialSaleLabel="안과 특가전"
+          onSpecialSaleClick={() => showToast(UNSUPPORTED_FEATURE_MESSAGE)}
+        />
 
         <button
           ref={scopeTriggerRef}
@@ -160,8 +185,18 @@ function UniversityMallPage() {
         </button>
 
         {/* 진료 항목 퀵필터: 스크롤 시 Header 바로 아래에 고정한다. */}
-        {treatments.length > 0 && (
-          <div className="scrollbar-hidden sticky top-[calc(env(safe-area-inset-top)+52px)] z-[5] -mx-padding-m flex gap-gap-xs overflow-x-auto bg-surface-default py-padding-xs pl-padding-m">
+        {hasTreatmentChips && (
+          <div
+            key={`${treatmentScope?.medicalCategoryId}-${treatmentScope?.treatmentCategoryId ?? 'all'}`}
+            className="scrollbar-hidden sticky top-[calc(env(safe-area-inset-top)+52px)] z-[5] -mx-padding-m flex gap-gap-xs overflow-x-auto bg-surface-default py-padding-xs pl-padding-m"
+          >
+            {showAllTreatmentChip && (
+              <FilterChip
+                label="전체"
+                selected={selectedProcedureIds.length === 0}
+                onClick={handleAllProceduresClick}
+              />
+            )}
             {treatments.map((treatment) => (
               <FilterChip
                 key={treatment.id}
@@ -181,18 +216,24 @@ function UniversityMallPage() {
           size="s"
           options={sortOptions}
           selectedValue={selectedSortOption.value}
-          onValueChange={setSelectedSort}
+          onValueChange={handleSortChange}
           disabled={!treatmentScope}
         />
 
         {treatmentScope && (
-          <MallHospitalList
-            hospitals={visibleHospitals}
-            hasMore={visibleHospitalCount < filteredHospitals.length}
-            onMoreClick={() =>
-              setVisibleHospitalCount((count) => count + HOSPITAL_PAGE_SIZE)
-            }
-          />
+          <>
+            {(hospitalList.hospitals.length > 0 ||
+              hospitalList.status === 'success') && (
+              <MallHospitalList hospitals={hospitalList.hospitals} />
+            )}
+            <HospitalListFeedback
+              status={hospitalList.status}
+              hasHospitals={hospitalList.hospitals.length > 0}
+              hasNext={hospitalList.hasNext}
+              onRetry={hospitalList.retry}
+              onMoreClick={hospitalList.loadMore}
+            />
+          </>
         )}
       </div>
 
@@ -206,7 +247,12 @@ function UniversityMallPage() {
           triggerRef={scopeTriggerRef}
         />
       )}
-      <BottomNav selected="home" />
+      <BottomNav
+        selected="home"
+        onTabClick={(tab) => {
+          if (tab !== 'home') showToast(UNSUPPORTED_FEATURE_MESSAGE);
+        }}
+      />
     </>
   );
 }

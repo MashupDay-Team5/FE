@@ -1,17 +1,16 @@
 import type { MenuTriggerOption } from '@/components/common/MenuTrigger';
+import type { HospitalBadgeType } from '@/types/hospital';
 import type {
-  HospitalAvailabilityBadge,
   HospitalSearchTreatmentCondition,
   HospitalSort,
 } from '@/types/hospitalSearch';
 
-export const hospitalAvailabilityBadgeLabels: Record<
-  HospitalAvailabilityBadge,
-  string
-> = {
-  'night-clinic': '야간 진료',
-  'same-day-reservation': '당일 예약',
-  'open-today': '오늘 진료',
+export const hospitalBadgeLabels: Record<HospitalBadgeType, string> = {
+  POPULAR: '인기 병원',
+  NIGHT_CLINIC: '야간 진료',
+  SAME_DAY_BOOKING: '당일 예약',
+  OPEN_TODAY: '오늘 진료',
+  SPECIAL_OFFER: '특가 진행',
 };
 
 export const MAX_SELECTED_REGION_COUNT = 5;

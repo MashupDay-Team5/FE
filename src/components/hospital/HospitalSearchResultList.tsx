@@ -37,13 +37,13 @@ function HospitalSearchResultList({
       {hospitals.map((hospital) => (
         <ListCard
           key={hospital.hospitalId}
+          hospitalId={hospital.hospitalId}
           hospitalName={hospital.hospitalName}
           rating={hospital.rating}
           reviewCount={hospital.reviewCount}
           address={hospital.address}
           thumbnailUrl={hospital.thumbnailUrl}
-          isPopular={hospital.isPopular}
-          availabilityBadges={hospital.availabilityBadges}
+          badgeTypes={hospital.badgeTypes}
           showDiscountIcon={hospital.hasDiscount}
           detailPath={getCardDetailPath(hospital)}
           priceCards={hospital.priceCards.map((priceCard) => (

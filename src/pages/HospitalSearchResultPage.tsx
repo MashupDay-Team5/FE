@@ -8,250 +8,52 @@ import TreatmentCategorySheet from '@/components/common/TreatmentCategorySheet';
 import TreatmentCategoriesStatus from '@/components/common/TreatmentCategoriesStatus';
 import HospitalSearchFilterSheet from '@/components/hospital/HospitalSearchFilterSheet';
 import HospitalSearchResultList from '@/components/hospital/HospitalSearchResultList';
+import HospitalListFeedback from '@/components/hospital/HospitalListFeedback';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
 import {
   defaultHospitalSortOptions,
   hospitalSearchPriceRange,
-  hospitalSearchPriceStep,
-  hospitalSearchPriceUnitInWon,
-  hospitalSearchTreatmentConditions,
   lowestPriceSortOption,
 } from '@/constants/hospitalSearch';
 import { useHospitalRegions } from '@/hooks/useHospitalRegions';
-import { normalizeRegionSelections } from '@/utils/hospitalRegions';
-import { hospitalSearchItems } from '@/mocks/hospitals';
+import { useHospitalList } from '@/hooks/useHospitalList';
 import { useTreatmentCategories } from '@/hooks/useTreatmentCategories';
+import { useHospitalListState } from '@/hooks/useHospitalListState';
+import { usePageScrollPosition } from '@/hooks/usePageScrollPosition';
 import type { TreatmentScope } from '@/types/treatment';
 import type {
   HospitalSearchFilterState,
-  HospitalSearchRegionSelection,
-  HospitalSearchRegion,
   HospitalSearchTab,
-  HospitalSearchTreatmentConditionId,
   HospitalSort,
 } from '@/types/hospitalSearch';
-import {
-  getSortedHospitals,
-  matchesHospitalSearchFilters,
-  matchesHospitalSearchPriceCard,
-} from '@/utils/hospitalSearch';
+import { getHospitalListParams } from '@/utils/hospitalList';
 import {
   getSelectedProcedureIds,
+  REGION_QUERY_KEY,
+  parseRegionSelection,
+  getFilterState,
+  getFilterSearchParams,
+  getScopeSearchParams,
+  getProcedureSearchParams,
+  getNormalizedPriceSearchParams,
   getTreatmentScope,
 } from '@/utils/hospitalSearchUrl';
+import { getFilterSummaryLabel } from '@/utils/hospitalFilterSummary';
+import { UNSUPPORTED_FEATURE_MESSAGE, useToast } from '@/hooks/useToast';
 
 const PRICE_MINIMUM = hospitalSearchPriceRange.min;
 const PRICE_MAXIMUM = hospitalSearchPriceRange.max;
-const PRICE_UNIT_IN_WON = hospitalSearchPriceUnitInWon;
-const MEDICAL_CATEGORY_QUERY_KEY = 'medicalCategory';
-const TREATMENT_CATEGORY_QUERY_KEY = 'treatmentCategory';
-const PROCEDURE_QUERY_KEY = 'procedure';
-const REGION_QUERY_KEY = 'region';
-const MIN_PRICE_QUERY_KEY = 'minPrice';
-const MAX_PRICE_QUERY_KEY = 'maxPrice';
-const TREATMENT_CONDITION_QUERY_KEY = 'treatmentCondition';
-const MAX_FILTER_SUMMARY_LENGTH = 20;
-
-function parsePriceRangeValue(value: string | null, fallback: number) {
-  if (!value) {
-    return fallback;
-  }
-
-  const priceInWon = Number(value);
-
-  if (!Number.isFinite(priceInWon)) {
-    return fallback;
-  }
-
-  return Math.min(
-    PRICE_MAXIMUM,
-    Math.max(
-      PRICE_MINIMUM,
-      Math.round(priceInWon / PRICE_UNIT_IN_WON / hospitalSearchPriceStep) *
-        hospitalSearchPriceStep,
-    ),
-  );
-}
-
-function parseRegionSelection(value: string) {
-  const parts = value.split(':');
-  if (parts.length !== 2 || parts.some((part) => !/^\d+$/.test(part)))
-    return undefined;
-  const [regionIdText, districtIdText] = parts;
-  const regionId = Number(regionIdText);
-  const districtId = Number(districtIdText);
-
-  if (!Number.isInteger(regionId) || !Number.isInteger(districtId)) {
-    return undefined;
-  }
-
-  return { regionId, districtId };
-}
-
-function parseTreatmentConditionId(value: string) {
-  const treatmentCondition = hospitalSearchTreatmentConditions.find(
-    ({ id }) => id === value,
-  );
-
-  return treatmentCondition?.id;
-}
-
-function getFilterState(
-  searchParams: URLSearchParams,
-  regions: HospitalSearchRegion[],
-  loadedRegionIds: number[],
-  regionsReady: boolean,
-): HospitalSearchFilterState {
-  const regionSelections = searchParams
-    .getAll(REGION_QUERY_KEY)
-    .map(parseRegionSelection)
-    .filter(
-      (selection): selection is HospitalSearchRegionSelection =>
-        selection !== undefined,
-    );
-  const minimumPrice = parsePriceRangeValue(
-    searchParams.get(MIN_PRICE_QUERY_KEY),
-    PRICE_MINIMUM,
-  );
-  const maximumPrice = parsePriceRangeValue(
-    searchParams.get(MAX_PRICE_QUERY_KEY),
-    PRICE_MAXIMUM,
-  );
-  const treatmentConditionIds = Array.from(
-    new Set(
-      searchParams
-        .getAll(TREATMENT_CONDITION_QUERY_KEY)
-        .map(parseTreatmentConditionId)
-        .filter(
-          (conditionId): conditionId is HospitalSearchTreatmentConditionId =>
-            conditionId !== undefined,
-        ),
-    ),
-  );
-
-  return {
-    regionSelections: regionsReady
-      ? normalizeRegionSelections(regionSelections, regions, loadedRegionIds)
-      : regionSelections,
-    priceRange: {
-      min: Math.min(minimumPrice, maximumPrice),
-      max: Math.max(minimumPrice, maximumPrice),
-    },
-    treatmentConditionIds,
-  };
-}
-
-function clearFilterSearchParams(searchParams: URLSearchParams) {
-  searchParams.delete(REGION_QUERY_KEY);
-  clearPriceSearchParams(searchParams);
-  searchParams.delete(TREATMENT_CONDITION_QUERY_KEY);
-}
-
-function clearPriceSearchParams(searchParams: URLSearchParams) {
-  searchParams.delete(MIN_PRICE_QUERY_KEY);
-  searchParams.delete(MAX_PRICE_QUERY_KEY);
-}
-
-function getRegionSummaryLabel(
-  selection: HospitalSearchRegionSelection,
-  regions: HospitalSearchRegion[],
-) {
-  const region = regions.find(({ id }) => id === selection.regionId);
-  const district = region?.districts.find(
-    ({ id }) => id === selection.districtId,
-  );
-
-  if (!region) {
-    return undefined;
-  }
-
-  const abbreviatedRegionName = region.name.replace(/특별시$|광역시$/, '');
-
-  return !district || district.id === region.id
-    ? abbreviatedRegionName
-    : `${abbreviatedRegionName} ${district.name}`;
-}
-
-function getFilterSummaryLabel(
-  filterState: HospitalSearchFilterState,
-  regions: HospitalSearchRegion[],
-) {
-  let hiddenFilterCount = 0;
-  const regionLabel =
-    filterState.regionSelections
-      .map((selection) => getRegionSummaryLabel(selection, regions))
-      .find((label) => label !== undefined) ??
-    (filterState.regionSelections.length > 0 ? '지역' : undefined);
-
-  if (regionLabel) {
-    hiddenFilterCount += filterState.regionSelections.length - 1;
-  }
-
-  const hasPriceFilter =
-    filterState.priceRange.min !== PRICE_MINIMUM ||
-    filterState.priceRange.max !== PRICE_MAXIMUM;
-
-  let priceLabel = hasPriceFilter
-    ? `${filterState.priceRange.min}만원~${filterState.priceRange.max}만원`
-    : undefined;
-
-  const treatmentCondition = hospitalSearchTreatmentConditions.find(({ id }) =>
-    filterState.treatmentConditionIds.includes(id),
-  );
-
-  let treatmentConditionLabel = treatmentCondition?.label;
-
-  if (treatmentConditionLabel) {
-    hiddenFilterCount += filterState.treatmentConditionIds.length - 1;
-  }
-
-  const getSummaryLabel = () => {
-    const summaryLabels = [regionLabel, priceLabel, treatmentConditionLabel];
-    const suffix = hiddenFilterCount > 0 ? ` 외 ${hiddenFilterCount}` : '';
-
-    return `${summaryLabels.filter(Boolean).join(', ')}${suffix}`;
-  };
-  let summaryLabel = getSummaryLabel();
-
-  if (
-    Array.from(summaryLabel).length > MAX_FILTER_SUMMARY_LENGTH &&
-    priceLabel &&
-    (regionLabel || treatmentConditionLabel)
-  ) {
-    priceLabel = undefined;
-    hiddenFilterCount += 1;
-    summaryLabel = getSummaryLabel();
-  }
-
-  const overflowLength =
-    Array.from(summaryLabel).length - MAX_FILTER_SUMMARY_LENGTH;
-
-  if (overflowLength > 0 && treatmentConditionLabel) {
-    const conditionCharacters = Array.from(treatmentConditionLabel);
-    const ellipsis = '...';
-    const visibleCharacterCount = Math.max(
-      0,
-      conditionCharacters.length - overflowLength - ellipsis.length,
-    );
-
-    treatmentConditionLabel = `${conditionCharacters
-      .slice(0, visibleCharacterCount)
-      .join('')}${ellipsis}`;
-    summaryLabel = getSummaryLabel();
-  }
-
-  return summaryLabel;
-}
 
 const hospitalSearchTabItems: TabItem<HospitalSearchTab>[] = [
-  { value: 'integrated', label: '통합', disabled: true },
+  { value: 'integrated', label: '통합' },
   { value: 'hospital', label: '병원' },
-  { value: 'consultation', label: '의료상담', disabled: true },
-  { value: 'blog', label: '블로그', disabled: true },
+  { value: 'consultation', label: '의료상담' },
+  { value: 'blog', label: '블로그' },
 ];
 
 function HospitalSearchResultPage() {
+  const showToast = useToast();
   const regionOptions = useHospitalRegions();
   const {
     regions: hospitalSearchRegions,
@@ -261,7 +63,8 @@ function HospitalSearchResultPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { categories: medicalCategories } = useTreatmentCategories();
+  const { categories: medicalCategories, status: categoriesStatus } =
+    useTreatmentCategories();
   const treatmentScope = useMemo(
     () => getTreatmentScope(searchParams, medicalCategories),
     [searchParams, medicalCategories],
@@ -288,16 +91,11 @@ function HospitalSearchResultPage() {
     () => getSelectedProcedureIds(searchParams, treatments),
     [searchParams, treatments],
   );
-  const activeProcedureIds = useMemo(
-    () =>
-      selectedProcedureIds.length > 0
-        ? selectedProcedureIds
-        : treatments.map(({ id }) => id),
-    [selectedProcedureIds, treatments],
-  );
-  const [selectedTab, setSelectedTab] = useState<HospitalSearchTab>('hospital');
-  const [selectedSort, setSelectedSort] =
-    useState<HospitalSort>('most-visited');
+  const showAllTreatmentChip = treatmentCategory !== undefined;
+  const hasTreatmentChips = showAllTreatmentChip || treatments.length > 0;
+  const { listState, setListState } = useHospitalListState('search');
+  const selectedSort = listState.sort;
+  const handleSortChange = (sort: HospitalSort) => setListState({ sort });
   const [isFilterSheetOpen, setFilterSheetOpen] = useState(false);
   const [filterSheetSession, setFilterSheetSession] = useState(0);
   const filterTriggerRef = useRef<HTMLButtonElement>(null);
@@ -318,6 +116,29 @@ function HospitalSearchResultPage() {
       regionOptions.status,
     ],
   );
+  const areSelectedRegionsReady =
+    !searchParams.has(REGION_QUERY_KEY) ||
+    (regionOptions.status === 'success' &&
+      appliedFilterState.regionSelections.every(
+        ({ regionId, districtId }) =>
+          regionId === districtId || districtStatuses[regionId] === 'success',
+      ));
+  const hospitalList = useHospitalList(
+    'search',
+    categoriesStatus === 'success' && treatmentScope && areSelectedRegionsReady
+      ? getHospitalListParams({
+          scope: treatmentScope,
+          procedureIds: selectedProcedureIds,
+          sort: selectedSort,
+          filters: appliedFilterState,
+        })
+      : null,
+  );
+  usePageScrollPosition(
+    categoriesStatus === 'success' &&
+      areSelectedRegionsReady &&
+      hospitalList.status === 'success',
+  );
   useEffect(() => {
     for (const value of searchParams.getAll(REGION_QUERY_KEY)) {
       const selection = parseRegionSelection(value);
@@ -331,17 +152,10 @@ function HospitalSearchResultPage() {
     }
   }, [searchParams, hospitalSearchRegions, districtStatuses, loadDistricts]);
   useEffect(() => {
-    const nextSearchParams = new URLSearchParams(searchParams);
-    const priceEntries = [
-      [MIN_PRICE_QUERY_KEY, appliedFilterState.priceRange.min],
-      [MAX_PRICE_QUERY_KEY, appliedFilterState.priceRange.max],
-    ] as const;
-
-    for (const [queryKey, price] of priceEntries) {
-      if (searchParams.has(queryKey)) {
-        nextSearchParams.set(queryKey, String(price * PRICE_UNIT_IN_WON));
-      }
-    }
+    const nextSearchParams = getNormalizedPriceSearchParams(
+      searchParams,
+      appliedFilterState.priceRange,
+    );
 
     if (nextSearchParams.toString() !== searchParams.toString()) {
       setSearchParams(nextSearchParams, {
@@ -355,36 +169,12 @@ function HospitalSearchResultPage() {
     searchParams,
     setSearchParams,
   ]);
-  const filteredHospitals = useMemo(
-    () =>
-      hospitalSearchItems
-        .filter((hospital) =>
-          matchesHospitalSearchFilters(
-            hospital,
-            appliedFilterState,
-            activeProcedureIds,
-            hospitalSearchRegions,
-          ),
-        )
-        .map((hospital) => ({
-          ...hospital,
-          priceCards: hospital.priceCards.filter((priceCard) =>
-            matchesHospitalSearchPriceCard(
-              priceCard,
-              appliedFilterState.priceRange,
-              activeProcedureIds,
-            ),
-          ),
-        })),
-    [appliedFilterState, activeProcedureIds, hospitalSearchRegions],
-  );
-  const sortedHospitals = useMemo(
-    () => getSortedHospitals(filteredHospitals, selectedSort),
-    [filteredHospitals, selectedSort],
-  );
-
-  if (selectedProcedureIds.length === 0 && selectedSort === 'lowest-price') {
-    setSelectedSort('most-visited');
+  if (
+    treatmentScope &&
+    selectedProcedureIds.length === 0 &&
+    selectedSort === 'lowest-price'
+  ) {
+    setListState({ sort: 'most-visited' });
   }
 
   const hasAppliedFilter =
@@ -400,42 +190,24 @@ function HospitalSearchResultPage() {
     const nextProcedureIds = selectedProcedureIds.includes(procedureId)
       ? selectedProcedureIds.filter((id) => id !== procedureId)
       : [...selectedProcedureIds, procedureId];
-    const nextSearchParams = new URLSearchParams(searchParams);
-
-    nextSearchParams.delete(PROCEDURE_QUERY_KEY);
-    nextProcedureIds.forEach((id) => {
-      nextSearchParams.append(PROCEDURE_QUERY_KEY, String(id));
-    });
+    const nextSearchParams = getProcedureSearchParams(
+      searchParams,
+      nextProcedureIds,
+    );
 
     setSearchParams(nextSearchParams, { state: location.state });
   };
 
+  const handleAllProceduresClick = () => {
+    if (selectedProcedureIds.length === 0) return;
+
+    setSearchParams(getProcedureSearchParams(searchParams, []), {
+      state: location.state,
+    });
+  };
+
   const handleFilterApply = (filterState: HospitalSearchFilterState) => {
-    const nextSearchParams = new URLSearchParams(searchParams);
-
-    clearFilterSearchParams(nextSearchParams);
-
-    filterState.regionSelections.forEach(({ regionId, districtId }) => {
-      nextSearchParams.append(REGION_QUERY_KEY, `${regionId}:${districtId}`);
-    });
-
-    if (filterState.priceRange.min !== PRICE_MINIMUM) {
-      nextSearchParams.set(
-        MIN_PRICE_QUERY_KEY,
-        String(filterState.priceRange.min * PRICE_UNIT_IN_WON),
-      );
-    }
-
-    if (filterState.priceRange.max !== PRICE_MAXIMUM) {
-      nextSearchParams.set(
-        MAX_PRICE_QUERY_KEY,
-        String(filterState.priceRange.max * PRICE_UNIT_IN_WON),
-      );
-    }
-
-    filterState.treatmentConditionIds.forEach((conditionId) => {
-      nextSearchParams.append(TREATMENT_CONDITION_QUERY_KEY, conditionId);
-    });
+    const nextSearchParams = getFilterSearchParams(searchParams, filterState);
 
     setSearchParams(nextSearchParams, { state: location.state });
     setFilterSheetOpen(false);
@@ -462,19 +234,8 @@ function HospitalSearchResultPage() {
       return;
     }
 
-    const nextSearchParams = new URLSearchParams(searchParams);
+    const nextSearchParams = getScopeSearchParams(searchParams, scope);
 
-    nextSearchParams.set(
-      MEDICAL_CATEGORY_QUERY_KEY,
-      String(scope.medicalCategoryId),
-    );
-    nextSearchParams.set(
-      TREATMENT_CATEGORY_QUERY_KEY,
-      scope.treatmentCategoryId === null
-        ? 'all'
-        : String(scope.treatmentCategoryId),
-    );
-    nextSearchParams.delete(PROCEDURE_QUERY_KEY);
     setSearchParams(nextSearchParams, { state: location.state });
   };
 
@@ -485,6 +246,11 @@ function HospitalSearchResultPage() {
   const selectedSortOption =
     sortOptions.find((option) => option.value === selectedSort) ??
     sortOptions[0];
+  const hasRegionError =
+    regionOptions.status === 'error' ||
+    appliedFilterState.regionSelections.some(
+      ({ regionId }) => districtStatuses[regionId] === 'error',
+    );
 
   return (
     <>
@@ -500,7 +266,15 @@ function HospitalSearchResultPage() {
                     ? location.state.homeSearch
                     : '',
               },
-              { replace: true },
+              {
+                replace: true,
+                state: {
+                  restoreListStateKey:
+                    typeof location.state?.homeListStateKey === 'string'
+                      ? location.state.homeListStateKey
+                      : undefined,
+                },
+              },
             );
           }}
           categoryName={
@@ -509,9 +283,20 @@ function HospitalSearchResultPage() {
           isTitleDisabled={!treatmentScope}
           isTitleOpen={isCategorySheetOpen}
           onTitleClick={handleCategorySheetOpen}
+          onSearchClick={() => showToast(UNSUPPORTED_FEATURE_MESSAGE)}
         />
-        {treatments.length > 0 && (
-          <div className="flex gap-gap-xs overflow-x-auto bg-surface-default pl-padding-m py-padding-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {hasTreatmentChips && (
+          <div
+            key={`${treatmentScope?.medicalCategoryId}-${treatmentScope?.treatmentCategoryId ?? 'all'}`}
+            className="flex gap-gap-xs overflow-x-auto bg-surface-default pl-padding-m py-padding-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {showAllTreatmentChip && (
+              <FilterChip
+                label="전체"
+                selected={selectedProcedureIds.length === 0}
+                onClick={handleAllProceduresClick}
+              />
+            )}
             {treatments.map((procedure) => (
               <FilterChip
                 key={procedure.id}
@@ -527,8 +312,10 @@ function HospitalSearchResultPage() {
       <div className="-mx-padding-m bg-surface-default pt-padding-xs">
         <Tab
           items={hospitalSearchTabItems}
-          selectedValue={selectedTab}
-          onValueChange={setSelectedTab}
+          selectedValue="hospital"
+          onValueChange={(tab) => {
+            if (tab !== 'hospital') showToast(UNSUPPORTED_FEATURE_MESSAGE);
+          }}
           layout="fill"
         />
       </div>
@@ -537,7 +324,7 @@ function HospitalSearchResultPage() {
         disabled={!treatmentScope}
         className="sticky z-10 -mx-padding-m flex items-center justify-between bg-surface-default px-padding-m py-padding-s disabled:opacity-50"
         style={{
-          top: `calc(env(safe-area-inset-top) + ${treatments.length > 0 ? 100 : 52}px)`,
+          top: `calc(env(safe-area-inset-top) + ${hasTreatmentChips ? 100 : 52}px)`,
         }}
       >
         <FilterChip
@@ -553,17 +340,58 @@ function HospitalSearchResultPage() {
           options={sortOptions}
           selectedValue={selectedSortOption.value}
           align="end"
-          onValueChange={setSelectedSort}
+          onValueChange={handleSortChange}
         />
       </fieldset>
-      {treatmentScope && (
-        <HospitalSearchResultList hospitals={sortedHospitals} />
+      {treatmentScope && !areSelectedRegionsReady && (
+        <div className="flex flex-col items-center gap-gap-s py-padding-l text-center typography-body-regular text-text-secondary">
+          <p role={hasRegionError ? 'alert' : 'status'}>
+            {hasRegionError
+              ? '지역 조건을 불러오지 못했어요.'
+              : '지역 조건을 불러오는 중이에요.'}
+          </p>
+          {hasRegionError && (
+            <button
+              type="button"
+              className="min-h-11 px-padding-m text-text-brand"
+              onClick={() => {
+                if (regionOptions.status === 'error') {
+                  regionOptions.retryRegions();
+                } else {
+                  for (const {
+                    regionId,
+                  } of appliedFilterState.regionSelections) {
+                    if (districtStatuses[regionId] === 'error')
+                      loadDistricts(regionId, true);
+                  }
+                }
+              }}
+            >
+              다시 시도
+            </button>
+          )}
+        </div>
+      )}
+      {treatmentScope && areSelectedRegionsReady && (
+        <>
+          {(hospitalList.hospitals.length > 0 ||
+            hospitalList.status === 'success') && (
+            <HospitalSearchResultList hospitals={hospitalList.hospitals} />
+          )}
+          <HospitalListFeedback
+            status={hospitalList.status}
+            hasHospitals={hospitalList.hospitals.length > 0}
+            hasNext={hospitalList.hasNext}
+            onRetry={hospitalList.retry}
+            onMoreClick={hospitalList.loadMore}
+          />
+        </>
       )}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+20px)] z-20 mx-auto flex w-full max-w-[480px] justify-end px-padding-m">
         <button
           type="button"
-          disabled
-          className="inline-flex h-10 w-[105px] items-center justify-center gap-gap-xs rounded-[var(--radius-full)] border border-border-weak bg-interaction-neutral-inverse px-padding-s typography-label-large-medium text-text-brand shadow-[0_0_4px_rgb(0_0_0/12%)]"
+          onClick={() => showToast(UNSUPPORTED_FEATURE_MESSAGE)}
+          className="pointer-events-auto inline-flex h-10 w-[105px] items-center justify-center gap-gap-xs rounded-[var(--radius-full)] border border-border-weak bg-interaction-neutral-inverse px-padding-s typography-label-large-medium text-text-brand shadow-[0_0_4px_rgb(0_0_0/12%)]"
         >
           <img src={mapIcon} alt="" className="size-5 shrink-0" />
           지도보기
@@ -586,7 +414,8 @@ function HospitalSearchResultPage() {
         isOpen={isFilterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
         initialFilterState={appliedFilterState}
-        procedureIds={activeProcedureIds}
+        scope={treatmentScope}
+        procedureIds={selectedProcedureIds}
         onApply={handleFilterApply}
         triggerRef={filterTriggerRef}
       />
