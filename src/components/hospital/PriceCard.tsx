@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 type PriceCardBaseProps = {
   width?: 'fill' | 'fixed' | 'flex';
   procedureName: string;
@@ -43,7 +45,17 @@ function PriceCard({
     >
       <div className="flex h-10 items-center justify-between bg-surface-brand-weak px-padding-s py-padding-xs">
         <h3 className="typography-body-medium text-text-primary">
-          {procedureName}
+          {/* 키보드·스크린리더에서도 시술별 상세로 이동할 수 있도록 시술명을 링크로 둔다. */}
+          {detailPath ? (
+            <Link
+              to={detailPath}
+              className="rounded-[var(--radius-s)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-brand"
+            >
+              {procedureName}
+            </Link>
+          ) : (
+            procedureName
+          )}
         </h3>
       </div>
 
