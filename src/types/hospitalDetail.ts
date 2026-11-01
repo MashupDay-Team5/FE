@@ -82,6 +82,7 @@ export type HospitalDetailTreatmentResponse = {
 export type HospitalDetailResponse = {
   hospitalId: number;
   hospitalName: string;
+  address: string;
   region: HospitalDetailRegionResponse | null;
   rating: number | null;
   totalReviewCount: number;
@@ -113,7 +114,8 @@ export type ReviewItemResponse = {
   willRevisit: boolean;
   receiptVerified: boolean;
   modoodocVisit: boolean;
-  reservationVisit: boolean;
+  // 예약은 RESERVATION, 상담신청은 CONSULTATION, 없으면 null
+  reservationType: 'RESERVATION' | 'CONSULTATION' | null;
   helpfulCount: number;
   // UTC 시각 (ISO 8601)
   createdAt: string;

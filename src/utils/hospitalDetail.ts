@@ -1,6 +1,5 @@
 import type {
   HospitalDetail,
-  HospitalDetailRegionResponse,
   HospitalDetailResponse,
   HospitalReview,
   HospitalReviewSegment,
@@ -51,15 +50,6 @@ function formatPrice(price: number) {
   return `${price.toLocaleString('ko-KR')}원`;
 }
 
-// 시·구·동 이름을 이어 붙인다. 예: 서울 서초구 서초4동
-function formatAddress(region: HospitalDetailRegionResponse | null) {
-  if (!region) return '';
-
-  return [region.sidoName, region.sigunguName, region.dongName]
-    .filter(Boolean)
-    .join(' ');
-}
-
 export function toHospitalDetail(
   response: HospitalDetailResponse,
 ): HospitalDetail {
@@ -74,7 +64,7 @@ export function toHospitalDetail(
       discountPrice < regularPrice,
     rating: (response.rating ?? 0).toFixed(1),
     reviewCount: String(response.totalReviewCount),
-    address: formatAddress(response.region),
+    address: response.address,
     treatment: {
       treatmentId: response.treatment.treatmentId,
       name: response.treatment.treatmentName,
@@ -109,7 +99,7 @@ export function toHospitalReview(item: ReviewItemResponse): HospitalReview {
     author: { nickname: item.authorDisplayName },
     createdAt: formatCreatedAt(item.createdAt),
     helpfulCount: item.helpfulCount,
-    isReservationVisit: item.reservationVisit,
+    isReservationVisit: item.reservationType === 'RESERVATION',
     // 가격 일치 여부는 API에 없어 안내 문구를 보여주지 않는다.
     isPriceMatched: false,
   };
