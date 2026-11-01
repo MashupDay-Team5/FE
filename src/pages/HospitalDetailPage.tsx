@@ -16,6 +16,7 @@ import ScrollToTopButton from '@/components/hospital/ScrollToTopButton';
 import ReviewPanel from '@/components/hospital/ReviewPanel';
 import Header from '@/components/layout/Header';
 import TopArea from '@/components/layout/TopArea';
+import { getHospitalImages } from '@/constants/hospitalImages';
 import { useHospitalDetail } from '@/hooks/useHospitalDetail';
 import { useHospitalReviews } from '@/hooks/useHospitalReviews';
 import { usePageScrollPosition } from '@/hooks/usePageScrollPosition';
@@ -154,6 +155,8 @@ function HospitalDetailPage() {
   }
 
   // Q&A 수는 API에 없어 표시하지 않는다.
+  const bannerUrl = getHospitalImages(hospital.hospitalId)?.bannerUrl;
+
   const tabItems: TabItem<HospitalDetailTab>[] = [
     { value: 'price', label: '가격' },
     {
@@ -217,7 +220,10 @@ function HospitalDetailPage() {
           ref={heroImageRef}
           className="-mt-[calc(52px+env(safe-area-inset-top))] aspect-[375/216] w-full bg-surface-weak"
         >
-          {/* 대표 이미지는 API에 아직 없어 placeholder만 보여준다. */}
+          {/* 대표 이미지는 API에 없어 프론트 정적 이미지를 hospitalId로 연결한다. 없으면 placeholder만 보여준다. */}
+          {bannerUrl && (
+            <img src={bannerUrl} alt="" className="size-full object-cover" />
+          )}
         </div>
 
         <HospitalDetailTitle
