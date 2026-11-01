@@ -1,7 +1,11 @@
 import ListCard from '@/components/hospital/ListCard';
 import PriceCard from '@/components/hospital/PriceCard';
 import type { HospitalSearchItem } from '@/types/hospitalSearch';
-import { getHospitalDetailUrl } from '@/utils/hospitalSearchUrl';
+import {
+  getCardDetailPath,
+  getHospitalDetailUrl,
+} from '@/utils/hospitalSearchUrl';
+
 type MallHospitalListProps = {
   hospitals: HospitalSearchItem[];
 };
@@ -25,6 +29,10 @@ function MallHospitalList({ hospitals }: MallHospitalListProps) {
           <PriceCard
             key={priceCard.procedureId}
             {...priceCard}
+            detailPath={getHospitalDetailUrl(
+              hospital.hospitalId,
+              priceCard.procedureId,
+            )}
             width={hospital.priceCards.length === 1 ? 'fill' : 'fixed'}
           />
         ));
@@ -40,7 +48,7 @@ function MallHospitalList({ hospitals }: MallHospitalListProps) {
             thumbnailUrl={hospital.thumbnailUrl}
             badgeTypes={hospital.badgeTypes}
             showDiscountIcon={hospital.hasDiscount}
-            detailPath={getHospitalDetailUrl(hospital.hospitalId)}
+            detailPath={getCardDetailPath(hospital)}
             priceCards={priceCards}
           />
         );
