@@ -85,16 +85,18 @@ export function toHospitalReview(item: ReviewItemResponse): HospitalReview {
     rating: item.rating,
     willRevisit: item.willRevisit,
     doctorName: item.doctorName ?? undefined,
-    // API는 시술별 금액 없이 리뷰 전체 결제 금액만 주므로 한 줄로 보여준다.
-    payments:
-      item.paidPrice === null
-        ? []
-        : [
-            {
-              treatmentName: treatmentNames.join(', '),
-              price: formatPrice(item.paidPrice),
-            },
-          ],
+    // 받은 진료마다 한 줄씩 보여주고, 금액을 모르면 '-원'으로 표시한다.
+    // 시술별 금액이 없을 때 받은 진료가 하나뿐이면 리뷰 전체 결제 금액을 그 시술 금액으로 본다.
+    payments: item.receivedTreatments.map(({ name, paidPrice }) => {
+      const price =
+        paidPrice ??
+        (item.receivedTreatments.length === 1 ? item.paidPrice : null);
+
+      return {
+        treatmentName: name,
+        price: price === null ? '-원' : formatPrice(price),
+      };
+    }),
     body: item.content,
     author: { nickname: item.authorDisplayName },
     createdAt: formatCreatedAt(item.createdAt),
