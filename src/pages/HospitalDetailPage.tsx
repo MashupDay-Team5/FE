@@ -23,6 +23,7 @@ import { usePageScrollPosition } from '@/hooks/usePageScrollPosition';
 import { UNSUPPORTED_FEATURE_MESSAGE, useToast } from '@/hooks/useToast';
 import type {
   HospitalDetailTab,
+  HospitalReview,
   HospitalReviewSegment,
   HospitalReviewSort,
 } from '@/types/hospitalDetail';
@@ -50,6 +51,27 @@ type RetryMessageProps = {
   message: string;
   onRetry: () => void;
 };
+
+// 서버의 도움 수에 화면에서 누른 '도움이 돼요'를 더한 값
+function getHelpfulCount(
+  review: HospitalReview,
+  helpfulReviewIds: Set<number>,
+) {
+  return review.helpfulCount + (helpfulReviewIds.has(review.reviewId) ? 1 : 0);
+}
+
+// 도움많은순에서 화면에서 누른 '도움이 돼요'까지 반영해 다시 정렬한다.
+// 값이 같으면 서버 정렬 순서를 유지하고, 불러온 리뷰 안에서만 순서를 바꾼다.
+function sortByHelpfulCount(
+  reviews: HospitalReview[],
+  helpfulReviewIds: Set<number>,
+) {
+  return [...reviews].sort(
+    (a, b) =>
+      getHelpfulCount(b, helpfulReviewIds) -
+      getHelpfulCount(a, helpfulReviewIds),
+  );
+}
 
 // 불러오기 실패 안내와 다시 시도 버튼
 function RetryMessage({ message, onRetry }: RetryMessageProps) {
@@ -182,6 +204,10 @@ function HospitalDetailPage() {
     selectedSegment === 'related'
       ? hospital.relatedReviewCount
       : hospital.otherReviewCount;
+  const visibleReviews =
+    selectedSort === 'most-helpful'
+      ? sortByHelpfulCount(reviewList.reviews, helpfulReviewIds)
+      : reviewList.reviews;
 
   // 관련된 리뷰 바: 리뷰 탭·관련 리뷰를 선택하고 탭이 Header 아래에 붙는 위치로 스크롤한다.
   const handleRelatedReviewClick = () => {
@@ -285,7 +311,9 @@ function HospitalDetailPage() {
           <div className="flex items-center justify-between p-padding-m">
             <h2 className="flex items-center gap-gap-xs typography-heading-bold">
               <span className="text-text-strong">
-                {hospital.treatment.name} 리뷰
+                {selectedSegment === 'related'
+                  ? `${hospital.treatment.name} 리뷰`
+                  : '이 병원의 다른 리뷰'}
               </span>
               <span className="text-text-brand">
                 {selectedSegmentReviewCount}
@@ -318,7 +346,7 @@ function HospitalDetailPage() {
           {/* 리뷰 카드 사이 16px은 Figma 시안 간격을 재서 맞춘 값이다. */}
           {reviewList.status === 'success' && reviewList.reviews.length > 0 && (
             <div className="flex flex-col gap-gap-l">
-              {reviewList.reviews.map((review) => (
+              {visibleReviews.map((review) => (
                 <ReviewPanel
                   key={review.reviewId}
                   review={review}
