@@ -311,7 +311,9 @@ function HospitalDetailPage() {
           <div className="flex items-center justify-between p-padding-m">
             <h2 className="flex items-center gap-gap-xs typography-heading-bold">
               <span className="text-text-strong">
-                {hospital.treatment.name} 리뷰
+                {selectedSegment === 'related'
+                  ? `${hospital.treatment.name} 리뷰`
+                  : '이 병원의 다른 리뷰'}
               </span>
               <span className="text-text-brand">
                 {selectedSegmentReviewCount}
