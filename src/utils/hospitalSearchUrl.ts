@@ -44,10 +44,7 @@ export function getTreatmentScope(
 
   const defaultTreatmentScope: TreatmentScope = {
     medicalCategoryId: defaultMedicalCategory.id,
-    treatmentCategoryId:
-      defaultMedicalCategory.treatmentCategories.find(
-        ({ name }) => name === '시력교정술',
-      )?.id ?? null,
+    treatmentCategoryId: null,
   };
   const medicalCategoryValue = searchParams.get(MEDICAL_CATEGORY_QUERY_KEY);
   const treatmentCategoryValue = searchParams.get(TREATMENT_CATEGORY_QUERY_KEY);
