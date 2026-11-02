@@ -21,19 +21,24 @@ body,
 
 body {
   overflow: hidden;
+  background-color: var(--color-surface-subtle);
 }
 
 #root {
   height: 100dvh;
+  max-width: 480px;
+  margin-inline: auto;
   overflow-y: auto;
   overscroll-behavior-y: none;
 }
 
+#root,
 .scrollbar-hidden {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
+#root::-webkit-scrollbar,
 .scrollbar-hidden::-webkit-scrollbar {
   width: 0;
   height: 0;
