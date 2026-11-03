@@ -7,12 +7,13 @@ import {
 } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import HospitalBookmarkButton from '@/components/hospital/HospitalBookmarkButton';
-import checkBadgeIcon from '@/assets/icons/checkBadgeIcon.svg';
+import checkIcon from '@/assets/icons/check.svg';
 import badgeDiscountIcon from '@/assets/icons/badgeDiscount.svg';
 import discountIcon from '@/assets/icons/discount.svg';
 import ratingStarIcon from '@/assets/icons/ratingStar.svg';
 import Badge, { BadgeIcon } from '@/components/common/Badge';
 import { hospitalBadgeLabels } from '@/constants/hospitalSearch';
+import { useDragScroll } from '@/hooks/useDragScroll';
 import type { HospitalBadgeType } from '@/types/hospital';
 
 // 이만큼 이상 움직였다가 뗀 경우는 드래그(스크롤)로 보고 상세로 이동하지 않는다.
@@ -55,6 +56,7 @@ function ListCard({
   const hasBadges = badgeTypes.length > 0 || badges;
   const navigate = useNavigate();
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+  const dragScrollProps = useDragScroll();
 
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
     pointerStartRef.current = { x: event.clientX, y: event.clientY };
@@ -104,7 +106,7 @@ function ListCard({
                   badge === 'SPECIAL_OFFER' ? (
                     <img src={badgeDiscountIcon} alt="" />
                   ) : badge !== 'POPULAR' ? (
-                    <BadgeIcon src={checkBadgeIcon} />
+                    <BadgeIcon src={checkIcon} />
                   ) : undefined
                 }
               >
@@ -176,7 +178,11 @@ function ListCard({
         </div>
       </div>
 
-      <div className="flex w-full items-center gap-gap-s overflow-x-auto overflow-y-hidden px-padding-m [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* 카드 테두리가 스크롤 영역 경계에 잘리지 않도록 위아래 1px 여유를 두고 음수 마진으로 높이를 유지한다. */}
+      <div
+        {...dragScrollProps}
+        className="-my-px flex w-full items-start gap-gap-s overflow-x-auto overflow-y-hidden px-padding-m py-px [scrollbar-width:none] pointer-fine:select-none [&::-webkit-scrollbar]:hidden"
+      >
         {priceCards}
         {Children.count(priceCards) > 1 && (
           <div aria-hidden="true" className="h-8 w-4 shrink-0" />
