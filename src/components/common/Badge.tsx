@@ -41,11 +41,12 @@ function getColorClass(color: BadgeColor, shape: BadgeShape) {
 }
 
 // SVG 모양만 mask로 쓰고 색은 텍스트 색(currentColor)을 따른다.
+// 16px 영역 가운데에 SVG 원래 크기로 그린다.
 export function BadgeIcon({ src }: { src: string }) {
   return (
     <span
       aria-hidden
-      className="size-4 shrink-0 bg-current mask-contain mask-center mask-no-repeat"
+      className="size-4 shrink-0 bg-current mask-auto mask-center mask-no-repeat"
       style={{
         maskImage: `url("${src}")`,
         WebkitMaskImage: `url("${src}")`,
